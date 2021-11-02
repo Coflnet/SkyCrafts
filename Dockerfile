@@ -12,7 +12,12 @@ WORKDIR /app
 COPY --from=build /build/bin/release/net5.0/publish/ .
 COPY --from=build /build/itemData .
 
-ENTRYPOINT ["dotnet", "SkyCrafts.dll"]
+ENV ASPNETCORE_URLS=http://+:8000
+# using a non-root user is a best practice for security related execution. 
+RUN useradd --uid $(shuf -i 2000-65000 -n 1) app 
+USER app
+
+ENTRYPOINT ["dotnet", "SkyCrafts.dll", "--hostBuilder:reloadConfigOnChange=false"]
 
 VOLUME /data
 
