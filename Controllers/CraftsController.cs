@@ -28,7 +28,15 @@ namespace Coflnet.Sky.Crafts.Controllers
         [HttpGet]
         public IEnumerable<ProfitableCraft> Get()
         {
-            return updaterService.Crafts.Values.Where(c=>c.CraftCost<c.SellPrice * 0.95);
+            return GetProfitable();
+        }
+
+
+        [HttpGet]
+        [Route("profit")]
+        public IEnumerable<ProfitableCraft> GetProfitable()
+        {
+            return updaterService.Crafts.Values.Where(c => c.CraftCost < c.SellPrice * 0.95 && !c.Ingredients.Where(i => i.Cost != 0).Any());
         }
     }
 }

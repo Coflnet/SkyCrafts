@@ -26,7 +26,7 @@ namespace Coflnet.Sky.Crafts.Services
                 catch ( System.Net.Http.HttpRequestException e)
                 {
                     // likely unobtainable
-                    item.Cost = 1_000_000;
+                    item.Cost = 0;
                 }
             }).ToArray());
             return new ProfitableCraft()
