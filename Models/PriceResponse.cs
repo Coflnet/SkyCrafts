@@ -8,5 +8,7 @@ namespace Coflnet.Sky.Crafts.Models
         public double SellPrice { get; set; }
         [JsonPropertyName("buy")]
         public double BuyPrice { get; set; }
+        [JsonPropertyName("available")]
+        public int Available { get; set; }
     }
 }
