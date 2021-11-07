@@ -36,7 +36,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         [Route("profit")]
         public IEnumerable<ProfitableCraft> GetProfitable()
         {
-            return updaterService.Crafts.Values.Where(c => c.CraftCost < c.SellPrice * 0.95 && !c.Ingredients.Where(i => i.Cost != 0).Any());
+            return updaterService.Crafts.Values.Where(c => c.CraftCost < c.SellPrice * 0.95 && !c.Ingredients.Where(i => i.Cost == 0).Any());
         }
     }
 }
