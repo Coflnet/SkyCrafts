@@ -14,16 +14,16 @@ namespace Coflnet.Sky.Crafts.Services
         public async Task<ProfitableCraft> GetCreaftingCost(string itemId)
         {
             var ingredients = NeedCount(itemId).ToList();
-            var sellPriceTask = GetPriceFor(itemId);
+            var sellPriceTask = GetPriceFor(itemId, 1);
             await Task.WhenAll(ingredients.Select(async item =>
             {
                 try
                 {
 
-                    PriceResponse prices = await GetPriceFor(item.ItemId);
+                    PriceResponse prices = await GetPriceFor(item.ItemId, item.Count);
                     item.Cost = prices.BuyPrice;
                 }
-                catch ( System.Net.Http.HttpRequestException e)
+                catch (System.Net.Http.HttpRequestException e)
                 {
                     // likely unobtainable
                     item.Cost = 0;
@@ -38,9 +38,9 @@ namespace Coflnet.Sky.Crafts.Services
             };
         }
 
-        private static async Task<PriceResponse> GetPriceFor(string itemTag)
+        private static async Task<PriceResponse> GetPriceFor(string itemTag, int count)
         {
-            var response = await client.GetStringAsync($"https://sky.coflnet.com/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current");
+            var response = await client.GetStringAsync($"https://sky.coflnet.com/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}");
             var prices = JsonSerializer.Deserialize<PriceResponse>(response);
             return prices;
         }
