@@ -40,7 +40,7 @@ namespace Coflnet.Sky.Crafts
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkyCrafts", Version = "v1" });
             });
             services.AddSingleton<CalculatorService>();
-            services.AddSingleton<CraftingReceipeService>();
+            services.AddSingleton<CraftingRecipeService>();
             services.AddSingleton<UpdaterService>();
             services.AddSingleton<CollectionService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());

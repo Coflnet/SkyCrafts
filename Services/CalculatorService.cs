@@ -19,7 +19,6 @@ namespace Coflnet.Sky.Crafts.Services
             {
                 try
                 {
-
                     PriceResponse prices = await GetPriceFor(item.ItemId, item.Count);
                     item.Cost = prices.BuyPrice;
                     if(prices.Available < item.Count)

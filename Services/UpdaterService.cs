@@ -14,19 +14,19 @@ namespace Coflnet.Sky.Crafts.Services
 {
     public class UpdaterService : BackgroundService
     {
-        private CraftingReceipeService craftingReceipeService;
+        private CraftingRecipeService craftingRecipeService;
         private CalculatorService calculatorService;
         private CollectionService collectionService;
         private ILogger<UpdaterService> logger;
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
         Prometheus.Counter profitableFound = Prometheus.Metrics.CreateCounter("sky_craft_profitable", "How many profitable items were found");
 
-        public UpdaterService(CraftingReceipeService craftingReceipeService,
+        public UpdaterService(CraftingRecipeService craftingRecipeService,
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
                     CollectionService collectionService)
         {
-            this.craftingReceipeService = craftingReceipeService;
+            this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
             this.logger = logger;
             this.collectionService = collectionService;
@@ -34,7 +34,7 @@ namespace Coflnet.Sky.Crafts.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var craftable = craftingReceipeService.CraftAbleItems().ToList();
+            var craftable = craftingRecipeService.CraftAbleItems().ToList();
             while (!stoppingToken.IsCancellationRequested)
                 await IterateAll(craftable, stoppingToken);
         }
