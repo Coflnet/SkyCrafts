@@ -72,6 +72,7 @@ namespace Coflnet.Sky.Crafts.Services
                 catch (Exception e)
                 {
                     logger.LogError(e, "updating item " + item.internalname);
+                    await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
         }
