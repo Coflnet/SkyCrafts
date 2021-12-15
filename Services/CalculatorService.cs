@@ -5,12 +5,20 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace Coflnet.Sky.Crafts.Services
 {
     public class CalculatorService
     {
         private static readonly HttpClient client = new HttpClient();
+        private IConfiguration config;
+
+        public CalculatorService(IConfiguration config)
+        {
+            this.config = config;
+        }
+
         public async Task<ProfitableCraft> GetCreaftingCost(string itemId)
         {
             var ingredients = NeedCount(itemId).ToList();
@@ -39,9 +47,9 @@ namespace Coflnet.Sky.Crafts.Services
             };
         }
 
-        private static async Task<PriceResponse> GetPriceFor(string itemTag, int count)
+        private async Task<PriceResponse> GetPriceFor(string itemTag, int count)
         {
-            var response = await client.GetStringAsync($"https://sky.coflnet.com/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}");
+            var response = await client.GetStringAsync($"{config["API_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}");
             var prices = JsonSerializer.Deserialize<PriceResponse>(response);
             return prices;
         }
