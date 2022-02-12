@@ -71,7 +71,10 @@ namespace Coflnet.Sky.Crafts.Services
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "updating item " + item.internalname);
+                    if (e.Message.Contains("Too Many Requests"))
+                        logger.LogInformation("sent to many requests");
+                    else
+                        logger.LogError(e, "updating item " + item.internalname);
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
