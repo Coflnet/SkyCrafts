@@ -45,6 +45,12 @@ namespace Coflnet.Sky.Crafts.Controllers
                 ) && !c.Ingredients.Where(i => i.Cost <= 0).Any());
         }
         [HttpGet]
+        [Route("all")]
+        public IEnumerable<ProfitableCraft> GetAll()
+        {
+            return updaterService.Crafts.Select(e=>e.Value).OrderByDescending(c=>c.SellPrice-c.CraftCost);
+        }
+        [HttpGet]
         [Route("recipe/{itemTag}")]
         public Task<Dictionary<string, string>> GetRecipe(string itemTag)
         {
