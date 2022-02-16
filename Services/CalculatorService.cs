@@ -49,7 +49,7 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task<PriceResponse> GetPriceFor(string itemTag, int count)
         {
-            var response = await client.GetStringAsync($"{config["API_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}");
+            var response = await client.GetStringAsync($"{config["API_BASE_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}");
             var prices = JsonSerializer.Deserialize<PriceResponse>(response);
             return prices;
         }
