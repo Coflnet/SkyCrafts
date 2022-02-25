@@ -21,7 +21,7 @@ namespace Coflnet.Sky.Crafts.Services
         private CollectionService collectionService;
         private ILogger<UpdaterService> logger;
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
-        public HashSet<string> BazaarItems = new ();
+        public HashSet<string> BazaarItems = new();
         Prometheus.Counter profitableFound = Prometheus.Metrics.CreateCounter("sky_craft_profitable", "How many profitable items were found");
 
         public UpdaterService(CraftingRecipeService craftingRecipeService,
@@ -74,6 +74,12 @@ namespace Coflnet.Sky.Crafts.Services
                         var name = Regex.Replace(item.displayname, @"§[\da-f]", "");
                         result.ReqCollection = await collectionService.GetRequiredCollection(name);
                     }
+                    if (!string.IsNullOrEmpty(item.slayer_req))
+                        result.ReqSlayer = new Models.RequiredCollection()
+                        {
+                            Name = item.slayer_req.Split("_").First(),
+                            Level = int.Parse(item.slayer_req.Split("_").Last())
+                        };
                     if (result.CraftCost < result.SellPrice)
                     {
                         profitableFound.Inc();

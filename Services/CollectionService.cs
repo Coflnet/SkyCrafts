@@ -12,10 +12,6 @@ namespace Coflnet.Sky.Crafts.Services
     public class CollectionService
     {
         private Dictionary<string, RequiredCollection> RequiredCollection = new Dictionary<string, RequiredCollection>();
-        public CollectionService()
-        {
-
-        }
 
         public async Task<RequiredCollection> GetRequiredCollection(string itemName)
         {

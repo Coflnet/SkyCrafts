@@ -17,5 +17,6 @@ namespace Coflnet.Sky.Crafts.Models
         public string infoType { get; set; }
         public List<string> info { get; set; }
         public string crafttext { get; set; }
+        public string slayer_req { get; set; }
     }
 }
