@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Services;
 using Jaeger.Samplers;
@@ -34,7 +35,9 @@ namespace Coflnet.Sky.Crafts
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(json=>{
+                json.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkyCrafts", Version = "v1" });
@@ -43,6 +46,7 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<CraftingRecipeService>();
             services.AddSingleton<UpdaterService>();
             services.AddSingleton<CollectionService>();
+            services.AddSingleton<KatUpgradeService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
 
             services.AddSingleton<ITracer>(serviceProvider =>

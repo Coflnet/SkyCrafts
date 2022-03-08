@@ -19,6 +19,7 @@ namespace Coflnet.Sky.Crafts.Services
         private CraftingRecipeService craftingRecipeService;
         private CalculatorService calculatorService;
         private CollectionService collectionService;
+        private KatUpgradeService katService;
         private ILogger<UpdaterService> logger;
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
         public HashSet<string> BazaarItems = new();
@@ -27,12 +28,13 @@ namespace Coflnet.Sky.Crafts.Services
         public UpdaterService(CraftingRecipeService craftingRecipeService,
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
-                    CollectionService collectionService)
+                    CollectionService collectionService, KatUpgradeService katService)
         {
             this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
             this.logger = logger;
             this.collectionService = collectionService;
+            this.katService = katService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -41,7 +43,10 @@ namespace Coflnet.Sky.Crafts.Services
             var craftable = craftingRecipeService.CraftAbleItems().ToList();
             await getBazaarItemsTask;
             while (!stoppingToken.IsCancellationRequested)
+            {
+                await katService.Update();
                 await IterateAll(craftable, stoppingToken);
+            }
         }
 
         private async Task GetBazaarItems()
