@@ -12,5 +12,7 @@ namespace Coflnet.Sky.Crafts.Models
         public double Profit { get; internal set; }
         public Api.Client.Model.Tier TargetRarity { get; set; }
         public string ReferenceAuction { get; set; }
+        public long PurchaseCost { get; set; }
+        public string OriginAuctionName { get; set; }
     }
 }

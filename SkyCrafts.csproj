@@ -4,6 +4,10 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Client\**\*</DefaultItemExcludes>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.0.2" />
     <PackageReference Include="Jaeger.Senders.Thrift" Version="1.0.3" />

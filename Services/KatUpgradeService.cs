@@ -88,7 +88,9 @@ namespace Coflnet.Sky.Crafts.Services
                 UpgradeCost = upgradeCost,
                 Profit = profit,
                 TargetRarity = (Api.Client.Model.Tier)lbin.Tier,
-                ReferenceAuction = lbin.Uuid
+                ReferenceAuction = lbin.Uuid,
+                PurchaseCost = auction.StartingBid,
+                OriginAuctionName = auction.ItemName
             };
         }
 
