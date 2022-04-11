@@ -428,20 +428,20 @@
   {
     "name": "Lion",
     "baseRarity": "Common",
-    "hours": 15000,
-    "cost": 2000
+    "hours": 24,
+    "cost": 15000
   },
   {
     "name": "Lion",
     "baseRarity": "Uncommon",
-    "hours": 75000,
-    "cost": 5000
+    "hours": 48,
+    "cost": 75000
   },
   {
     "name": "Lion",
     "baseRarity": "Rare",
-    "hours": 900000,
-    "cost": 190000
+    "hours": 168,
+    "cost": 900000
   },
   {
     "name": "Lion",
