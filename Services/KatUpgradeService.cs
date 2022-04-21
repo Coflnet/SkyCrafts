@@ -34,6 +34,7 @@ namespace Coflnet.Sky.Crafts.Services
         public async Task Update()
         {
             var list = await GetKatUpgradeCosts();
+            logger.LogInformation("start updating kat list");
             var result = new List<KatUpgradeResult>();
             // List should be filled as fast as possible but not cleared after that
             if (Results == null)
@@ -51,6 +52,7 @@ namespace Coflnet.Sky.Crafts.Services
                 }
                 await Task.Delay(100);
             }
+            logger.LogInformation("done updating kat list");
             Results = result;
         }
 
