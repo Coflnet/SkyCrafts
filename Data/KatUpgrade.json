@@ -1,936 +1,750 @@
-[
-  {
-    "name": "Armadillo",
-    "baseRarity": "Common",
-    "hours": 3,
-    "cost": 10000
-  },
-  {
-    "name": "Armadillo",
-    "baseRarity": "Uncommon",
-    "hours": 10,
-    "cost": 30000
-  },
-  {
-    "name": "Armadillo",
-    "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 250000
-  },
-  {
-    "name": "Armadillo",
-    "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 1000000
-  },
-  {
-    "name": "Baby_Yeti",
-    "baseRarity": "Epic",
-    "hours": 288,
-    "cost": 10000,
-    "material": "ENCHANTED_RAW_SALMON",
-    "amount": 16
-  },
-  {
-    "name": "Bat",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Bat",
-    "baseRarity": "Common",
-    "hours": 6,
-    "cost": 5000
-  },
-  {
-    "name": "Bat",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 190000
-  },
-  {
-    "name": "Bat",
-    "baseRarity": "Common",
-    "hours": 72,
-    "cost": 250000,
-    "material": "ENCHANTED_RED_MUSHROOM",
-    "amount": 64
-  },
-  {
-    "name": "Bal",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 2000000,
-    "material": "YOGGIE",
-    "amount": 100
-  },
-  {
-    "name": "Bee",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 5000,
-    "material": "BLOCK_OF_COAL",
-    "amount": 128
-  },
-  {
-    "name": "Bee",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 40000,
-    "material": "BLOCK_OF_GOLD",
-    "amount": 128
-  },
-  {
-    "name": "Bee",
-    "baseRarity": "Rare",
-    "hours": 24,
-    "cost": 150000,
-    "material": "ENCHANTED_BLOCK_OF_COAL",
-    "amount": 9
-  },
-  {
-    "name": "Bee",
-    "baseRarity": "Epic",
-    "hours": 72,
-    "cost": 450000,
-    "material": "ENCHANTED_GOLD_BLOCK",
-    "amount": 9
-  },
-  {
-    "name": "Blaze",
-    "baseRarity": "Epic",
-    "hours": 288,
-    "cost": 200000,
-    "material": "ENCHANTED_BLAZE_ROD",
-    "amount": 64
-  },
-  {
-    "name": "Blue_Whale",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 15000
-  },
-  {
-    "name": "Blue_Whale",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 75000
-  },
-  {
-    "name": "Blue_Whale",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 900000,
-    "material": "ENCHANTED_COOKED_FISH",
-    "amount": 1
-  },
-  {
-    "name": "Blue_Whale",
-    "baseRarity": "Epic",
-    "hours": 288,
-    "cost": 9000000,
-    "material": "ENCHANTED_COOKED_FISH",
-    "amount": 8
-  },
-  {
-    "name": "Chicken",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Chicken",
-    "baseRarity": "Uncommon",
-    "hours": 4,
-    "cost": 5000
-  },
-  {
-    "name": "Chicken",
-    "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
-  },
-  {
-    "name": "Chicken",
-    "baseRarity": "Epic",
-    "hours": 24,
-    "cost": 250000,
-    "material": "ENCHANTED_RAW_CHICKEN",
-    "amount": 8
-  },
-  {
-    "name": "Dolphin",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 1000
-  },
-  {
-    "name": "Dolphin",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 1000000
-  },
-  {
-    "name": "Dolphin",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 10000000
-  },
-  {
-    "name": "Dolphin",
-    "baseRarity": "Epic",
-    "hours": 336,
-    "cost": 50000000,
-    "material": "ENCHANTED_RAW_FISH",
-    "amount": 16
-  },
-  {
-    "name": "Elephant",
-    "baseRarity": "Common",
-    "hours": 6,
-    "cost": 15000
-  },
-  {
-    "name": "Elephant",
-    "baseRarity": "Uncommon",
-    "hours": 20,
-    "cost": 75000
-  },
-  {
-    "name": "Elephant",
-    "baseRarity": "Rare",
-    "hours": 120,
-    "cost": 900000
-  },
-  {
-    "name": "Elephant",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 14000000
-  },
-  {
-    "name": "Ender_Dragon",
-    "baseRarity": "Epic",
-    "hours": 480,
-    "cost": 400000000,
-    "material": "SUMMONING_EYE",
-    "amount": 8
-  },
-  {
-    "name": "Enderman",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 1000
-  },
-  {
-    "name": "Enderman",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 5000
-  },
-  {
-    "name": "Enderman",
-    "baseRarity": "Rare",
-    "hours": 144,
-    "cost": 10000
-  },
-  {
-    "name": "Enderman",
-    "baseRarity": "Epic",
-    "hours": 288,
-    "cost": 40000000,
-    "material": "ENCHANTED_EYE_OF_ENDER",
-    "amount": 8
-  },
-  {
-    "name": "Endermite",
-    "baseRarity": "Common",
-    "hours": 2,
-    "cost": 2000
-  },
-  {
-    "name": "Endermite",
-    "baseRarity": "Uncommon",
-    "hours": 8,
-    "cost": 5000
-  },
-  {
-    "name": "Endermite",
-    "baseRarity": "Rare",
-    "hours": 72,
-    "cost": 190000
-  },
-  {
-    "name": "Endermite",
-    "baseRarity": "Epic",
-    "hours": 168,
-    "cost": 250000,
-    "material": "ENCHANTED_END_STONE",
-    "amount": 512
-  },
-  {
-    "name": "Flying_Fish",
-    "baseRarity": "Rare",
-    "hours": 120,
-    "cost": 200000
-  },
-  {
-    "name": "Flying_Fish",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 1000000,
-    "material": "ENCHANTED_RAW_FISH",
-    "amount": 64
-  },
-  {
-    "name": "Ghoul",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 5000000,
-    "material": "REVENANT_FLESH",
-    "amount": 512
-  },
-  {
-    "name": "Giraffe",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 15000
-  },
-  {
-    "name": "Giraffe",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 75000
-  },
-  {
-    "name": "Giraffe",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 9000
-  },
-  {
-    "name": "Giraffe",
-    "baseRarity": "Epic",
-    "hours": 288,
-    "cost": 9000000,
-    "material": "ENCHANTED_ACACIA_WOOD",
-    "amount": 512
-  },
-  {
-    "name": "Golem",
-    "baseRarity": "Epic",
-    "hours": 480,
-    "cost": 10000000,
-    "material": "ENCHANTED_IRON_BLOCK",
-    "amount": 8
-  },
-  {
-    "name": "Guardian",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 20000
-  },
-  {
-    "name": "Guardian",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 100000
-  },
-  {
-    "name": "Guardian",
-    "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 500000
-  },
-  {
-    "name": "Guardian",
-    "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 3000000,
-    "material": "ENCHANTED_PRISMARINE_SHARD",
-    "amount": 64
-  },
-  {
-    "name": "Horse",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Horse",
-    "baseRarity": "Uncommon",
-    "hours": 4,
-    "cost": 5000
-  },
-  {
-    "name": "Horse",
-    "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
-  },
-  {
-    "name": "Horse",
-    "baseRarity": "Epic",
-    "hours": 24,
-    "cost": 250000,
-    "material": "ENCHANTED_LEATHER",
-    "amount": 8
-  },
-  {
-    "name": "Hound",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 5000000,
-    "material": "WOLF_TOOTH",
-    "amount": 512
-  },
-  {
-    "name": "Jellyfish",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 15000000,
-    "material": "ENCHANTED_SLIMEBALL",
-    "amount": 16
-  },
-  {
-    "name": "Jerry",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 10000,
-    "material": "MOVE_JERRY",
-    "amount": 1
-  },
-  {
-    "name": "Jerry",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 20000,
-    "material": "MOVE_JERRY",
-    "amount": 1
-  },
-  {
-    "name": "Jerry",
-    "baseRarity": "Rare",
-    "hours": 24,
-    "cost": 40000,
-    "material": "MOVE_JERRY",
-    "amount": 1
-  },
-  {
-    "name": "Jerry",
-    "baseRarity": "Epic",
-    "hours": 72,
-    "cost": 100000,
-    "material": "MOVE_JERRY",
-    "amount": 1
-  },
-  {
-    "name": "Lion",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 15000
-  },
-  {
-    "name": "Lion",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 75000
-  },
-  {
-    "name": "Lion",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 900000
-  },
-  {
-    "name": "Lion",
-    "baseRarity": "Epic",
-    "hours": 336,
-    "cost": 14000000,
-    "material": "ENCHANTED_RAW_BEEF",
-    "amount": 1024
-  },
-  {
-    "name": "Magma_Cube",
-    "baseRarity": "Common",
-    "hours": 6,
-    "cost": 2000
-  },
-  {
-    "name": "Magma_Cube",
-    "baseRarity": "Uncommon",
-    "hours": 10,
-    "cost": 5000
-  },
-  {
-    "name": "Magma_Cube",
-    "baseRarity": "Rare",
-    "hours": 120,
-    "cost": 10000
-  },
-  {
-    "name": "Magma_Cube",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 500000,
-    "material": "ENCHANTED_MAGMA_CREAM",
-    "amount": 16
-  },
-  {
-    "name": "Megalodon",
-    "baseRarity": "Epic",
-    "hours": 480,
-    "cost": 10000000
-  },
-  {
-    "name": "Mithril_Golem",
-    "baseRarity": "Common",
-    "hours": 5000,
-    "cost": 2000
-  },
-  {
-    "name": "Mithril_Golem",
-    "baseRarity": "Uncommon",
-    "hours": 10000,
-    "cost": 5000
-  },
-  {
-    "name": "Mithril_Golem",
-    "baseRarity": "Rare",
-    "hours": 120,
-    "cost": 25000
-  },
-  {
-    "name": "Mithril_Golem",
-    "baseRarity": "Epic",
-    "hours": 480,
-    "cost": 50000
-  },
-  {
-    "name": "Monkey",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 15000
-  },
-  {
-    "name": "Monkey",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 75000
-  },
-  {
-    "name": "Monkey",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 900000
-  },
-  {
-    "name": "Monkey",
-    "baseRarity": "Epic",
-    "hours": 288,
-    "cost": 17000000
-  },
-  {
-    "name": "Ocelot",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Ocelot",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
-  },
-  {
-    "name": "Ocelot",
-    "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 190000
-  },
-  {
-    "name": "Ocelot",
-    "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 250000,
-    "material": "ENCHANTED_JUNGLE_WOOD",
-    "amount": 512
-  },
-  {
-    "name": "Parrot",
-    "baseRarity": "Epic",
-    "hours": 336,
-    "cost": 15000000,
-    "material": "ENCHANTED_FEATHER",
-    "amount": 16
-  },
-  {
-    "name": "Phoenix",
-    "baseRarity": "Epic",
-    "hours": 480,
-    "cost": 100000000,
-    "material": "ENCHANTED_BLAZE_POWDER",
-    "amount": 1024
-  },
-  {
-    "name": "Pig",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Pig",
-    "baseRarity": "Uncommon",
-    "hours": 3,
-    "cost": 5000
-  },
-  {
-    "name": "Pig",
-    "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
-  },
-  {
-    "name": "Pig",
-    "baseRarity": "Epic",
-    "hours": 24,
-    "cost": 250000,
-    "material": "PORK",
-    "amount": 512
-  },
-  {
-    "name": "Pigman",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 250000,
-    "material": "ENCHANTED_GRILLED_PORK",
-    "amount": 8
-  },
-  {
-    "name": "Rabbit",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Rabbit",
-    "baseRarity": "Uncommon",
-    "hours": 4,
-    "cost": 5000
-  },
-  {
-    "name": "Rabbit",
-    "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
-  },
-  {
-    "name": "Rabbit",
-    "baseRarity": "Epic",
-    "hours": 24,
-    "cost": 250000,
-    "material": "RAW_RABBIT",
-    "amount": 64
-  },
-  {
-    "name": "Rabbit",
-    "baseRarity": "Legendary",
-    "hours": 168,
-    "cost": 1000000
-  },
-  {
-    "name": "Rock",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 100000
-  },
-  {
-    "name": "Rock",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 1000000
-  },
-  {
-    "name": "Rock",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 10000000
-  },
-  {
-    "name": "Rock",
-    "baseRarity": "Epic",
-    "hours": 336,
-    "cost": 50000000,
-    "material": "ENCHANTED_COBBLESTONE",
-    "amount": 64
-  },
-  {
-    "name": "Scatha",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 125000000,
-    "material": "ENCHANTED_HARD_STONE",
-    "amount": 64
-  },
-  {
-    "name": "Scatha",
-    "baseRarity": "Epic",
-    "hours": 336,
-    "cost": 250000000,
-    "material": "ENCHANTED_HARD_STONE",
-    "amount": 256
-  },
-  {
-    "name": "Sheep",
-    "baseRarity": "Common",
-    "hours": 2,
-    "cost": 2000
-  },
-  {
-    "name": "Sheep",
-    "baseRarity": "Uncommon",
-    "hours": 8,
-    "cost": 5000
-  },
-  {
-    "name": "Sheep",
-    "baseRarity": "Rare",
-    "hours": 72,
-    "cost": 190000
-  },
-  {
-    "name": "Sheep",
-    "baseRarity": "Epic",
-    "hours": 168,
-    "cost": 250000,
-    "material": "ENCHANTED_MUTTON",
-    "amount": 512
-  },
-  {
-    "name": "Sheep",
-    "baseRarity": "Legendary",
-    "hours": 168,
-    "cost": 10000000
-  },
-  {
-    "name": "Silverfish",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Silverfish",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
-  },
-  {
-    "name": "Silverfish",
-    "baseRarity": "Rare",
-    "hours": 24,
-    "cost": 190000
-  },
-  {
-    "name": "Silverfish",
-    "baseRarity": "Epic",
-    "hours": 72,
-    "cost": 250000,
-    "material": "ENCHANTED_COBBLESTONE",
-    "amount": 64
-  },
-  {
-    "name": "Silverfish",
-    "baseRarity": "Legendary",
-    "hours": 168,
-    "cost": 10000000
-  },
-  {
-    "name": "Skeleton",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Skeleton",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
-  },
-  {
-    "name": "Skeleton",
-    "baseRarity": "Rare",
-    "hours": 24,
-    "cost": 190000
-  },
-  {
-    "name": "Skeleton",
-    "baseRarity": "Epic",
-    "hours": 72,
-    "cost": 250000,
-    "material": "ENCHANTED_BONE",
-    "amount": 128
-  },
-  {
-    "name": "Spider",
-    "baseRarity": "Common",
-    "hours": 2,
-    "cost": 2000
-  },
-  {
-    "name": "Spider",
-    "baseRarity": "Uncommon",
-    "hours": 8,
-    "cost": 5000
-  },
-  {
-    "name": "Spider",
-    "baseRarity": "Rare",
-    "hours": 72,
-    "cost": 190000
-  },
-  {
-    "name": "Spider",
-    "baseRarity": "Epic",
-    "hours": 168,
-    "cost": 250000,
-    "material": "ENCHANTED_STRING",
-    "amount": 512
-  },
-  {
-    "name": "Spirit",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 5000000,
-    "material": "ENCHANTED_GHAST_TEAR",
-    "amount": 64
-  },
-  {
-    "name": "Squid",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 20000
-  },
-  {
-    "name": "Squid",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 100000
-  },
-  {
-    "name": "Squid",
-    "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 500000
-  },
-  {
-    "name": "Squid",
-    "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 3000000,
-    "material": "ENCHANTED_INK_SACK",
-    "amount": 64
-  },
-  {
-    "name": "Tarantula",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 5000000,
-    "material": "TARANTULA_WEB",
-    "amount": 512
-  },
-  {
-    "name": "Tiger",
-    "baseRarity": "Common",
-    "hours": 24,
-    "cost": 15000
-  },
-  {
-    "name": "Tiger",
-    "baseRarity": "Uncommon",
-    "hours": 48,
-    "cost": 75000
-  },
-  {
-    "name": "Tiger",
-    "baseRarity": "Rare",
-    "hours": 168,
-    "cost": 900000
-  },
-  {
-    "name": "Tiger",
-    "baseRarity": "Epic",
-    "hours": 188,
-    "cost": 14000000,
-    "material": "ENCHANTED_RAW_CHICKEN",
-    "amount": 1024
-  },
-  {
-    "name": "Turtle",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 15000000,
-    "material": "ENCHANTED_RAW_FISH",
-    "amount": 16
-  },
-  {
-    "name": "Wither_Skeleton",
-    "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 250000,
-    "material": "ENCHANTED_BLOCK_OF_COAL",
-    "amount": 8
-  },
-  {
-    "name": "Wolf",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Wolf",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
-  },
-  {
-    "name": "Wolf",
-    "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 190000
-  },
-  {
-    "name": "Wolf",
-    "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 250000,
-    "material": "ENCHANTED_SPRUCE_WOOD",
-    "amount": 512
-  },
-  {
-    "name": "Zombie",
-    "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
-  },
-  {
-    "name": "Zombie",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
-  },
-  {
-    "name": "Zombie",
-    "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 190000
-  },
-  {
-    "name": "Zombie",
-    "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 250000,
-    "material": "ZOMBIES_HEART",
-    "amount": 8
-  }
-]
+{
+        ARMADILLO: {
+            UNCOMMON: {
+                time: 3,
+                coins: 10000,
+                items: [],
+            },
+            RARE: {
+                time: 10,
+                coins: 30000,
+                items: [],
+            },
+            EPIC: {
+                time: 48,
+                coins: 250000,
+                items: [],
+            },
+            LEGENDARY: {
+                time: 120,
+                coins: 1000000,
+                items: [],
+            },
+        },
+        BABY_YETI: {
+            LEGENDARY: {
+                time: 288,
+                coins: 20000000,
+                items: [{ amount: 16, name: 'Enchanted Raw Salmon', id: 'ENCHANTED_RAW_SALMON' }],
+            },
+        },
+        SCATHA: {
+            EPIC: {
+                time: 168,
+                coins: 125000000,
+                items: [{ amount: 64, name: 'Enchanted Hard Stone', id: 'ENCHANTED_HARD_STONE' }],
+            },
+            LEGENDARY: {
+                time: 336,
+                coins: 250000000,
+                items: [{ amount: 256, name: 'Enchanted Hard Stone', id: 'ENCHANTED_HARD_STONE' }],
+            },
+        },
+        BAT: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+                items: [],
+            },
+            RARE: {
+                time: 6,
+                coins: 5000,
+                items: [],
+            },
+            EPIC: {
+                time: 24,
+                coins: 190000,
+                items: [],
+            },
+            LEGENDARY: {
+                time: 72,
+                coins: 250000,
+                items: [{ amount: 64, name: 'Enchanted Red Mushroom', id: 'ENCHANTED_RED_MUSHROOM' }],
+            },
+        },
+        BAL: {
+            LEGENDARY: {
+                time: 240,
+                coins: 2000000,
+                items: [{ amount: 100, name: 'Yoogie', id: 'YOGGIE' }],
+            },
+        },
+        BEE: {
+            UNCOMMON: {
+                time: 1,
+                coins: 5000,
+                items: [{ amount: 128, name: 'Block of Coal', id: 'COAL_BLOCK' }],
+            },
+            RARE: {
+                time: 6,
+                coins: 40000,
+                items: [{ amount: 128, name: 'Block of Gold', id: 'GOLD_BLOCK' }],
+            },
+            EPIC: {
+                time: 24,
+                coins: 150000,
+                items: [{ amount: 9, name: 'Enchanted Block of Coal', id: 'ENCHANTED_COAL_BLOCK' }],
+            },
+            LEGENDARY: {
+                time: 72,
+                coins: 450000,
+                items: [{ amount: 9, name: 'Enchanted Gold Block', id: 'ENCHANTED_GOLD_BLOCK' }],
+            },
+        },
+        BLAZE: {
+            LEGENDARY: {
+                time: 288,
+                coins: 200000,
+                items: [{ amount: 64, name: 'Enchanted Blaze Rod', id: 'ENCHANTED_BLAZE_POD' }],
+            },
+        },
+        BLUE_WHALE: {
+            UNCOMMON: {
+                time: 24,
+                coins: 15000,
+            },
+            RARE: {
+                time: 48,
+                coins: 75000,
+            },
+            EPIC: {
+                time: 168,
+                coins: 900000,
+                items: [{ amount: 1, name: 'Enchanted Cooked Fish', id: 'ENCHANTED_COOKED_FISH' }],
+            },
+            LEGENDARY: {
+                time: 288,
+                coins: 9000000,
+                items: [{ amount: 8, name: 'Enchanted Cooked Fish', id: 'ENCHANTED_COOKED_FISH' }],
+            },
+        },
+        CHICKEN: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 4,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 12,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 24,
+                coins: 250000,
+                items: [{ amount: 8, name: 'Enchanted Raw Chicken', id: 'ENCHANTED_RAW_CHICKEN' }],
+            },
+        },
+        DOLPHIN: {
+            UNCOMMON: {
+                time: 24,
+                coins: 100000,
+            },
+            RARE: {
+                time: 48,
+                coins: 1000000,
+            },
+            EPIC: {
+                time: 168,
+                coins: 10000000,
+            },
+            LEGENDARY: {
+                time: 336,
+                coins: 50000000,
+                items: [{ amount: 16, name: 'Enchanted Raw Fish', id: 'ENCHANTED_RAW_FISH' }],
+            },
+        },
+        ELEPHANT: {
+            UNCOMMON: {
+                time: 6,
+                coins: 15000,
+            },
+            RARE: {
+                time: 20,
+                coins: 75000,
+            },
+            EPIC: {
+                time: 120,
+                coins: 900000,
+            },
+            LEGENDARY: {
+                time: 240,
+                coins: 14000000,
+            },
+        },
+        ENDER_DRAGON: {
+            LEGENDARY: {
+                time: 480,
+                coins: 400000000,
+                items: [{ amount: 8, name: 'Summoning Eye', id: 'SUMMONING_EYE' }],
+            },
+        },
+        ENDERMAN: {
+            UNCOMMON: {
+                time: 24,
+                coins: 1000,
+            },
+            RARE: {
+                time: 48,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 144,
+                coins: 10000,
+            },
+            LEGENDARY: {
+                time: 288,
+                coins: 40000000,
+                items: [{ amount: 8, name: 'Enchanted Eye of Ender', id: 'ENCHANTED_EYE_OF_ENDER' }],
+            },
+        },
+        ENDERMITE: {
+            UNCOMMON: {
+                time: 2,
+                coins: 2000,
+            },
+            RARE: {
+                time: 8,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 72,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 168,
+                coins: 250000,
+                items: [{ amount: 512, name: 'Enchanted End Stone', id: 'ENCHANTED_ENDSTONE' }],
+            },
+        },
+        FLYING_FISH: {
+            EPIC: {
+                time: 120,
+                coins: 200000,
+            },
+            LEGENDARY: {
+                time: 240,
+                coins: 1000000,
+                items: [{ amount: 64, name: 'Enchanted Raw Fish', id: 'ENCHANTED_RAW_FISH' }],
+            },
+        },
+        GHOUL: {
+            LEGENDARY: {
+                time: 240,
+                coins: 5000000,
+                items: [{ amount: 512, name: 'Revenant Flesh', id: 'REVENANT_FLESH' }],
+            },
+        },
+        GIRAFFE: {
+            UNCOMMON: {
+                time: 24,
+                coins: 15000,
+                items: [{ amount: 1, name: 'Enchanted Acacia Wood', id: 'ENCHANTED_ACACIA_LOG' }],
+            },
+            RARE: {
+                time: 48,
+                coins: 75000,
+                items: [{ amount: 16, name: 'Enchanted Acacia Wood', id: 'ENCHANTED_ACACIA_LOG' }],
+            },
+            EPIC: {
+                time: 168,
+                coins: 900000,
+                items: [{ amount: 128, name: 'Enchanted Acacia Wood', id: 'ENCHANTED_ACACIA_LOG' }],
+            },
+            LEGENDARY: {
+                time: 288,
+                coins: 9000000,
+                items: [{ amount: 512, name: 'Enchanted Acacia Wood', id: 'ENCHANTED_ACACIA_LOG' }],
+            },
+        },
+        GOLEM: {
+            LEGENDARY: {
+                time: 480,
+                coins: 10000000,
+                items: [{ amount: 8, name: 'Enchanted Iron Block', id: 'ENCHANTED_IRON_BLOCK' }],
+            },
+        },
+        GUARDIAN: {
+            UNCOMMON: {
+                time: 1,
+                coins: 20000,
+            },
+            RARE: {
+                time: 6,
+                coins: 100000,
+            },
+            EPIC: {
+                time: 48,
+                coins: 500000,
+            },
+            LEGENDARY: {
+                time: 120,
+                coins: 3000000,
+                items: [{ amount: 64, name: 'Enchanted Prismarine Shard', id: 'ENCHANTED_PRISMARINE_SHARD' }],
+            },
+        },
+        HORSE: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 4,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 12,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 24,
+                coins: 250000,
+                items: [{ amount: 8, name: 'Enchanted Leather', id: 'ENCHANTED_LEATHER' }],
+            },
+        },
+        HOUND: {
+            LEGENDARY: {
+                time: 240,
+                coins: 5000000,
+                items: [{ amount: 512, name: 'Wolf Tooth', id: 'WOLF_TOOTH' }],
+            },
+        },
+        JELLYFISH: {
+            LEGENDARY: {
+                time: 240,
+                coins: 15000000,
+                items: [{ amount: 16, name: 'Enchanted Slimeball', id: 'ENCHANTED_SLIME_BALL' }],
+            },
+        },
+        JERRY: {
+            UNCOMMON: {
+                time: 1,
+                coins: 10000,
+                items: [{ amount: 1, name: 'Move Jerry', id: 'ASSISTANT' }],
+            },
+            RARE: {
+                time: 6,
+                coins: 20000,
+                items: [{ amount: 1, name: 'Move Jerry', id: 'ASSISTANT' }],
+            },
+            EPIC: {
+                time: 24,
+                coins: 40000,
+                items: [{ amount: 1, name: 'Move Jerry', id: 'ASSISTANT' }],
+            },
+            LEGENDARY: {
+                time: 72,
+                coins: 100000,
+                items: [{ amount: 1, name: 'Move Jerry', id: 'ASSISTANT' }],
+            },
+        },
+        LION: {
+            UNCOMMON: {
+                time: 24,
+                coins: 15000,
+            },
+            RARE: {
+                time: 48,
+                coins: 75000,
+            },
+            EPIC: {
+                time: 168,
+                coins: 900000,
+            },
+            LEGENDARY: {
+                time: 336,
+                coins: 14000000,
+                items: [{ amount: 1024, name: 'Enchanted Raw Beef', id: 'ENCHANTED_RAW_BEEF' }],
+            },
+        },
+        MAGMA_CUBE: {
+            UNCOMMON: {
+                time: 6,
+                coins: 2000,
+            },
+            RARE: {
+                time: 20,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 120,
+                coins: 10000,
+            },
+            LEGENDARY: {
+                time: 240,
+                coins: 500000,
+                items: [{ amount: 16, name: 'Enchanted Magma Cream', id: 'ENCHANTED_MAGMA_CREAM' }],
+            },
+        },
+        MEGALODON: {
+            LEGENDARY: {
+                time: 480,
+                coins: 10000000,
+            },
+        },
+        MITHRIL_GOLEM: {
+            UNCOMMON: {
+                time: 24,
+                coins: 5000,
+            },
+            RARE: {
+                time: 48,
+                coins: 10000,
+            },
+            EPIC: {
+                time: 120,
+                coins: 25000,
+            },
+            LEGENDARY: {
+                time: 480,
+                coins: 50000,
+            },
+        },
+        MONKEY: {
+            UNCOMMON: {
+                time: 24,
+                coins: 15000,
+            },
+            RARE: {
+                time: 48,
+                coins: 75000,
+            },
+            EPIC: {
+                time: 168,
+                coins: 900000,
+            },
+            LEGENDARY: {
+                time: 288,
+                coins: 17000000,
+            },
+        },
+        OCELOT: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 6,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 48,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 120,
+                coins: 250000,
+                items: [{ amount: 512, name: 'Enchanted Jungle Wood', id: 'ENCHANTED_JUNGLE_LOG' }],
+            },
+        },
+        PARROT: {
+            LEGENDARY: {
+                time: 336,
+                coins: 15000000,
+                items: [{ amount: 16, name: 'Enchanted Feather', id: 'ENCHANTED_FEATHER' }],
+            },
+        },
+        PHOENIX: {
+            LEGENDARY: {
+                time: 480,
+                coins: 100000000,
+                items: [{ amount: 1024, name: 'Enchanted Blaze Powder', id: 'ENCHANTED_BLAZE_POWDER' }],
+            },
+        },
+        PIG: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 3,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 12,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 24,
+                coins: 250000,
+                items: [{ amount: 512, name: 'Raw Porkshop', id: 'PORK' }],
+            },
+        },
+        PIGMAN: {
+            LEGENDARY: {
+                time: 240,
+                coins: 250000,
+                items: [{ amount: 8, name: 'Enchanted Grilled Pork', id: 'ENCHANTED_GRILLED_PORK' }],
+            },
+        },
+        RABBIT: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 4,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 12,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 24,
+                coins: 250000,
+                items: [{ amount: 64, name: 'Raw Rabbit', id: 'RABBIT' }],
+            },
+        },
+        ROCK: {
+            UNCOMMON: {
+                time: 24,
+                coins: 100000,
+            },
+            RARE: {
+                time: 48,
+                coins: 1000000,
+            },
+            EPIC: {
+                time: 168,
+                coins: 10000000,
+            },
+            LEGENDARY: {
+                time: 336,
+                coins: 50000000,
+                items: [{ amount: 64, name: 'Enchanted Cobblestone', id: 'ENCHANTED_COBBLESTONE' }],
+            },
+        },
+        SHEEP: {
+            UNCOMMON: {
+                time: 2,
+                coins: 2000,
+            },
+            RARE: {
+                time: 8,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 72,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 168,
+                coins: 250000,
+                items: [{ amount: 512, name: 'Enchanted Mutton', id: 'ENCHANTED_MUTTON' }],
+            },
+        },
+        SILVERFISH: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 6,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 24,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 72,
+                coins: 250000,
+                items: [{ amount: 64, name: 'Enchanted Cobblestone', id: 'ENCHANTED_COBBLESTONE' }],
+            },
+        },
+        SKELETON: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 6,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 24,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 72,
+                coins: 250000,
+                items: [{ amount: 128, name: 'Enchanted Bone', id: 'ENCHANTED_BONE' }],
+            },
+        },
+        SPIDER: {
+            UNCOMMON: {
+                time: 2,
+                coins: 2000,
+            },
+            RARE: {
+                time: 8,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 72,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 168,
+                coins: 250000,
+                items: [{ amount: 512, name: 'Enchanted String', id: 'ENCHANTED_STRING' }],
+            },
+        },
+        SPIRIT: {
+            LEGENDARY: {
+                time: 240,
+                coins: 5000000,
+                items: [{ amount: 64, name: 'Enchanted Ghast Tear', id: 'ENCHANTED_GHAST_TEAR' }],
+            },
+        },
+        SQUID: {
+            UNCOMMON: {
+                time: 1,
+                coins: 20000,
+            },
+            RARE: {
+                time: 6,
+                coins: 100000,
+            },
+            EPIC: {
+                time: 48,
+                coins: 500000,
+            },
+            LEGENDARY: {
+                time: 120,
+                coins: 3000000,
+                items: [{ amount: 64, name: 'Enchanted Ink Sack', id: 'ENCHANTED_INK_SACK' }],
+            },
+        },
+        TARANTULA: {
+            LEGENDARY: {
+                time: 240,
+                coins: 5000000,
+                items: [{ amount: 512, name: 'Tarantula Web', id: 'TARANTULA_WEB' }],
+            },
+        },
+        TIGER: {
+            UNCOMMON: {
+                time: 1,
+                coins: 15000,
+            },
+            RARE: {
+                time: 48,
+                coins: 75000,
+            },
+            EPIC: {
+                time: 168,
+                coins: 900000,
+            },
+            LEGENDARY: {
+                time: 288,
+                coins: 14000000,
+                items: [{ amount: 1024, name: 'Enchanted Raw Chicken', id: 'ENCHANTED_RAW_CHICKEN' }],
+            },
+        },
+        TURTLE: {
+            LEGENDARY: {
+                time: 240,
+                coins: 15000000,
+                items: [{ amount: 64, name: 'Enchanted Raw Fish', id: 'ENCHANTED_RAW_FISH' }],
+            },
+        },
+        WITHER_SKELETON: {
+            LEGENDARY: {
+                time: 120,
+                coins: 250000,
+                items: [{ amount: 8, name: 'Enchanted Block of Coal', id: 'ENCHANTED_COAL_BLOCK' }],
+            },
+        },
+        WOLF: {
+            UNCOMMON: {
+                time: 1,
+                coins: 2000,
+            },
+            RARE: {
+                time: 6,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 48,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 120,
+                coins: 250000,
+                items: [{ amount: 512, name: 'Enchanted Spruce Wood', id: 'ENCHANTED_SPRUCE_LOG' }],
+            },
+        },
+        ZOMBIE: {
+            UNCOMMON: {
+                time: 6,
+                coins: 2000,
+            },
+            RARE: {
+                time: 20,
+                coins: 5000,
+            },
+            EPIC: {
+                time: 120,
+                coins: 190000,
+            },
+            LEGENDARY: {
+                time: 240,
+                coins: 250000,
+                items: [{ amount: 64, name: "Zombie's Heart", id: 'ZOMBIE_HEART' }],
+            },
+        },
+        MOOSHROOM_COW: {
+            UNCOMMON: {
+                time: 1,
+                coins: 1000,
+                items: [{ amount: 5, name: 'Digested Mushroom', id: 'DIGESTED_MUSHROOM' }],
+            },
+            RARE: {
+                time: 6,
+                coins: 3000,
+                items: [{ amount: 10, name: 'Digested Mushroom', id: 'DIGESTED_MUSHROOM' }],
+            },
+            EPIC: {
+                time: 24,
+                coins: 100000,
+                items: [{ amount: 20, name: 'Digested Mushroom', id: 'DIGESTED_MUSHROOM' }],
+            },
+            LEGENDARY: {
+                time: 72,
+                coins: 200000,
+                items: [
+                    { amount: 30, name: 'Digested Mushroom', id: 'DIGESTED_MUSHROOM' },
+                    { amount: 30, name: 'Enchanted Mycelium', id: 'ENCHANTED_MYCELIUM' },
+                ],
+            },
+        },
+        SNAIL: {
+            UNCOMMON: {
+                time: 1,
+                coins: 1000,
+                items: [{ amount: 5, name: 'Burning Eye', id: 'BURNING_EYE' }],
+            },
+            RARE: {
+                time: 6,
+                coins: 3000,
+                items: [{ amount: 10, name: 'Burning Eye', id: 'BURNING_EYE' }],
+            },
+            EPIC: {
+                time: 24,
+                coins: 100000,
+                items: [{ amount: 20, name: 'Burning Eye', id: 'BURNING_EYE' }],
+            },
+            LEGENDARY: {
+                time: 72,
+                coins: 200000,
+                items: [
+                    { amount: 30, name: 'Burning Eye', id: 'BURNING_EYE' },
+                    { amount: 30, name: 'Enchanted Red Sand', id: 'ENCHANTED_RED_SAND' },
+                ],
+            },
+        },
+    }
