@@ -43,7 +43,7 @@ namespace Coflnet.Sky.Crafts.Services
             {
                 try
                 {
-                    await NewMethod(result, item);
+                    await CalculateKatFlips(result, item);
                 }
                 catch (Exception e)
                 {
@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Crafts.Services
             Results = result;
         }
 
-        private async Task NewMethod(List<KatUpgradeResult> result, KatUpgradeCost item)
+        private async Task CalculateKatFlips(List<KatUpgradeResult> result, KatUpgradeCost item)
         {
             var rarity = item.BaseRarity;
             var upgradedRarity = (Api.Client.Model.Tier)((int)rarity + 1);
