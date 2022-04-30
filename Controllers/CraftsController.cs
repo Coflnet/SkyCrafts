@@ -34,7 +34,9 @@ namespace Coflnet.Sky.Crafts.Controllers
             return GetProfitable();
         }
 
-
+        /// <summary>
+        /// Profitable craft flips
+        /// </summary>
         [HttpGet]
         [Route("profit")]
         public IEnumerable<ProfitableCraft> GetProfitable()
@@ -44,6 +46,9 @@ namespace Coflnet.Sky.Crafts.Controllers
                     || c.CraftCost < c.SellPrice * 0.99 && updaterService.BazaarItems.Contains(c.ItemId)
                 ) && !c.Ingredients.Where(i => i.Cost <= 0).Any());
         }
+        /// <summary>
+        /// Returns craft prices of all know craftable items
+        /// </summary>
         [HttpGet]
         [Route("all")]
         public IEnumerable<ProfitableCraft> GetAll()
