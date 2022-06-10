@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 as build
 WORKDIR /build
 COPY SkyCrafts.csproj SkyCrafts.csproj
 RUN dotnet restore
-RUN git clone --depth=1 https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO.git itemData
+RUN git clone --depth=1 https://github.com/Ekwav/NotEnoughUpdates-REPO.git itemData
 COPY . .
 RUN dotnet publish -c release
 
