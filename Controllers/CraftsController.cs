@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         }
 
         [HttpGet]
-        [ResponseCache(Duration = 20, Location = ResponseCacheLocation.Any, NoStore = false)]
+        [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IEnumerable<ProfitableCraft> Get()
         {
             return GetProfitable();
@@ -51,7 +51,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         /// </summary>
         [HttpGet]
         [Route("all")]
-        [ResponseCache(Duration = 20, Location = ResponseCacheLocation.Any, NoStore = false)]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IEnumerable<ProfitableCraft> GetAll()
         {
             return updaterService.Crafts.Select(e=>e.Value).OrderByDescending(c=>c.SellPrice-c.CraftCost);
