@@ -23,18 +23,20 @@ namespace Coflnet.Sky.Crafts.Services
         private ILogger<UpdaterService> logger;
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
         public HashSet<string> BazaarItems = new();
+        private IConfiguration config;
         Prometheus.Counter profitableFound = Prometheus.Metrics.CreateCounter("sky_craft_profitable", "How many profitable items were found");
 
         public UpdaterService(CraftingRecipeService craftingRecipeService,
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
-                    CollectionService collectionService, KatUpgradeService katService)
+                    CollectionService collectionService, KatUpgradeService katService, IConfiguration config)
         {
             this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
             this.logger = logger;
             this.collectionService = collectionService;
             this.katService = katService;
+            this.config = config;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -51,9 +53,17 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task GetBazaarItems()
         {
-            var client = new HttpClient();
-            var data = await client.GetStringAsync("https://sky.coflnet.com/api/items/bazaar/tags");
-            BazaarItems = JsonConvert.DeserializeObject<HashSet<string>>(data);
+            try
+            {
+                var client = new HttpClient();
+                var data = await client.GetStringAsync(config["API_BASE_URL"] + "/api/items/bazaar/tags");
+                BazaarItems = JsonConvert.DeserializeObject<HashSet<string>>(data);
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Failed to retrieve bazaar items from /api/items/bazaar/tags");
+                throw;
+            }
         }
 
         private async Task IterateAll(List<ItemData> craftable, CancellationToken stoppingToken)
