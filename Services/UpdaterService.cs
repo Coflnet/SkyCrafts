@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
 using Coflnet.Sky.Crafts.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
