@@ -16,7 +16,7 @@ namespace Coflnet.Sky.Crafts.Services
 {
     public class KatUpgradeService
     {
-        public List<KatUpgradeResult> Results;
+        public List<KatUpgradeResult> Results = new();
         private IConfiguration config;
         private AuctionsApi auctionsApi;
         private PricesApi pricesApi;
@@ -37,7 +37,7 @@ namespace Coflnet.Sky.Crafts.Services
             logger.LogInformation("start updating kat list");
             var result = new List<KatUpgradeResult>();
             // List should be filled as fast as possible but not cleared after that
-            if (Results == null)
+            if (Results.Count == 0)
                 Results = result;
             foreach (var item in list)
             {
