@@ -54,17 +54,20 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task GetBazaarItems()
         {
-            try
-            {
-                var client = new HttpClient();
-                var data = await client.GetStringAsync(config["API_BASE_URL"] + "/api/items/bazaar/tags");
-                BazaarItems = JsonConvert.DeserializeObject<HashSet<string>>(data);
-            }
-            catch (Exception e)
-            {
-                logger.LogError("Failed to retrieve bazaar items from /api/items/bazaar/tags");
-                throw;
-            }
+            var fullUrl = config["API_BASE_URL"] + "/api/items/bazaar/tags";
+            for (int i = 0; i < 5; i++)
+                try
+                {
+                    var client = new HttpClient();
+                    var data = await client.GetStringAsync(fullUrl);
+                    BazaarItems = JsonConvert.DeserializeObject<HashSet<string>>(data);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Failed to retrieve bazaar items from " + fullUrl);
+                    if (i >= 4)
+                        throw;
+                }
         }
 
         private async Task IterateAll(List<ItemData> craftable, CancellationToken stoppingToken)
