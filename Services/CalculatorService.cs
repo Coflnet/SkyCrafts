@@ -21,7 +21,8 @@ namespace Coflnet.Sky.Crafts.Services
 
         public async Task<ProfitableCraft> GetCreaftingCost(string itemId)
         {
-            var ingredients = NeedCount(itemId).ToList();
+            var item = JsonSerializer.Deserialize<ItemData>(File.ReadAllText($"itemData/items/{itemId}.json"));
+            var ingredients = NeedCount(item).ToList();
             var sellPriceTask = GetPriceFor(itemId, 1);
             await Task.WhenAll(ingredients.Select(async item =>
             {
@@ -43,6 +44,7 @@ namespace Coflnet.Sky.Crafts.Services
                 CraftCost = ingredients.Sum(i => i.Cost),
                 Ingredients = ingredients,
                 ItemId = itemId,
+                ItemName = item.displayname,
                 SellPrice = (await sellPriceTask).SellPrice
             };
         }
@@ -54,18 +56,17 @@ namespace Coflnet.Sky.Crafts.Services
             return prices;
         }
 
-        public IEnumerable<Ingredient> NeedCount(string itemId)
+        public IEnumerable<Ingredient> NeedCount(ItemData item)
         {
-            var aggregated = GetIngredientsFromSlots(itemId).GroupBy(i => i.ItemId).Select(i => new Ingredient()
+            var aggregated = GetIngredientsFromSlots(item).GroupBy(i => i.ItemId).Select(i => new Ingredient()
             {
                 ItemId = i.Key,
                 Count = i.Sum(single => single.Count)
             });
             return aggregated;
         }
-        private IEnumerable<Ingredient> GetIngredientsFromSlots(string itemId)
+        private IEnumerable<Ingredient> GetIngredientsFromSlots(ItemData item)
         {
-            var item = JsonSerializer.Deserialize<ItemData>(File.ReadAllText($"itemData/items/{itemId}.json"));
             foreach (var ingredient in item.recipe.Values)
             {
                 if (string.IsNullOrEmpty(ingredient))

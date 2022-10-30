@@ -108,7 +108,7 @@ namespace Coflnet.Sky.Crafts.Services
                 return 0;
             var manual = await client.GetStringAsync($"{config["API_BASE_URL"]}/api/item/price/{itemTag}/current?count={count}");
             var response = JsonConvert.DeserializeObject<Api.Client.Model.CurrentPrice>(manual);
-            if (response.Available < count)
+            if (response?.Available < count)
                 return int.MaxValue;
             return response.Buy;
         }
