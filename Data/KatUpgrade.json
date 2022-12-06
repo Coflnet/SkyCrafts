@@ -233,7 +233,7 @@
     "name": "Enderman",
     "baseRarity": "Rare",
     "hours": 144,
-    "cost": 10000
+    "cost": 100000
   },
   {
     "name": "Enderman",
@@ -634,12 +634,6 @@
     "amount": 64
   },
   {
-    "name": "Rabbit",
-    "baseRarity": "Legendary",
-    "hours": 168,
-    "cost": 1000000
-  },
-  {
     "name": "Rock",
     "baseRarity": "Common",
     "hours": 24,
@@ -706,12 +700,6 @@
     "cost": 250000,
     "material": "ENCHANTED_MUTTON",
     "amount": 512
-  },
-  {
-    "name": "Sheep",
-    "baseRarity": "Legendary",
-    "hours": 168,
-    "cost": 10000000
   },
   {
     "name": "Silverfish",
