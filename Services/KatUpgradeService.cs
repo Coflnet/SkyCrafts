@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
+using Coflnet.Sky.Api.Client.Model;
 
 namespace Coflnet.Sky.Crafts.Services
 {
@@ -98,19 +99,27 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task<List<Api.Client.Model.SaveAuction>> GetActiveBins(string itemTag, Api.Client.Model.Tier rarity)
         {
-            var manual = await client.GetStringAsync($"{config["API_BASE_URL"]}/api/auctions/tag/{itemTag}/active/bin?Rarity={rarity}");
-            return JsonConvert.DeserializeObject<List<Api.Client.Model.SaveAuction>>(manual);
+            return await GetFromApi<List<Api.Client.Model.SaveAuction>>($"/api/auctions/tag/{itemTag}/active/bin?Rarity={rarity}");
         }
 
         private async Task<double> MaterialCost(string itemTag, int count)
         {
             if (itemTag == null)
                 return 0;
-            var manual = await client.GetStringAsync($"{config["API_BASE_URL"]}/api/item/price/{itemTag}/current?count={count}");
-            var response = JsonConvert.DeserializeObject<Api.Client.Model.CurrentPrice>(manual);
+            var response = await GetFromApi<CurrentPrice>($"/api/item/price/{itemTag}/current?count={count}");
             if (response?.Available < count)
                 return int.MaxValue;
             return response.Buy;
+        }
+
+        private async Task<T> GetFromApi<T>(string path)
+        {
+            var baseUrl = config["API_BASE_URL"];
+            if(baseUrl == "https://sky.coflnet.com")
+                await Task.Delay(500); // avoid rate limit
+            var manual = await client.GetStringAsync($"{baseUrl}{path}");
+            var response = JsonConvert.DeserializeObject<T>(manual);
+            return response;
         }
 
         public async Task<IEnumerable<KatUpgradeCost>> GetKatUpgradeCosts()
