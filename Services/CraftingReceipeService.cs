@@ -29,7 +29,7 @@ namespace Coflnet.Sky.Crafts.Services
             }
         }
 
-        public async Task<Dictionary<string, string>> GetRecipe(string id)
+        public async Task<Recipe> GetRecipe(string id)
         {
             var path = $"itemData/items/{id}.json";
             if (!File.Exists(path))

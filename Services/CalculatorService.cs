@@ -33,7 +33,7 @@ namespace Coflnet.Sky.Crafts.Services
                     if(prices.Available < item.Count)
                         item.Cost = int.MaxValue;
                 }
-                catch (System.Net.Http.HttpRequestException e)
+                catch (System.Net.Http.HttpRequestException)
                 {
                     // likely unobtainable
                     item.Cost = 0;
@@ -70,7 +70,7 @@ namespace Coflnet.Sky.Crafts.Services
         }
         private IEnumerable<Ingredient> GetIngredientsFromSlots(ItemData item)
         {
-            foreach (var ingredient in item.recipe.Values)
+            foreach (var ingredient in item.recipe.GetIngredients())
             {
                 if (string.IsNullOrEmpty(ingredient))
                     continue;

@@ -59,7 +59,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         [HttpGet]
         [Route("recipe/{itemTag}")]
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public Task<Dictionary<string, string>> GetRecipe(string itemTag)
+        public Task<Recipe> GetRecipe(string itemTag)
         {
             return craftingRecipeService.GetRecipe(itemTag);
         }
