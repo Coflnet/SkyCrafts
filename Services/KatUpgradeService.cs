@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text.Json;
 using System;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
@@ -81,8 +80,6 @@ namespace Coflnet.Sky.Crafts.Services
             var level = (float)int.Parse(Regex.Replace(auction.ItemName.Substring(0, 10), "[^0-9]", ""));
             var upgradeCost = item.Cost * (1 - (level - 1) * 0.003);
             var profit = lbin.StartingBid - auction.StartingBid - upgradeCost - materialCost;
-            if (profit < 0)
-                return null;
             return new KatUpgradeResult()
             {
                 OriginAuction = auction.Uuid,
