@@ -33,12 +33,14 @@ namespace Coflnet.Sky.Crafts.Controllers
         }
         [HttpGet]
         [Route("all")]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IEnumerable<KatUpgradeResult> GetAll()
         {
             return katService.Results.OrderByDescending(c => c.Profit / c.CoreData.Hours);
         }
         [HttpGet]
         [Route("raw")]
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
         public Task<IEnumerable<KatUpgradeCost>> GetUpgradeData()
         {
             return katService.GetKatUpgradeCosts();

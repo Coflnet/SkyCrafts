@@ -39,6 +39,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         /// </summary>
         [HttpGet]
         [Route("profit")]
+        [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IEnumerable<ProfitableCraft> GetProfitable()
         {
             return updaterService.Crafts.Values.Where(c =>
