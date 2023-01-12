@@ -11,5 +11,6 @@ namespace Coflnet.Sky.Crafts.Models
         public IEnumerable<Ingredient> Ingredients { get; set; }
         public RequiredCollection ReqCollection { get; set; }
         public RequiredCollection ReqSlayer { get; set; }
+        public string Type { get; set; }
     }
 }

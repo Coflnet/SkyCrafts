@@ -45,7 +45,7 @@ namespace Coflnet.Sky.Crafts.Controllers
             return updaterService.Crafts.Values.Where(c =>
                 (c.CraftCost < c.SellPrice * 0.95
                     || c.CraftCost < c.SellPrice * 0.99 && updaterService.BazaarItems.Contains(c.ItemId)
-                ) && !c.Ingredients.Where(i => i.Cost <= 0).Any());
+                ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && c.Type == null);
         }
         /// <summary>
         /// Returns craft prices of all know craftable items
@@ -55,7 +55,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IEnumerable<ProfitableCraft> GetAll()
         {
-            return updaterService.Crafts.Select(e=>e.Value).OrderByDescending(c=>c.SellPrice-c.CraftCost);
+            return updaterService.Crafts.Select(e => e.Value).OrderByDescending(c => c.SellPrice - c.CraftCost);
         }
         [HttpGet]
         [Route("recipe/{itemTag}")]

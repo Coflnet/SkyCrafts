@@ -28,6 +28,11 @@ namespace Coflnet.Sky.Crafts.Services
             {
                 try
                 {
+                    if(item.ItemId == "SKYBLOCK_COIN")
+                    {
+                        item.Cost = item.Count;
+                        return;
+                    }
                     PriceResponse prices = await GetPriceFor(item.ItemId, item.Count);
                     item.Cost = prices.BuyPrice;
                     if(prices.Available < item.Count)
@@ -45,7 +50,8 @@ namespace Coflnet.Sky.Crafts.Services
                 Ingredients = ingredients,
                 ItemId = itemId,
                 ItemName = item.displayname,
-                SellPrice = (await sellPriceTask).SellPrice
+                SellPrice = (await sellPriceTask).SellPrice,
+                Type = item.recipes?.FirstOrDefault()?.type
             };
         }
 
@@ -70,7 +76,7 @@ namespace Coflnet.Sky.Crafts.Services
         }
         private IEnumerable<Ingredient> GetIngredientsFromSlots(ItemData item)
         {
-            foreach (var ingredient in item.recipe.GetIngredients())
+            foreach (var ingredient in item.GetIngredients())
             {
                 if (string.IsNullOrEmpty(ingredient))
                     continue;

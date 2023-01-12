@@ -103,6 +103,8 @@ namespace Coflnet.Sky.Crafts.Services
         {
             if (itemTag == null)
                 return 0;
+            if(itemTag == "SKYBLOCK_COIN")
+                return count;
             var response = await GetFromApi<CurrentPrice>($"/api/item/price/{itemTag}/current?count={count}");
             if (response?.Available < count)
                 return int.MaxValue;

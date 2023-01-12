@@ -24,7 +24,7 @@ namespace Coflnet.Sky.Crafts.Services
                     Console.WriteLine(e);
                 }
                 // item needs to have a dedicated recipe
-                if (item?.recipe != null)
+                if (item?.recipe != null || item?.recipes != null && item.recipes.Count > 0 && item.recipes[0].type == "forge")
                     yield return item;
             }
         }
