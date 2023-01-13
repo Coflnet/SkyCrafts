@@ -64,5 +64,15 @@ namespace Coflnet.Sky.Crafts.Controllers
         {
             return craftingRecipeService.GetRecipe(itemTag);
         }
+        [HttpGet]
+        [Route("ready")]
+        [ResponseCache(Duration = 5, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public ActionResult GetReady()
+        {
+            if (updaterService.IteratedAll)
+                return Ok();
+            else
+                return this.Problem("Not ready yet", statusCode: 503);
+        }
     }
 }

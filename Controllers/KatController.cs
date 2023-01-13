@@ -13,7 +13,6 @@ namespace Coflnet.Sky.Crafts.Controllers
     [ResponseCache(Duration = 1800, Location = ResponseCacheLocation.Any, NoStore = false)]
     public class KatController : ControllerBase
     {
-
         private readonly ILogger<KatController> _logger;
         private KatUpgradeService katService;
 

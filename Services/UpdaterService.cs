@@ -25,6 +25,7 @@ namespace Coflnet.Sky.Crafts.Services
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
         public HashSet<string> BazaarItems = new();
         private IConfiguration config;
+        public bool IteratedAll = false;
         Prometheus.Counter profitableFound = Prometheus.Metrics.CreateCounter("sky_craft_profitable", "How many profitable items were found");
 
         public UpdaterService(CraftingRecipeService craftingRecipeService,
@@ -105,6 +106,7 @@ namespace Coflnet.Sky.Crafts.Services
                         if (result.CraftCost < result.SellPrice * 0.5)
                             logger.LogInformation("double " + result.ItemId);
                     }
+                    await Task.Delay(50);
                 }
                 catch (Exception e)
                 {
@@ -115,6 +117,7 @@ namespace Coflnet.Sky.Crafts.Services
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
+            IteratedAll = true;
             await Task.Delay(TimeSpan.FromSeconds(10));
         }
     }

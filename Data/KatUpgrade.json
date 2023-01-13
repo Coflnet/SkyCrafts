@@ -244,6 +244,14 @@
     "amount": 8
   },
   {
+    "name": "Enderman",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "ENDERMAN_CORTEX_REWRITER",
+    "amount": 1
+  },
+  {
     "name": "Endermite",
     "baseRarity": "Common",
     "hours": 2,
