@@ -638,7 +638,7 @@
     "baseRarity": "Epic",
     "hours": 24,
     "cost": 250000,
-    "material": "RAW_RABBIT",
+    "material": "RABBIT",
     "amount": 64
   },
   {
