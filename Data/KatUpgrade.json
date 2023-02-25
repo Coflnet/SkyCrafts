@@ -540,6 +540,32 @@
     "cost": 17000000
   },
   {
+    "name": "Mooshroom Cow",
+    "baseRarity": "Common",
+    "hours": 1,
+    "cost": 10000
+  },
+  {
+    "name": "Mooshroom Cow",
+    "baseRarity": "Uncommon",
+    "hours": 6,
+    "cost": 50000
+  },
+  {
+    "name": "Mooshroom Cow",
+    "baseRarity": "Rare",
+    "hours": 24,
+    "cost": 100000
+  },
+  {
+    "name": "Mooshroom Cow",
+    "baseRarity": "Epic",
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_MYCELIUM",
+    "amount": 32
+  },
+  {
     "name": "Ocelot",
     "baseRarity": "Common",
     "hours": 1,
