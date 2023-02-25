@@ -904,6 +904,38 @@
     "amount": 512
   },
   {
+    "name": "Griffin",
+    "baseRarity": "Common",
+    "hours": 0,
+    "cost": 0,
+    "material": "GRIFFIN_UPGRADE_STONE_UNCOMMON",
+    "amount": 1
+  },
+  {
+    "name": "Griffin",
+    "baseRarity": "Uncommon",
+    "hours": 0,
+    "cost": 0,
+    "material": "GRIFFIN_UPGRADE_STONE_RARE",
+    "amount": 1
+  },
+  {
+    "name": "Griffin",
+    "baseRarity": "Rare",
+    "hours": 0,
+    "cost": 0,
+    "material": "GRIFFIN_UPGRADE_STONE_EPIC",
+    "amount": 1
+  },
+  {
+    "name": "Griffin",
+    "baseRarity": "Epic",
+    "hours": 0,
+    "cost": 0,
+    "material": "GRIFFIN_UPGRADE_STONE_LEGENDARY",
+    "amount": 1
+  },
+  {
     "name": "Zombie",
     "baseRarity": "Common",
     "hours": 1,
