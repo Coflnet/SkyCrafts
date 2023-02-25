@@ -692,6 +692,14 @@
     "amount": 64
   },
   {
+    "name": "Rat",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "RAT_JETPACK",
+    "amount": 1
+  },
+  {
     "name": "Rock",
     "baseRarity": "Common",
     "hours": 24,
