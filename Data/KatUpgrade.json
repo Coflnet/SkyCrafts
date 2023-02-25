@@ -39,23 +39,31 @@
   },
   {
     "name": "Bat",
-    "baseRarity": "Common",
+    "baseRarity": "Uncommon",
     "hours": 6,
     "cost": 5000
   },
   {
     "name": "Bat",
-    "baseRarity": "Common",
+    "baseRarity": "Rare",
     "hours": 24,
     "cost": 190000
   },
   {
     "name": "Bat",
-    "baseRarity": "Common",
+    "baseRarity": "Epic",
     "hours": 72,
     "cost": 250000,
     "material": "ENCHANTED_RED_MUSHROOM",
     "amount": 64
+  },
+  {
+    "name": "Bat",
+    "baseRarity": "Legendary",
+    "hours": 0,
+    "cost": 0,
+    "material": "PET_ITEM_VAMPIRE_FANG",
+    "amount": 1
   },
   {
     "name": "Bal",
@@ -273,9 +281,17 @@
     "name": "Endermite",
     "baseRarity": "Epic",
     "hours": 168,
-    "cost": 250000,
-    "material": "ENCHANTED_END_STONE",
-    "amount": 512
+    "cost": 1000000,
+    "material": "MITE_GEL",
+    "amount": 128
+  },
+  {
+    "name": "Endermite",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "MIXED_MITE_GEL",
+    "amount": 1
   },
   {
     "name": "Flying_Fish",
@@ -290,6 +306,14 @@
     "cost": 1000000,
     "material": "ENCHANTED_RAW_FISH",
     "amount": 64
+  },
+  {
+    "name": "Flying_Fish",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "RADIOACTIVE_VIAL",
+    "amount": 1
   },
   {
     "name": "Ghoul",
