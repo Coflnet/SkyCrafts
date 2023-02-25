@@ -900,7 +900,7 @@
     "baseRarity": "Epic",
     "hours": 120,
     "cost": 250000,
-    "material": "ENCHANTED_SPRUCE_WOOD",
+    "material": "ENCHANTED_SPRUCE_LOG",
     "amount": 512
   },
   {
