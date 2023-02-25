@@ -346,7 +346,7 @@
     "baseRarity": "Epic",
     "hours": 288,
     "cost": 9000000,
-    "material": "ENCHANTED_ACACIA_WOOD",
+    "material": "ENCHANTED_ACACIA_LOG",
     "amount": 512
   },
   {
@@ -612,7 +612,7 @@
     "baseRarity": "Epic",
     "hours": 120,
     "cost": 250000,
-    "material": "ENCHANTED_JUNGLE_WOOD",
+    "material": "ENCHANTED_JUNGLE_LOG",
     "amount": 512
   },
   {
