@@ -932,7 +932,7 @@
     "baseRarity": "Epic",
     "hours": 120,
     "cost": 250000,
-    "material": "ENCHANTED_BLOCK_OF_COAL",
+    "material": "ENCHANTED_COAL_BLOCK",
     "amount": 8
   },
   {
