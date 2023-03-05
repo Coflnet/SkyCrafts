@@ -106,7 +106,8 @@ namespace Coflnet.Sky.Crafts.Services
                         if (result.CraftCost < result.SellPrice * 0.5)
                             logger.LogInformation("double " + result.ItemId);
                     }
-                    await Task.Delay(50);
+                    if (IteratedAll)
+                        await Task.Delay(50);
                 }
                 catch (Exception e)
                 {
