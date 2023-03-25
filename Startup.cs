@@ -47,6 +47,7 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<UpdaterService>();
             services.AddSingleton<CollectionService>();
             services.AddSingleton<KatUpgradeService>();
+            services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
 
             services.AddSingleton<ITracer>(serviceProvider =>
