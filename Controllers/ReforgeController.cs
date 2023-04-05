@@ -9,7 +9,7 @@ namespace Coflnet.Sky.Crafts.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [ResponseCache(Duration = 1800, Location = ResponseCacheLocation.Any, NoStore = false)]
+    [ResponseCache(Duration = 10, Location = ResponseCacheLocation.Any, NoStore = false)]
     public class ReforgeController
     {
         private readonly ILogger<ReforgeController> _logger;
@@ -23,10 +23,22 @@ namespace Coflnet.Sky.Crafts.Controllers
 
         [HttpGet]
         [Route("stones")]
-        public async Task<Dictionary<string,string>> GetReforgeStones()
+        public async Task<Dictionary<string,Response>> GetReforgeStones()
         {
             var reforges = await reforgeService.GetReforges();
-            return reforges.ToDictionary(r => r.Value.ReforgeName, r => r.Key);
+            return reforges.ToDictionary(r => r.Value.ReforgeName, r => new Response(r.Key, r.Value.ReforgeCosts.GetValueOrDefault("LEGENDARY")));
+        }
+
+        public class Response
+        {
+            public string Tag { get; set; }
+            public int LegendaryCost { get; set; }
+
+            public Response(string tag, int legendaryCost)
+            {
+                Tag = tag;
+                LegendaryCost = legendaryCost;
+            }
         }
     }
 }
