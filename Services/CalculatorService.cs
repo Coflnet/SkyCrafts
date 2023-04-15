@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,14 +29,14 @@ namespace Coflnet.Sky.Crafts.Services
             {
                 try
                 {
-                    if(item.ItemId == "SKYBLOCK_COIN")
+                    if (item.ItemId == "SKYBLOCK_COIN")
                     {
                         item.Cost = item.Count;
                         return;
                     }
                     PriceResponse prices = await GetPriceFor(item.ItemId, item.Count);
                     item.Cost = prices.BuyPrice;
-                    if(prices.Available < item.Count)
+                    if (prices.Available < item.Count)
                         item.Cost = int.MaxValue;
                 }
                 catch (System.Net.Http.HttpRequestException)
@@ -58,11 +59,23 @@ namespace Coflnet.Sky.Crafts.Services
         private async Task<PriceResponse> GetPriceFor(string itemTag, int count)
         {
             var baseUrl = config["API_BASE_URL"];
-            if(baseUrl == "https://sky.coflnet.com")
+            if (baseUrl == "https://sky.coflnet.com")
                 await Task.Delay(600); // avoid rate limiting
             var response = await client.GetStringAsync($"{config["API_BASE_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}");
-            var prices = JsonSerializer.Deserialize<PriceResponse>(response);
-            return prices;
+            try
+            {
+                return JsonSerializer.Deserialize<PriceResponse>(response);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                Console.WriteLine($"FATAL: Requesting {itemTag} failed with invalid response '{response}'");
+                return new PriceResponse()
+                {
+                    Available = 0,
+                    BuyPrice = int.MaxValue,
+                    SellPrice = 0
+                };
+            }
         }
 
         public IEnumerable<Ingredient> NeedCount(ItemData item)

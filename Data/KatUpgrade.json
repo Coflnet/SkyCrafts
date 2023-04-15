@@ -78,7 +78,7 @@
     "baseRarity": "Common",
     "hours": 1,
     "cost": 5000,
-    "material": "BLOCK_OF_COAL",
+    "material": "COAL_BLOCK",
     "amount": 128
   },
   {
@@ -94,7 +94,7 @@
     "baseRarity": "Rare",
     "hours": 24,
     "cost": 150000,
-    "material": "ENCHANTED_BLOCK_OF_COAL",
+    "material": "ENCHANTED_COAL_BLOCK",
     "amount": 9
   },
   {
