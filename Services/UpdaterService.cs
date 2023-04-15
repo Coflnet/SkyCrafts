@@ -73,18 +73,24 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task IterateAll(List<ItemData> craftable, CancellationToken stoppingToken)
         {
-            foreach (var item in craftable)
+            var options = new ParallelOptions()
+            {
+                MaxDegreeOfParallelism = IteratedAll ? 1 : 3,
+                CancellationToken = stoppingToken
+            };
+            await Parallel.ForEachAsync(craftable, options,
+            async (item, token) =>
             {
                 if (stoppingToken.IsCancellationRequested)
                     return;
                 if (item.internalname.Contains("GENERATOR"))
-                    continue; //skip minions
+                    return; //skip minions
                 if (item.internalname.Contains(";"))
-                    continue; // skip level items (potions, pets)
+                    return; // skip level items (potions, pets)
                 if (item.internalname.Contains("-"))
-                    continue; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
+                    return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
                 if (item.internalname.EndsWith("_SACK"))
-                    continue; // not sellable
+                    return; // not sellable
                 try
                 {
                     var result = await calculatorService.GetCreaftingCost(item.internalname);
@@ -117,7 +123,9 @@ namespace Coflnet.Sky.Crafts.Services
                         logger.LogError(e, "updating item " + item.internalname);
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 }
-            }
+            });
+            if(!IteratedAll)
+                Console.WriteLine("Finished first iteration, am now ready");
             IteratedAll = true;
             await Task.Delay(TimeSpan.FromSeconds(10));
         }
