@@ -826,6 +826,38 @@
     "amount": 128
   },
   {
+    "name": "Snail",
+    "baseRarity": "Common",
+    "hours": 1,
+    "cost": 1000,
+    "material": "BURNING_EYE",
+    "amount": 5
+  },
+  {
+    "name": "Snail",
+    "baseRarity": "Uncommon",
+    "hours": 6,
+    "cost": 50000,
+    "material": "BURNING_EYE",
+    "amount": 10
+  },
+  {
+    "name": "Snail",
+    "baseRarity": "Rare",
+    "hours": 24,
+    "cost": 100000,
+    "material": "BURNING_EYE",
+    "amount": 20
+  },
+  {
+    "name": "Snail",
+    "baseRarity": "Epic",
+    "hours": 72,
+    "cost": 200000,
+    "material": "ENCHANTED_RED_SAND",
+    "amount": 32
+  },
+  {
     "name": "Spider",
     "baseRarity": "Common",
     "hours": 2,
