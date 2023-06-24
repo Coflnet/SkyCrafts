@@ -892,6 +892,14 @@
     "amount": 512
   },
   {
+    "name": "Spider",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "FAKE_NEUROSCIENCE_DEGREE",
+    "amount": 1
+  },
+  {
     "name": "Spirit",
     "baseRarity": "Epic",
     "hours": 240,
