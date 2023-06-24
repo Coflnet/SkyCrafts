@@ -384,6 +384,14 @@
     "amount": 64
   },
   {
+    "name": "Guardian",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "GUARDIAN_LUCKY_BLOCK",
+    "amount": 1
+  },
+  {
     "name": "Horse",
     "baseRarity": "Common",
     "hours": 1,
