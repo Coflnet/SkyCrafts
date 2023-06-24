@@ -934,6 +934,14 @@
     "amount": 512
   },
   {
+    "name": "Tarantula",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "FAKE_NEUROSCIENCE_DEGREE",
+    "amount": 1
+  },
+  {
     "name": "Tiger",
     "baseRarity": "Common",
     "hours": 24,
