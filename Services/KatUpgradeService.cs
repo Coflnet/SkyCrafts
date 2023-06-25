@@ -111,13 +111,15 @@ namespace Coflnet.Sky.Crafts.Services
             return response.Buy;
         }
 
-        private async Task<T> GetFromApi<T>(string path)
+        private async Task<T> GetFromApi<T>(string path) where T : class
         {
             var baseUrl = config["API_BASE_URL"];
             if(baseUrl == "https://sky.coflnet.com")
                 await Task.Delay(500); // avoid rate limit
             var manual = await client.GetStringAsync($"{baseUrl}{path}");
             var response = JsonConvert.DeserializeObject<T>(manual);
+            if(response == default(T))
+                logger.LogWarning($"Got empty response from {path}");
             return response;
         }
 

@@ -20,7 +20,7 @@ namespace Coflnet.Sky.Crafts.Services
             this.config = config;
         }
 
-        public async Task<ProfitableCraft> GetCreaftingCost(string itemId)
+        public async Task<ProfitableCraft> GetCreaftingCost(string itemId, Dictionary<string, ProfitableCraft> crafts)
         {
             var item = JsonSerializer.Deserialize<ItemData>(File.ReadAllText($"itemData/items/{itemId}.json"));
             var ingredients = NeedCount(item).ToList();
@@ -38,6 +38,8 @@ namespace Coflnet.Sky.Crafts.Services
                     item.Cost = prices.BuyPrice;
                     if (prices.Available < item.Count)
                         item.Cost = int.MaxValue;
+                    if(crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
+                        item.Cost = Math.Min(item.Cost, craft.CraftCost);
                 }
                 catch (System.Net.Http.HttpRequestException)
                 {

@@ -85,7 +85,7 @@ namespace Coflnet.Sky.Crafts.Services
                     return;
                 if (item.internalname.Contains("GENERATOR"))
                     return; //skip minions
-                if (item.internalname.Contains(";"))
+                if (item.internalname.Contains(";") && item.displayname != "§fEnchanted Book")
                     return; // skip level items (potions, pets)
                 if (item.internalname.Contains("-"))
                     return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
@@ -93,8 +93,39 @@ namespace Coflnet.Sky.Crafts.Services
                     return; // not sellable
                 try
                 {
-                    var result = await calculatorService.GetCreaftingCost(item.internalname);
-                    Crafts[result.ItemId] = result;
+                    var result = await calculatorService.GetCreaftingCost(item.internalname, Crafts);
+                    var tag = result.ItemId;
+
+                    if (item.displayname == "§fEnchanted Book")
+                    {
+                        tag = "ENCHANTED_BOOK_" + item.internalname.Replace(";", "_");
+                        result.ItemId = tag;
+                        result.ItemName = item.lore.FirstOrDefault() ?? item.displayname;
+                        // scale up to lvl 5
+                        var baselevel = int.Parse(tag.Split("_").Last());
+                        var lvl5Tag = tag.Replace(baselevel.ToString(), "5");
+                        var booksRequired = (int)Math.Pow(2, 5 - baselevel);
+                        var adjustedName = (item.lore.FirstOrDefault() ?? item.displayname);
+
+                        var lvl5Result = new ProfitableCraft()
+                        {
+                            Ingredients = new List<Ingredient>(){new(){
+                                Cost = result.CraftCost * booksRequired,
+                                Count = booksRequired,
+                                ItemId = tag
+                            }},
+                            CraftCost = result.CraftCost * booksRequired,
+                            ItemId = lvl5Tag,
+                            ItemName = adjustedName.Substring(0, adjustedName.LastIndexOf(' ')) + " V",
+                            SellPrice = result.SellPrice,
+                            Type = result.Type
+                        };
+                        if (lvl5Result != null)
+                            Crafts[lvl5Tag] = lvl5Result;
+                        else 
+                            logger.LogInformation("lvl5Result is null for " + tag);
+                    }
+                    Crafts[tag] = result;
                     if (result.ReqCollection == default)
                     {
                         var name = Regex.Replace(item.displayname, @"§[\da-f]", "");
@@ -124,7 +155,7 @@ namespace Coflnet.Sky.Crafts.Services
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             });
-            if(!IteratedAll)
+            if (!IteratedAll)
                 Console.WriteLine("Finished first iteration, am now ready");
             IteratedAll = true;
             await Task.Delay(TimeSpan.FromSeconds(10));

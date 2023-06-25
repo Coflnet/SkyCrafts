@@ -55,7 +55,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IEnumerable<ProfitableCraft> GetAll()
         {
-            return updaterService.Crafts.Select(e => e.Value).OrderByDescending(c => c.SellPrice - c.CraftCost);
+            return updaterService.Crafts.Where(e => e.Value != null).Select(e => e.Value).OrderByDescending(c => c.SellPrice - c.CraftCost);
         }
         [HttpGet]
         [Route("recipe/{itemTag}")]
