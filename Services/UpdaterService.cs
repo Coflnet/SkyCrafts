@@ -98,7 +98,7 @@ namespace Coflnet.Sky.Crafts.Services
 
                     if (item.displayname == "§fEnchanted Book")
                     {
-                        tag = "ENCHANTED_BOOK_" + item.internalname.Replace(";", "_");
+                        tag = "ENCHANTMENT_" + item.internalname.Replace(";", "_");
                         result.ItemId = tag;
                         result.ItemName = item.lore.FirstOrDefault() ?? item.displayname;
                         // scale up to lvl 5
