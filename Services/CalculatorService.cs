@@ -39,7 +39,7 @@ namespace Coflnet.Sky.Crafts.Services
                     if (prices.Available < item.Count)
                         item.Cost = int.MaxValue;
                     if(crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
-                        item.Cost = Math.Min(item.Cost, craft.CraftCost);
+                        item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.05);
                 }
                 catch (System.Net.Http.HttpRequestException)
                 {
