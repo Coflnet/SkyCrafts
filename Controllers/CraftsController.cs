@@ -45,7 +45,7 @@ namespace Coflnet.Sky.Crafts.Controllers
             return updaterService.Crafts.Values.Where(e => e != null).Where(c =>
                 (c.CraftCost < c.SellPrice * 0.95
                     || c.CraftCost < c.SellPrice * 0.99 && updaterService.BazaarItems.Contains(c.ItemId)
-                ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && c.Type == null);
+                ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && c.Type == null && c.Volume > 2);
         }
         /// <summary>
         /// Returns craft prices of all know craftable items

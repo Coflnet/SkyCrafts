@@ -141,7 +141,8 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task TryAddmedianAndVolume(ProfitableCraft result, string tag)
         {
-            if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.SellPrice != result.SellPrice) && result.CraftCost < int.MaxValue)
+            if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.SellPrice != result.SellPrice || existing.CraftCost != result.CraftCost)
+                && result.CraftCost < int.MaxValue && !result.ItemId.StartsWith("ENCHANTMENT_"))
             {
                 // update volume and median
                 try
@@ -152,6 +153,11 @@ namespace Coflnet.Sky.Crafts.Services
                     {
                         result.Volume = prices.Volume;
                         result.Median = prices.Median;
+                        logger.LogInformation("Updated price data for " + tag + " " + result.Volume + " " + result.Median);
+                    }
+                    else
+                    {
+                        logger.LogInformation("No price data for " + tag);
                     }
                 }
                 catch (System.Exception)
