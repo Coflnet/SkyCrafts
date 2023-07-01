@@ -42,7 +42,7 @@ namespace Coflnet.Sky.Crafts.Controllers
         [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
         public IEnumerable<ProfitableCraft> GetProfitable()
         {
-            return updaterService.Crafts.Values.Where(c =>
+            return updaterService.Crafts.Values.Where(e => e != null).Where(c =>
                 (c.CraftCost < c.SellPrice * 0.95
                     || c.CraftCost < c.SellPrice * 0.99 && updaterService.BazaarItems.Contains(c.ItemId)
                 ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && c.Type == null);

@@ -21,6 +21,7 @@ namespace Coflnet.Sky.Crafts.Services
         private CalculatorService calculatorService;
         private CollectionService collectionService;
         private KatUpgradeService katService;
+        private Api.Client.Api.IPricesApi pricesApi;
         private ILogger<UpdaterService> logger;
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
         public HashSet<string> BazaarItems = new();
@@ -31,7 +32,7 @@ namespace Coflnet.Sky.Crafts.Services
         public UpdaterService(CraftingRecipeService craftingRecipeService,
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
-                    CollectionService collectionService, KatUpgradeService katService, IConfiguration config)
+                    CollectionService collectionService, KatUpgradeService katService, IConfiguration config, Api.Client.Api.IPricesApi pricesApi)
         {
             this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
@@ -39,6 +40,7 @@ namespace Coflnet.Sky.Crafts.Services
             this.collectionService = collectionService;
             this.katService = katService;
             this.config = config;
+            this.pricesApi = pricesApi;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -98,33 +100,9 @@ namespace Coflnet.Sky.Crafts.Services
 
                     if (item.displayname == "§fEnchanted Book")
                     {
-                        tag = "ENCHANTMENT_" + item.internalname.Replace(";", "_");
-                        result.ItemId = tag;
-                        result.ItemName = item.lore.FirstOrDefault() ?? item.displayname;
-                        // scale up to lvl 5
-                        var baselevel = int.Parse(tag.Split("_").Last());
-                        var lvl5Tag = tag.Replace(baselevel.ToString(), "5");
-                        var booksRequired = (int)Math.Pow(2, 5 - baselevel);
-                        var adjustedName = (item.lore.FirstOrDefault() ?? item.displayname);
-
-                        var lvl5Result = new ProfitableCraft()
-                        {
-                            Ingredients = new List<Ingredient>(){new(){
-                                Cost = result.CraftCost * booksRequired,
-                                Count = booksRequired,
-                                ItemId = tag
-                            }},
-                            CraftCost = result.CraftCost * booksRequired,
-                            ItemId = lvl5Tag,
-                            ItemName = adjustedName.Substring(0, adjustedName.LastIndexOf(' ')) + " V",
-                            SellPrice = result.SellPrice,
-                            Type = result.Type
-                        };
-                        if (lvl5Result != null)
-                            Crafts[lvl5Tag] = lvl5Result;
-                        else 
-                            logger.LogInformation("lvl5Result is null for " + tag);
+                        tag = CorrectEnchantTagAndAddLvl5(item, result);
                     }
+                    await TryAddmedianAndVolume(result, tag);
                     Crafts[tag] = result;
                     if (result.ReqCollection == default)
                     {
@@ -159,6 +137,60 @@ namespace Coflnet.Sky.Crafts.Services
                 Console.WriteLine("Finished first iteration, am now ready");
             IteratedAll = true;
             await Task.Delay(TimeSpan.FromSeconds(10));
+        }
+
+        private async Task TryAddmedianAndVolume(ProfitableCraft result, string tag)
+        {
+            if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.SellPrice != result.SellPrice) && result.CraftCost < int.MaxValue)
+            {
+                // update volume and median
+                try
+                {
+
+                    var prices = await pricesApi.ApiItemPriceItemTagGetAsync(tag);
+                    if (prices != null)
+                    {
+                        result.Volume = prices.Volume;
+                        result.Median = prices.Median;
+                    }
+                }
+                catch (System.Exception)
+                {
+                    Console.WriteLine(JsonConvert.SerializeObject(result));
+                    throw;
+                }
+            }
+        }
+
+        private string CorrectEnchantTagAndAddLvl5(ItemData item, ProfitableCraft result)
+        {
+            string tag = "ENCHANTMENT_" + item.internalname.Replace(";", "_");
+            result.ItemId = tag;
+            result.ItemName = item.lore.FirstOrDefault() ?? item.displayname;
+            // scale up to lvl 5
+            var baselevel = int.Parse(tag.Split("_").Last());
+            var lvl5Tag = tag.Replace(baselevel.ToString(), "5");
+            var booksRequired = (int)Math.Pow(2, 5 - baselevel);
+            var adjustedName = (item.lore.FirstOrDefault() ?? item.displayname);
+
+            var lvl5Result = new ProfitableCraft()
+            {
+                Ingredients = new List<Ingredient>(){new(){
+                                Cost = result.CraftCost * booksRequired,
+                                Count = booksRequired,
+                                ItemId = tag
+                            }},
+                CraftCost = result.CraftCost * booksRequired,
+                ItemId = lvl5Tag,
+                ItemName = adjustedName.Substring(0, adjustedName.LastIndexOf(' ')) + " V",
+                SellPrice = result.SellPrice,
+                Type = result.Type
+            };
+            if (lvl5Result != null)
+                Crafts[lvl5Tag] = lvl5Result;
+            else
+                logger.LogInformation("lvl5Result is null for " + tag);
+            return tag;
         }
     }
 }
