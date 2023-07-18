@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
 using Coflnet.Sky.Crafts.Services;
@@ -57,6 +53,9 @@ namespace Coflnet.Sky.Crafts.Controllers
         {
             return updaterService.Crafts.Where(e => e.Value != null).Select(e => e.Value).OrderByDescending(c => c.SellPrice - c.CraftCost);
         }
+        /// <summary>
+        /// Get the recipe for a specific item
+        /// </summary>
         [HttpGet]
         [Route("recipe/{itemTag}")]
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
@@ -64,6 +63,10 @@ namespace Coflnet.Sky.Crafts.Controllers
         {
             return craftingRecipeService.GetRecipe(itemTag);
         }
+        /// <summary>
+        /// Returns true if all items been calculated once.
+        /// Necessary for determining if batch requests return valid responses
+        /// </summary>
         [HttpGet]
         [Route("ready")]
         [ResponseCache(Duration = 5, Location = ResponseCacheLocation.Any, NoStore = false)]
