@@ -9,10 +9,8 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <PackageReference Include="Coflnet.Core" Version="0.1.1" />
     <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.0.2" />
-    <PackageReference Include="Jaeger.Senders.Thrift" Version="1.0.3" />
-    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.7.1" />
-    <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
   </ItemGroup>
 

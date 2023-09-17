@@ -1,24 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Services;
-using Jaeger.Samplers;
-using Jaeger.Senders;
-using Jaeger.Senders.Thrift;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using OpenTracing;
-using OpenTracing.Util;
 using Prometheus;
+using Coflnet.Core;
 
 namespace Coflnet.Sky.Crafts
 {
@@ -51,27 +40,7 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
 
-            services.AddSingleton<ITracer>(serviceProvider =>
-            {
-                ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-                IConfiguration iConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
-
-                Jaeger.Configuration.SenderConfiguration.DefaultSenderResolver = new SenderResolver(loggerFactory)
-                        .RegisterSenderFactory<ThriftSenderFactory>();
-
-                var samplingRate = 0.10d;
-                var lowerBoundInSeconds = 30d;
-                ISampler sampler = new GuaranteedThroughputSampler(samplingRate, lowerBoundInSeconds);
-                var config = Jaeger.Configuration.FromIConfiguration(loggerFactory, iConfiguration);
-
-                ITracer tracer = config.GetTracerBuilder()
-                    .WithSampler(sampler)
-                    .Build();
-
-                GlobalTracer.Register(tracer);
-                return tracer;
-            });
-            services.AddOpenTracing();
+            services.AddCoflnetCore();
             services.AddResponseCaching();
             services.AddMemoryCache();
         }
@@ -93,6 +62,8 @@ namespace Coflnet.Sky.Crafts
             app.UseResponseCaching();
 
             app.UseRouting();
+
+            app.UseCoflnetCore();
 
             app.UseAuthorization();
 
