@@ -63,14 +63,15 @@ namespace Coflnet.Sky.Crafts.Services
             var baseUrl = config["API_BASE_URL"];
             if (baseUrl == "https://sky.coflnet.com")
                 await Task.Delay(600); // avoid rate limiting
-            var response = await client.GetStringAsync($"{config["API_BASE_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}");
+            var url = $"{config["API_BASE_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}";
+            var response = await client.GetStringAsync(url);
             try
             {
                 return JsonSerializer.Deserialize<PriceResponse>(response);
             }
             catch (System.Text.Json.JsonException)
             {
-                Console.WriteLine($"FATAL: Requesting {itemTag} failed with invalid response '{response}'");
+                Console.WriteLine($"FATAL: Requesting {url} failed with invalid response '{response}'");
                 return new PriceResponse()
                 {
                     Available = 0,
