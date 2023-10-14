@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Crafts.Services
             Results = result;
         }
 
-        private async Task CalculateKatFlips(List<KatUpgradeResult> result, KatUpgradeCost item)
+        private async Task CalculateKatFlips(List<KatUpgradeResult> result, Models.KatUpgradeCost item)
         {
             var rarity = item.BaseRarity;
             var upgradedRarity = (Api.Client.Model.Tier)((int)rarity + 1);
@@ -75,7 +75,7 @@ namespace Coflnet.Sky.Crafts.Services
             }
         }
 
-        private static KatUpgradeResult SingleResult(KatUpgradeCost item, Api.Client.Model.SaveAuction auction, Api.Client.Model.SaveAuction lbin, double materialCost)
+        private static KatUpgradeResult SingleResult(Models.KatUpgradeCost item, Api.Client.Model.SaveAuction auction, Api.Client.Model.SaveAuction lbin, double materialCost)
         {
             var level = (float)int.Parse(Regex.Replace(auction.ItemName.Substring(0, 10), "[^0-9]", ""));
             var upgradeCost = item.Cost * (1 - (level - 1) * 0.003);
@@ -123,10 +123,10 @@ namespace Coflnet.Sky.Crafts.Services
             return response;
         }
 
-        public async Task<IEnumerable<KatUpgradeCost>> GetKatUpgradeCosts()
+        public async Task<IEnumerable<Models.KatUpgradeCost>> GetKatUpgradeCosts()
         {
             var path = $"Data/KatUpgrade.json";
-            return JsonConvert.DeserializeObject<IEnumerable<KatUpgradeCost>>(await File.ReadAllTextAsync(path));
+            return JsonConvert.DeserializeObject<IEnumerable<Models.KatUpgradeCost>>(await File.ReadAllTextAsync(path));
         }
     }
 }
