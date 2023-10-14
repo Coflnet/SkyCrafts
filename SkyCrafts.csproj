@@ -10,7 +10,7 @@
   
   <ItemGroup>
     <PackageReference Include="Coflnet.Core" Version="0.1.1" />
-    <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.0.2" />
+    <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
   </ItemGroup>
 
