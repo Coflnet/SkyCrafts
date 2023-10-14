@@ -1,8 +1,8 @@
-VERSION=0.2.1
+VERSION=0.2.2
 
 docker run --rm -v "${PWD}:/local" --network host -u $(id -u ${USER}):$(id -g ${USER})  openapitools/openapi-generator-cli generate \
 -i http://localhost:5009/swagger/v1/swagger.json \
--g csharp-netcore \
+-g csharp \
 -o /local/out --additional-properties=packageName=Coflnet.Sky.Crafts.Client,packageVersion=$VERSION,licenseId=MIT
 
 cd out
