@@ -60,7 +60,7 @@ namespace Coflnet.Sky.Crafts.Services
                         {
                             RequiredCollection[item.Replace(" Recipe", "")] = new RequiredCollection()
                             {
-                                Name = collection.Key,
+                                Name = collection.Value.Name,
                                 Level = tier.TierId
                             };
                         }
