@@ -106,6 +106,14 @@
     "amount": 9
   },
   {
+    "name": "Black_Cat",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "BLACK_WOOLEN_YARN",
+    "amount": 1
+  },
+  {
     "name": "Blaze",
     "baseRarity": "Epic",
     "hours": 288,
