@@ -850,6 +850,14 @@
     "amount": 128
   },
   {
+    "name": "Slug",
+    "baseRarity": "Epic",
+    "hours": 168,
+    "cost": 10000000,
+    "material": "ENCHANTED_COMPOST",
+    "amount": 1
+  },
+  {
     "name": "Snail",
     "baseRarity": "Common",
     "hours": 1,
