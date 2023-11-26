@@ -107,7 +107,7 @@ namespace Coflnet.Sky.Crafts.Services
                 return count;
             var response = await GetFromApi<CurrentPrice>($"/api/item/price/{itemTag}/current?count={count}");
             if (response?.Available < count)
-                return int.MaxValue;
+                return 20_000_000_000;
             return response.Buy;
         }
 

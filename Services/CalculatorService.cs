@@ -37,7 +37,7 @@ namespace Coflnet.Sky.Crafts.Services
                     PriceResponse prices = await GetPriceFor(item.ItemId, item.Count);
                     item.Cost = prices.BuyPrice;
                     if (prices.Available < item.Count)
-                        item.Cost = int.MaxValue;
+                        item.Cost = 20_000_000_000;
                     if(crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
                         item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.05);
                 }
