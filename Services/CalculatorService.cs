@@ -20,11 +20,11 @@ namespace Coflnet.Sky.Crafts.Services
             this.config = config;
         }
 
-        public async Task<ProfitableCraft> GetCreaftingCost(string itemId, Dictionary<string, ProfitableCraft> crafts)
+        public async Task<ProfitableCraft> GetCreaftingCost(ItemData item, Dictionary<string, ProfitableCraft> crafts)
         {
-            var item = JsonSerializer.Deserialize<ItemData>(File.ReadAllText($"itemData/items/{itemId}.json"));
+            //var item = JsonSerializer.Deserialize<ItemData>(File.ReadAllText($"itemData/items/{itemId}.json"));
             var ingredients = NeedCount(item).ToList();
-            var sellPriceTask = GetPriceFor(itemId, 1);
+            var sellPriceTask = GetPriceFor(item.internalname, 1);
             await Task.WhenAll(ingredients.Select(async item =>
             {
                 try
@@ -51,7 +51,7 @@ namespace Coflnet.Sky.Crafts.Services
             {
                 CraftCost = ingredients.Sum(i => i.Cost),
                 Ingredients = ingredients,
-                ItemId = itemId,
+                ItemId = item.internalname,
                 ItemName = item.displayname,
                 SellPrice = (await sellPriceTask).SellPrice,
                 Type = item.recipes?.FirstOrDefault()?.type

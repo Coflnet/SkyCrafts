@@ -3,7 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace Coflnet.Sky.Crafts.Models;
 
-public class Recipe
+public interface IGetIngredients
+{
+    IEnumerable<string> GetIngredients();
+}
+
+public class Recipe : IGetIngredients
 {
     [JsonPropertyName("A1")]
     public string A1 { get; set; }
@@ -35,7 +40,7 @@ public class Recipe
     [JsonPropertyName("count")]
     public int count { get; set; }
 
-    public IEnumerable<string> GetIngredients()
+    public virtual IEnumerable<string> GetIngredients()
     {
         yield return A1;
         yield return A2;

@@ -93,9 +93,11 @@ namespace Coflnet.Sky.Crafts.Services
                     return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
                 if (item.internalname.EndsWith("_SACK"))
                     return; // not sellable
+                if (item.internalname.EndsWith("POTION"))
+                    return; // too different
                 try
                 {
-                    var result = await calculatorService.GetCreaftingCost(item.internalname, Crafts);
+                    var result = await calculatorService.GetCreaftingCost(item, Crafts);
                     var tag = result.ItemId;
 
                     if (item.displayname == "§fEnchanted Book")
@@ -141,6 +143,12 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task TryAddmedianAndVolume(ProfitableCraft result, string tag)
         {
+            if(tag.Contains(":"))
+            {
+                if (!IteratedAll)
+                    return; // not relevant on first iteration
+                tag = tag.Split(":").First();
+            }
             if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.SellPrice != result.SellPrice || existing.CraftCost != result.CraftCost)
                 && result.CraftCost < int.MaxValue && !result.ItemId.StartsWith("ENCHANTMENT_"))
             {
