@@ -38,7 +38,7 @@ namespace Coflnet.Sky.Crafts.Services
                     item.Cost = prices.BuyPrice;
                     if (prices.Available < item.Count)
                         item.Cost = 20_000_000_000;
-                    if(crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
+                    if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
                         item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.05);
                 }
                 catch (System.Net.Http.HttpRequestException)
@@ -100,7 +100,7 @@ namespace Coflnet.Sky.Crafts.Services
                 yield return new Ingredient()
                 {
                     ItemId = ConvertNeuToTag(parts.First()),
-                    Count = parts.Length == 1 ? 1 : int.Parse(parts[1])
+                    Count = parts.Length == 1 ? 1 : (int)float.Parse(parts[1])
                 };
             }
         }
