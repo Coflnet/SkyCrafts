@@ -65,6 +65,12 @@ namespace Coflnet.Sky.Crafts.Services
                 await Task.Delay(600); // avoid rate limiting
             var url = $"{config["API_BASE_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}";
             var response = await client.GetStringAsync(url);
+            if(string.IsNullOrEmpty(response))
+            {
+                Console.WriteLine($"FATAL: Requesting {url} failed with empty response");
+                await Task.Delay(1000);
+                response = await client.GetStringAsync(url);
+            }
             try
             {
                 return JsonSerializer.Deserialize<PriceResponse>(response);
