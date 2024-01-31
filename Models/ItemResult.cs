@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Coflnet.Sky.Crafts.Models
@@ -14,5 +15,6 @@ namespace Coflnet.Sky.Crafts.Models
         public string Type { get; set; }
         public double Volume { get; set; }
         public float Median { get; set; }
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     }
 }
