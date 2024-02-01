@@ -80,6 +80,7 @@ namespace Coflnet.Sky.Crafts.Services
                 MaxDegreeOfParallelism = IteratedAll ? 1 : 3,
                 CancellationToken = stoppingToken
             };
+            var lookup = craftable.ToDictionary(c => c.internalname);
             await Parallel.ForEachAsync(craftable, options,
             async (item, token) =>
             {
@@ -97,7 +98,7 @@ namespace Coflnet.Sky.Crafts.Services
                     return; // too different
                 try
                 {
-                    var result = await calculatorService.GetCreaftingCost(item, Crafts);
+                    var result = await calculatorService.GetCreaftingCost(item, Crafts, lookup);
                     var tag = result.ItemId;
 
                     if (item.displayname == "§fEnchanted Book")

@@ -26,10 +26,10 @@ namespace Coflnet.Sky.Crafts.Services
                 // item needs to have a dedicated recipe
                 if (item?.recipe != null || item?.recipes != null && item.recipes.Count > 0 && item.recipes[0].type == "forge")
                     yield return item;
-                if(itemPath.Contains("_NPC.json"))
+                if (itemPath.Contains("_NPC.json"))
                 {
                     var npc = JsonSerializer.Deserialize<NPC>(File.ReadAllText(itemPath));
-                    if(npc.recipes == null)
+                    if (npc.recipes == null)
                     {
                         continue;
                     }
@@ -48,6 +48,7 @@ namespace Coflnet.Sky.Crafts.Services
                 itemid = recipe.result,
                 internalname = recipe.result,
                 displayname = recipe.result,
+                Type = "npc",
                 recipes = new List<NewRecipe>()
                             {
                                 new NewRecipe()

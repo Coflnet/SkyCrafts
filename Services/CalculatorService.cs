@@ -20,7 +20,7 @@ namespace Coflnet.Sky.Crafts.Services
             this.config = config;
         }
 
-        public async Task<ProfitableCraft> GetCreaftingCost(ItemData item, Dictionary<string, ProfitableCraft> crafts)
+        public async Task<ProfitableCraft> GetCreaftingCost(ItemData item, Dictionary<string, ProfitableCraft> crafts, Dictionary<string, ItemData> lookup)
         {
             //var item = JsonSerializer.Deserialize<ItemData>(File.ReadAllText($"itemData/items/{itemId}.json"));
             var ingredients = NeedCount(item).ToList();
@@ -38,7 +38,8 @@ namespace Coflnet.Sky.Crafts.Services
                     item.Cost = prices.BuyPrice;
                     if (prices.Available < item.Count)
                         item.Cost = 20_000_000_000;
-                    if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
+                    if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft)
+                        && (IsNotNpc(lookup, item)))
                         item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.1);
                 }
                 catch (System.Net.Http.HttpRequestException)
@@ -58,6 +59,11 @@ namespace Coflnet.Sky.Crafts.Services
             };
         }
 
+        private static bool IsNotNpc(Dictionary<string, ItemData> lookup, Ingredient item)
+        {
+            return lookup.TryGetValue(item.ItemId, out ItemData itemData) && itemData.Type == null;
+        }
+
         private async Task<PriceResponse> GetPriceFor(string itemTag, int count)
         {
             var baseUrl = config["API_BASE_URL"];
@@ -65,7 +71,7 @@ namespace Coflnet.Sky.Crafts.Services
                 await Task.Delay(600); // avoid rate limiting
             var url = $"{config["API_BASE_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}";
             var response = await client.GetStringAsync(url);
-            if(string.IsNullOrEmpty(response))
+            if (string.IsNullOrEmpty(response))
             {
                 Console.WriteLine($"FATAL: Requesting {url} failed with empty response");
                 await Task.Delay(1000);
