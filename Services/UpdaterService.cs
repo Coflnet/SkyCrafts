@@ -80,7 +80,7 @@ namespace Coflnet.Sky.Crafts.Services
                 MaxDegreeOfParallelism = IteratedAll ? 1 : 3,
                 CancellationToken = stoppingToken
             };
-            var lookup = craftable.ToDictionary(c => c.internalname);
+            var lookup = craftable.GroupBy(c => c.internalname).Select(c => c.First()).ToDictionary(c => c.internalname);
             await Parallel.ForEachAsync(craftable, options,
             async (item, token) =>
             {
@@ -144,7 +144,7 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task TryAddmedianAndVolume(ProfitableCraft result, string tag)
         {
-            if(tag.Contains(":"))
+            if (tag.Contains(":"))
             {
                 if (!IteratedAll)
                     return; // not relevant on first iteration
