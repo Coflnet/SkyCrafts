@@ -42,7 +42,7 @@ namespace Coflnet.Sky.Crafts.Services
                     if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft)
                         && canBeCrafteDirectly)
                         item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.1);
-                    if(item.ItemId == "ENCHANTED_MITHRIL")
+                    if(item.ItemId == "REFINED_MITHRIL")
                     {
                         Console.WriteLine($"Cost for {item.ItemId} is {item.Cost} and can be crafted directly: {canBeCrafteDirectly}");
                     }
