@@ -42,10 +42,6 @@ namespace Coflnet.Sky.Crafts.Services
                     if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft)
                         && canBeCrafteDirectly)
                         item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.1);
-                    if(item.ItemId == "REFINED_MITHRIL")
-                    {
-                        Console.WriteLine($"Cost for {item.ItemId} is {item.Cost} and can be crafted directly: {canBeCrafteDirectly}");
-                    }
                 }
                 catch (System.Net.Http.HttpRequestException)
                 {
@@ -66,7 +62,7 @@ namespace Coflnet.Sky.Crafts.Services
 
         private static bool CanBeCraftedDirectly(Dictionary<string, ItemData> lookup, Ingredient item)
         {
-            return lookup.TryGetValue(item.ItemId, out ItemData itemData) && itemData.Type == null && item.Type != "forge";
+            return lookup.TryGetValue(item.ItemId, out ItemData itemData) && itemData.Type == null && (itemData.recipes == null || itemData.recipes.All(r => r.type != "forge"));
         }
 
         private async Task<PriceResponse> GetPriceFor(string itemTag, int count)

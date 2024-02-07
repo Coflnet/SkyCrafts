@@ -50,7 +50,7 @@ namespace Coflnet.Sky.Crafts.Services
             await getBazaarItemsTask;
             while (!stoppingToken.IsCancellationRequested)
             {
-                await katService.Update();
+                //await katService.Update();
                 await IterateAll(craftable, stoppingToken);
             }
         }
