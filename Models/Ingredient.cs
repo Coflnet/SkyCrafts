@@ -5,5 +5,6 @@ namespace Coflnet.Sky.Crafts.Models
         public string ItemId { get; set; }
         public int Count { get; set; }
         public double Cost { get; set; }
+        public string Type { get; set; }
     }
 }

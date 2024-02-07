@@ -39,7 +39,7 @@ namespace Coflnet.Sky.Crafts.Services
                     if (prices.Available < item.Count)
                         item.Cost = 20_000_000_000;
                     if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft)
-                        && (IsNotNpc(lookup, item)))
+                        && (IsFromMarket(lookup, item)))
                         item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.1);
                 }
                 catch (System.Net.Http.HttpRequestException)
@@ -59,9 +59,9 @@ namespace Coflnet.Sky.Crafts.Services
             };
         }
 
-        private static bool IsNotNpc(Dictionary<string, ItemData> lookup, Ingredient item)
+        private static bool IsFromMarket(Dictionary<string, ItemData> lookup, Ingredient item)
         {
-            return lookup.TryGetValue(item.ItemId, out ItemData itemData) && itemData.Type == null;
+            return lookup.TryGetValue(item.ItemId, out ItemData itemData) && itemData.Type == null && item.Type != "forge";
         }
 
         private async Task<PriceResponse> GetPriceFor(string itemTag, int count)
@@ -98,7 +98,8 @@ namespace Coflnet.Sky.Crafts.Services
             var aggregated = GetIngredientsFromSlots(item).GroupBy(i => i.ItemId).Select(i => new Ingredient()
             {
                 ItemId = i.Key,
-                Count = i.Sum(single => single.Count)
+                Count = i.Sum(single => single.Count),
+                Type = i.First().Type
             });
             return aggregated;
         }
