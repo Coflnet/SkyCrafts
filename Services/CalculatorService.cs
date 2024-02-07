@@ -38,9 +38,14 @@ namespace Coflnet.Sky.Crafts.Services
                     item.Cost = prices.BuyPrice;
                     if (prices.Available < item.Count)
                         item.Cost = 20_000_000_000;
+                    var canBeCrafteDirectly = CanBeCraftedDirectly(lookup, item);
                     if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft)
-                        && (IsFromMarket(lookup, item)))
+                        && canBeCrafteDirectly)
                         item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.1);
+                    if(item.ItemId == "ENCHANTED_MITHRIL")
+                    {
+                        Console.WriteLine($"Cost for {item.ItemId} is {item.Cost} and can be crafted directly: {canBeCrafteDirectly}");
+                    }
                 }
                 catch (System.Net.Http.HttpRequestException)
                 {
@@ -59,7 +64,7 @@ namespace Coflnet.Sky.Crafts.Services
             };
         }
 
-        private static bool IsFromMarket(Dictionary<string, ItemData> lookup, Ingredient item)
+        private static bool CanBeCraftedDirectly(Dictionary<string, ItemData> lookup, Ingredient item)
         {
             return lookup.TryGetValue(item.ItemId, out ItemData itemData) && itemData.Type == null && item.Type != "forge";
         }
