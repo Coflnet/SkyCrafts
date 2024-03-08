@@ -335,19 +335,25 @@
     "name": "Giraffe",
     "baseRarity": "Common",
     "hours": 24,
-    "cost": 15000
+    "cost": 15000,
+    "material": "ENCHANTED_ACACIA_LOG",
+    "amount": 1
   },
   {
     "name": "Giraffe",
     "baseRarity": "Uncommon",
     "hours": 48,
-    "cost": 75000
+    "cost": 75000,
+    "material": "ENCHANTED_ACACIA_LOG",
+    "amount": 16
   },
   {
     "name": "Giraffe",
     "baseRarity": "Rare",
     "hours": 168,
-    "cost": 9000
+    "cost": 900000,
+    "material": "ENCHANTED_ACACIA_LOG",
+    "amount": 128
   },
   {
     "name": "Giraffe",
