@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Crafts.Services
 {
-    public class UpdaterService : BackgroundService
+    public partial class UpdaterService : BackgroundService
     {
         private CraftingRecipeService craftingRecipeService;
         private CalculatorService calculatorService;
@@ -107,17 +107,7 @@ namespace Coflnet.Sky.Crafts.Services
                     }
                     await TryAddmedianAndVolume(result, tag);
                     Crafts[tag] = result;
-                    if (result.ReqCollection == default)
-                    {
-                        var name = Regex.Replace(item.displayname, @"§[\da-f]", "");
-                        result.ReqCollection = await collectionService.GetRequiredCollection(name);
-                    }
-                    if (!string.IsNullOrEmpty(item.slayer_req))
-                        result.ReqSlayer = new Models.RequiredCollection()
-                        {
-                            Name = item.slayer_req.Split("_").First(),
-                            Level = int.Parse(item.slayer_req.Split("_").Last())
-                        };
+                    await AssignRequirements(item, result);
                     if (result.CraftCost < result.SellPrice)
                     {
                         profitableFound.Inc();
@@ -140,6 +130,38 @@ namespace Coflnet.Sky.Crafts.Services
                 Console.WriteLine("Finished first iteration, am now ready");
             IteratedAll = true;
             await Task.Delay(TimeSpan.FromSeconds(10));
+        }
+
+        private async Task AssignRequirements(ItemData item, ProfitableCraft result)
+        {
+            if (result.ReqCollection == default)
+            {
+                var name = MinecraftFormatRemoveRegex().Replace(item.displayname, "");
+                result.ReqCollection = await collectionService.GetRequiredCollection(name);
+            }
+            if (!string.IsNullOrEmpty(item.slayer_req))
+                result.ReqSlayer = new Models.RequiredCollection()
+                {
+                    Name = item.slayer_req.Split("_").First(),
+                    Level = int.Parse(item.slayer_req.Split("_").Last())
+                };
+            else
+            {
+                var SlayerLine = item.lore?.Where(l => l.Contains("Slayer ")).FirstOrDefault();
+                if (SlayerLine != null)
+                {
+                    var match = Regex.Match(MinecraftFormatRemoveRegex().Replace(SlayerLine, ""), @"☠ Requires (.*) Slayer (\d)");
+                    if (match.Success)
+                    {
+                        result.ReqSlayer = new RequiredCollection()
+                        {
+                            Name = match.Groups[1].Value,
+                            Level = int.Parse(match.Groups[2].Value)
+                        };
+                    }
+
+                }
+            }
         }
 
         private async Task TryAddmedianAndVolume(ProfitableCraft result, string tag)
@@ -207,5 +229,8 @@ namespace Coflnet.Sky.Crafts.Services
                 logger.LogInformation("lvl5Result is null for " + tag);
             return tag;
         }
+
+        [GeneratedRegex(@"§[\da-f]")]
+        private static partial Regex MinecraftFormatRemoveRegex();
     }
 }
