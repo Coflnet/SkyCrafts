@@ -42,11 +42,15 @@ namespace Coflnet.Sky.Crafts.Services
                     if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft)
                         && canBeCrafteDirectly)
                     {
-                        item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count * 1.1);
-                        item.Type = "craft";
+                        var craftWithProfit = craft.CraftCost * item.Count * 1.12;
+                        if (item.Cost > craftWithProfit)
+                        {
+                            item.Cost = Math.Min(item.Cost, craftWithProfit);
+                            item.Type = "craft";
+                        }
                     }
                 }
-                catch (System.Net.Http.HttpRequestException)
+                catch (HttpRequestException)
                 {
                     // likely unobtainable
                     item.Cost = 0;
