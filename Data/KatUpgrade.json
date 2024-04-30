@@ -896,6 +896,14 @@
     "amount": 32
   },
   {
+    "name": "Snowman",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "MAGIC_TOP_HAT",
+    "amount": 1
+  },
+  {
     "name": "Spider",
     "baseRarity": "Common",
     "hours": 2,
