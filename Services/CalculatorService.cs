@@ -43,6 +43,7 @@ namespace Coflnet.Sky.Crafts.Services
                         && canBeCrafteDirectly)
                     {
                         var craftWithProfit = craft.CraftCost * item.Count * 1.12;
+                        item.CraftCost = craft.CraftCost * item.Count;
                         if (item.Cost > craftWithProfit)
                         {
                             item.Cost = Math.Min(item.Cost, craftWithProfit);
