@@ -722,6 +722,14 @@
     "amount": 64
   },
   {
+    "name": "Rabbit",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "PET_ITEM_CHOCOLATE_SYRINGE",
+    "amount": 1
+  },
+  {
     "name": "Rat",
     "baseRarity": "Legendary",
     "hours": 1,
