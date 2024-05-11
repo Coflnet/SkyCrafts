@@ -39,11 +39,12 @@ namespace Coflnet.Sky.Crafts.Services
                     if (prices.Available < item.Count)
                         item.Cost = 20_000_000_000;
                     var canBeCrafteDirectly = CanBeCraftedDirectly(lookup, item);
-                    if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft)
-                        && canBeCrafteDirectly)
+                    if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
                     {
                         var craftWithProfit = craft.CraftCost * item.Count * 1.12;
                         item.CraftCost = craft.CraftCost * item.Count;
+                        if (!canBeCrafteDirectly)
+                            craftWithProfit *= 100;
                         if (item.Cost > craftWithProfit)
                         {
                             item.Cost = Math.Min(item.Cost, craftWithProfit);
