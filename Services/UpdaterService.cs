@@ -90,8 +90,8 @@ namespace Coflnet.Sky.Crafts.Services
                     return; //skip minions
                 if (item.internalname.Contains(";") && item.displayname != "§fEnchanted Book")
                     return; // skip level items (potions, pets)
-                if (item.internalname.Contains("-"))
-                    return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
+               // if (item.internalname.Contains("-"))
+                //    return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
                 if (item.internalname.EndsWith("_SACK"))
                     return; // not sellable
                 if (item.internalname.EndsWith("POTION"))
