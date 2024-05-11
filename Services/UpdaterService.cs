@@ -166,6 +166,8 @@ namespace Coflnet.Sky.Crafts.Services
 
         private async Task TryAddmedianAndVolume(ProfitableCraft result, string tag)
         {
+            if (tag.Contains("-"))
+                return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
             if (tag.Contains(":"))
             {
                 if (!IteratedAll)
