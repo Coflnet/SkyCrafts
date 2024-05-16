@@ -1,0 +1,588 @@
+{
+    "FANCY_FLOWER_POT": [
+        {
+            "ItemId": "IRON_INGOT",
+            "Count": 6
+        },
+        {
+            "ItemId": "DIRT",
+            "Count": 1
+        },
+        {
+            "ItemId": "HARD_CLAY",
+            "Count": 8
+        },
+        {
+            "ItemId": "DOUBLE_PLANT:4",
+            "Count": 1
+        }
+    ],
+    "ENDER_PLUS": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "EYE_OF_ENDER",
+            "Count": 64
+        }
+    ],
+    "BLACKSMITH_PLUS": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 20
+        },
+        {
+            "ItemId": "WOOD",
+            "Count": 3
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 5
+        },
+        {
+            "ItemId": "STICK",
+            "Count": 1
+        },
+        {
+            "ItemId": "ANVIL",
+            "Count": 1
+        },
+        {
+            "ItemId": "IRON_SPADE",
+            "Count": 1
+        },
+        {
+            "ItemId": "IRON_PICKAXE",
+            "Count": 1
+        },
+        {
+            "ItemId": "DIAMOND_CHESTPLATE",
+            "Count": 1
+        }
+    ],
+    "BREWING_PLUS": [
+        {
+            "ItemId": "POTION",
+            "Count": 5
+        },
+        {
+            "ItemId": "BREWING_STAND_ItemId",
+            "Count": 1
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 4
+        },
+        {
+            "ItemId": "WOOD",
+            "Count": 4
+        }
+    ],
+    "COFFEE_TABLE": [
+        {
+            "ItemId": "STICK",
+            "Count": 4
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 4
+        },
+        {
+            "ItemId": "WOOL",
+            "Count": 4
+        }
+    ],
+    "ENDSTONE_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "ENDER_STONE",
+            "Count": 64
+        }
+    ],
+    "SCARECROW": [
+        {
+            "ItemId": "HAY_BLOCK",
+            "Count": 1
+        },
+        {
+            "ItemId": "STICK",
+            "Count": 8
+        },
+        {
+            "ItemId": "WOOL:12",
+            "Count": 4
+        },
+        {
+            "ItemId": "WHEAT",
+            "Count": 4
+        },
+        {
+            "ItemId": "PUMPKIN",
+            "Count": 1
+        }
+    ],
+    "MEDIUM_SHELVES": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 24
+        },
+        {
+            "ItemId": "TRAP_DOOR",
+            "Count": 4
+        },
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 1
+        }
+    ],
+    "SKYBLOCK_BENCH": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 16
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 6
+        }
+    ],
+    "TIKI_TORCH": [
+        {
+            "ItemId": "STICK",
+            "Count": 4
+        },
+        {
+            "ItemId": "FLINT_AND_STEEL",
+            "Count": 1
+        },
+        {
+            "ItemId": "NETHERRACK",
+            "Count": 1
+        }
+    ],
+    "FURNACE_PLUS": [
+        {
+            "ItemId": "IRON_INGOT",
+            "Count": 4
+        },
+        {
+            "ItemId": "FURNACE",
+            "Count": 1
+        },
+        {
+            "ItemId": "ENCHANTED_COAL",
+            "Count": 1
+        }
+    ],
+    "GOLD_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "GOLD_INGOT",
+            "Count": 64
+        }
+    ],
+    "DINING_CHAIR": [
+        {
+            "ItemId": "STICK",
+            "Count": 10
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 2
+        },
+        {
+            "ItemId": "WOOL",
+            "Count": 1
+        }
+    ],
+    "DINING_TABLE": [
+        {
+            "ItemId": "STICK",
+            "Count": 8
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 12
+        },
+        {
+            "ItemId": "WOOL",
+            "Count": 12
+        }
+    ],
+    "CRAFTING_PLUS": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 14
+        },
+        {
+            "ItemId": "WOOD",
+            "Count": 4
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 10
+        },
+        {
+            "ItemId": "STICK",
+            "Count": 3
+        },
+        {
+            "ItemId": "IRON_HOE",
+            "Count": 2
+        }
+    ],
+    "FOOD_TROUGH": [
+        {
+            "ItemId": "STONE",
+            "Count": 2
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 4
+        },
+        {
+            "ItemId": "HAY_BLOCK",
+            "Count": 2
+        }
+    ],
+    "LARGE_BED": [
+        {
+            "ItemId": "WOOL",
+            "Count": 10
+        },
+        {
+            "ItemId": "WOOD",
+            "Count": 6
+        }
+    ],
+    "BEST_WEAPON_RACK": [
+        {
+            "ItemId": "WOOD",
+            "Count": 3
+        },
+        {
+            "ItemId": "CARPET:14",
+            "Count": 3
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 2
+        },
+        {
+            "ItemId": "ENCHANTMENT_TABLE",
+            "Count": 1
+        },
+        {
+            "ItemId": "ENCHANTED_EYE_OF_ENDER",
+            "Count": 1
+        }
+    ],
+    "CAMPFIRE": [
+        {
+            "ItemId": "STICK",
+            "Count": 16
+        },
+        {
+            "ItemId": "ENCHANTED_IRON",
+            "Count": 1
+        }
+    ],
+    "WOOD_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "WOOD",
+            "Count": 64
+        }
+    ],
+    "DIAMOND_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "DIAMOND",
+            "Count": 64
+        }
+    ],
+    "GRANDFATHER_CLOCK": [
+        {
+            "ItemId": "WATCH",
+            "Count": 1
+        },
+        {
+            "ItemId": "ENCHANTED_GOLD_BLOCK",
+            "Count": 1
+        },
+        {
+            "ItemId": "ENCHANTED_IRON_BLOCK",
+            "Count": 1
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 6
+        },
+        {
+            "ItemId": "STICK",
+            "Count": 2
+        }
+    ],
+    "ARMOR_SHOWCASE": [
+        {
+            "ItemId": "IRON_INGOT",
+            "Count": 6
+        },
+        {
+            "ItemId": "STICK",
+            "Count": 6
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 1
+        }
+    ],
+    "FIREPLACE": [
+        {
+            "ItemId": "IRON_INGOT",
+            "Count": 4
+        },
+        {
+            "ItemId": "FURNACE",
+            "Count": 1
+        },
+        {
+            "ItemId": "GLASS_BOTTLE",
+            "Count": 2
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 16
+        },
+        {
+            "ItemId": "CARPET:14",
+            "Count": 6
+        }
+    ],
+    "MINION_CHAIR": [
+        {
+            "ItemId": "IRON_INGOT",
+            "Count": 1
+        },
+        {
+            "ItemId": "STICK",
+            "Count": 2
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 4
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 4
+        }
+    ],
+    "DESK": [
+        {
+            "ItemId": "FEATHER",
+            "Count": 1
+        },
+        {
+            "ItemId": "HARD_CLAY",
+            "Count": 1
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 16
+        },
+        {
+            "ItemId": "WOOD",
+            "Count": 1
+        }
+    ],
+    "WATER_TROUGH": [
+        {
+            "ItemId": "STONE",
+            "Count": 2
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 4
+        },
+        {
+            "ItemId": "WATER_BUCKET",
+            "Count": 2
+        }
+    ],
+    "SKYBLOCK_TABLE": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 12
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 4
+        }
+    ],
+    "HAY_BED": [
+        {
+            "ItemId": "HAY_BLOCK",
+            "Count": 10
+        },
+        {
+            "ItemId": "WOOD",
+            "Count": 6
+        }
+    ],
+    "BOOKCASE": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 12
+        },
+        {
+            "ItemId": "BOOKSHELF",
+            "Count": 4
+        }
+    ],
+    "LAPIS_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "INK_SACK:4",
+            "Count": 64
+        }
+    ],
+    "CHEST_SHELVES": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 12
+        },
+        {
+            "ItemId": "TRAP_DOOR",
+            "Count": 2
+        },
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 4
+        }
+    ],
+    "IRON_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "IRON_INGOT",
+            "Count": 64
+        }
+    ],
+    "STOOL": [
+        {
+            "ItemId": "STICK",
+            "Count": 4
+        },
+        {
+            "ItemId": "WOOD:5",
+            "Count": 1
+        },
+        {
+            "ItemId": "WOOL",
+            "Count": 1
+        }
+    ],
+    "WEAPON_RACK": [
+        {
+            "ItemId": "STICK",
+            "Count": 8
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 4
+        }
+    ],
+    "REDSTONE_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "REDSTONE",
+            "Count": 64
+        }
+    ],
+    "SKULL_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "SKELETON_TALISMAN",
+            "Count": 4
+        },
+        {
+            "ItemId": "BONE",
+            "Count": 64
+        }
+    ],
+    "EMERALD_CHEST": [
+        {
+            "ItemId": "GENERALS_ARMOR_OF_THE_RESISTANCE_CHESTPL",
+            "Count": 12
+        },
+        {
+            "ItemId": "EMERALD",
+            "Count": 64
+        }
+    ],
+    "SMALL_SHELVES": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 12
+        },
+        {
+            "ItemId": "TRAP_DOOR",
+            "Count": 2
+        }
+    ],
+    "SKYBLOCK_CHAIR": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 4
+        },
+        {
+            "ItemId": "STONE",
+            "Count": 4
+        }
+    ],
+    "ENCHANTING_PLUS": [
+        {
+            "ItemId": "WOOD:5",
+            "Count": 12
+        },
+        {
+            "ItemId": "ENCHANTMENT_TABLE",
+            "Count": 1
+        },
+        {
+            "ItemId": "BOOKSHELF",
+            "Count": 40
+        },
+        {
+            "ItemId": "SKELETON_TALISMAN",
+            "Count": 1
+        },
+        {
+            "ItemId": "CARPET:14",
+            "Count": 1
+        }
+    ]
+}

@@ -16,7 +16,7 @@ public class ItemData
     {
         if (recipe != null)
             return recipe.GetIngredients();
-        else if (recipes != null && recipes.Count > 0 && (recipes[0].type == "forge" || recipes[0].type == "npc_shop"))
+        else if (recipes != null && recipes.Count > 0 && (recipes[0].type == "forge" || recipes[0].type == "npc_shop" || recipes[0].type == "carpentry"))
             return recipes[0].inputs;
         return new List<string>();
     }

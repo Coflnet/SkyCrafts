@@ -39,6 +39,26 @@ namespace Coflnet.Sky.Crafts.Services
                     }
                 }
             }
+            var carpentry = JsonSerializer.Deserialize<Dictionary<string, List<Ingredient>>>(File.ReadAllText("Data/carpentry.json"));
+            foreach (var recipe in carpentry)
+            {
+                yield return new ItemData()
+                {
+                    itemid = recipe.Key,
+                    internalname = recipe.Key,
+                    displayname = recipe.Key,
+                    Type = "carpentry",
+                    recipes = new List<NewRecipe>()
+                    {
+                        new NewRecipe()
+                        {
+                            type = "carpentry",
+                            inputs = recipe.Value.ConvertAll(i => i.ItemId.Replace(":","-") + ":" + i.Count),
+                            result = recipe.Key
+                        }
+                    }
+                };
+            }
         }
 
         private static ItemData PortToItem(NPCRecipe recipe)
