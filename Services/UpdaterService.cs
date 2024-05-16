@@ -90,8 +90,8 @@ namespace Coflnet.Sky.Crafts.Services
                     return; //skip minions
                 if (item.internalname.Contains(";") && item.displayname != "§fEnchanted Book")
                     return; // skip level items (potions, pets)
-               // if (item.internalname.Contains("-"))
-                //    return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
+                            // if (item.internalname.Contains("-"))
+                            //    return; // skip minecraft type items (STEP-3, STAINED_GLASS-14 etc)
                 if (item.internalname.EndsWith("_SACK"))
                     return; // not sellable
                 if (item.internalname.EndsWith("POTION"))
@@ -174,7 +174,7 @@ namespace Coflnet.Sky.Crafts.Services
                     return; // not relevant on first iteration
                 tag = tag.Split(":").First();
             }
-            if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.SellPrice != result.SellPrice || existing.CraftCost != result.CraftCost)
+            if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.CraftCost != result.CraftCost)
                 && result.CraftCost < int.MaxValue && !result.ItemId.StartsWith("ENCHANTMENT_"))
             {
                 // update volume and median
@@ -186,6 +186,7 @@ namespace Coflnet.Sky.Crafts.Services
                     {
                         result.Volume = prices.Volume;
                         result.Median = prices.Median;
+                        result.SellPrice = Math.Min(result.SellPrice, prices.Median * 2);
                         logger.LogInformation("Updated price data for " + tag + " " + result.Volume + " " + result.Median);
                     }
                     else
