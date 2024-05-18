@@ -181,7 +181,7 @@ namespace Coflnet.Sky.Crafts.Services
                 try
                 {
 
-                    var prices = await pricesApi.ApiItemPriceItemTagGetAsync(tag);
+                    var prices = await pricesApi.ApiItemPriceItemTagGetAsync(tag, new Dictionary<string, string>() { { "Clean", "true" } });
                     if (prices != null)
                     {
                         result.Volume = prices.Volume;
