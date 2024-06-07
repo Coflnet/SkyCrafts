@@ -617,7 +617,9 @@
     "hours": 72,
     "cost": 500000,
     "material": "ENCHANTED_MYCELIUM",
-    "amount": 32
+    "amount": 32,
+    "material2": "DIGESTED_MUSHROOMS",
+    "amount2": 20
   },
   {
     "name": "Ocelot",

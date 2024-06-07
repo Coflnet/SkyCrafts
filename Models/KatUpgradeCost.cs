@@ -40,6 +40,10 @@ namespace Coflnet.Sky.Crafts.Models
         [JsonProperty("amount")]
         public int Amount { get; set; }
 
+        public string Material2 { get; set; }
+
+        public int Amount2 { get; set; }
+
         /// <summary>
         /// Coflnet Item tag for the Pet
         /// </summary>

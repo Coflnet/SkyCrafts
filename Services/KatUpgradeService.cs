@@ -67,6 +67,8 @@ namespace Coflnet.Sky.Crafts.Services
                 return;
             var lbin = higherAuctions.First();
             var materialCost = await MaterialCost(item.Material, item.Amount);
+            if (item.Material2 != null)
+                materialCost += await MaterialCost(item.Material2, item.Amount2);
             foreach (var auction in auctions)
             {
                 var singleResult = SingleResult(item, auction, lbin, materialCost);
@@ -103,7 +105,7 @@ namespace Coflnet.Sky.Crafts.Services
         {
             if (itemTag == null)
                 return 0;
-            if(itemTag == "SKYBLOCK_COIN")
+            if (itemTag == "SKYBLOCK_COIN")
                 return count;
             var response = await GetFromApi<CurrentPrice>($"/api/item/price/{itemTag}/current?count={count}");
             if (response?.Available < count)
@@ -114,11 +116,11 @@ namespace Coflnet.Sky.Crafts.Services
         private async Task<T> GetFromApi<T>(string path) where T : class
         {
             var baseUrl = config["API_BASE_URL"];
-            if(baseUrl == "https://sky.coflnet.com")
+            if (baseUrl == "https://sky.coflnet.com")
                 await Task.Delay(500); // avoid rate limit
             var manual = await client.GetStringAsync($"{baseUrl}{path}");
             var response = JsonConvert.DeserializeObject<T>(manual);
-            if(response == default(T))
+            if (response == default(T))
                 logger.LogWarning($"Got empty response from {path}");
             return response;
         }
