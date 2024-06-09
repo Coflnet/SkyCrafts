@@ -74,7 +74,7 @@ namespace Coflnet.Sky.Crafts.Services
             return lookup.TryGetValue(item.ItemId, out ItemData itemData) && itemData.Type == null && (itemData.recipes == null || itemData.recipes.All(r => r.type != "forge" && r.type != "npc_shop"));
         }
 
-        private async Task<PriceResponse> GetPriceFor(string itemTag, int count)
+        private async Task<PriceResponse> GetPriceFor(string itemTag, long count)
         {
             var baseUrl = config["API_BASE_URL"];
             if (baseUrl == "https://sky.coflnet.com")

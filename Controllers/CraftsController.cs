@@ -77,5 +77,12 @@ namespace Coflnet.Sky.Crafts.Controllers
             else
                 return this.Problem("Not ready yet", statusCode: 503);
         }
+
+        [HttpGet]
+        [Route("neu/{itemTag}")]
+        public async Task<ItemData> GetNeu(string itemTag)
+        {
+            return await craftingRecipeService.GetItemData(itemTag);
+        }
     }
 }

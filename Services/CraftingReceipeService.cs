@@ -83,10 +83,16 @@ namespace Coflnet.Sky.Crafts.Services
 
         public async Task<Recipe> GetRecipe(string id)
         {
+            var itemData = await GetItemData(id);
+            return itemData?.recipe;
+        }
+
+        public async Task<ItemData> GetItemData(string id)
+        {
             var path = $"itemData/items/{id}.json";
             if (!File.Exists(path))
                 return null;
-            return JsonSerializer.Deserialize<ItemData>(await File.ReadAllTextAsync(path)).recipe;
+            return JsonSerializer.Deserialize<ItemData>(await File.ReadAllTextAsync(path));
         }
     }
 }
