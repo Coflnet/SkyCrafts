@@ -45,6 +45,7 @@ namespace Coflnet.Sky.Crafts.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            AddRecipes();
             var getBazaarItemsTask = GetBazaarItems();
             var craftable = craftingRecipeService.CraftAbleItems().ToList();
             await getBazaarItemsTask;
@@ -53,6 +54,59 @@ namespace Coflnet.Sky.Crafts.Services
                 await katService.Update();
                 await IterateAll(craftable, stoppingToken);
             }
+        }
+
+        private void AddRecipes()
+        {
+            AddRecipe("NIBBLE_CHOCOLATE_STICK", 
+                new Ingredient()
+                {
+                    Count = 250_000_000,
+                    ItemId = "SKYBLOCK_CHOCOLATE"
+                });
+            AddRecipe("SMOOTH_CHOCOLATE_BAR", 
+                new Ingredient()
+                {
+                    Count = 250_000_000,
+                    ItemId = "SKYBLOCK_CHOCOLATE"
+                }, "NIBBLE_CHOCOLATE_STICK");
+            AddRecipe("RICH_CHOCOLATE_CHUNK", 
+                new Ingredient()
+                {
+                    Count = 2_000_000_000,
+                    ItemId = "SKYBLOCK_CHOCOLATE"
+                }, "SMOOTH_CHOCOLATE_BAR");
+            AddRecipe("GANACHE_CHOCOLATE_SLAB", 
+                new Ingredient()
+                {
+                    Count = 3_000_000_000,
+                    ItemId = "SKYBLOCK_CHOCOLATE"
+                }, "RICH_CHOCOLATE_CHUNK");
+            AddRecipe("PRESTIGE_CHOCOLATE_REALM", 
+                new Ingredient()
+                {
+                    Count = 4_500_000_000,
+                    ItemId = "SKYBLOCK_CHOCOLATE"
+                }, "GANACHE_CHOCOLATE_SLAB");
+        }
+
+        private void AddRecipe(string tag, params Ingredient[] ingredients)
+        {
+            foreach (var item in ingredients)
+            {
+                if (item.Count == 0)
+                    item.Count = 1;
+                if (item.Cost == 0)
+                    item.Cost = 1;
+            }
+            Crafts.Add(tag, new ProfitableCraft()
+            {
+                ItemId = tag,
+                ItemName = tag,
+                CraftCost = 1,
+                SellPrice = 1,
+                Ingredients = ingredients
+            });
         }
 
         private async Task GetBazaarItems()
