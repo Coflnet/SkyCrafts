@@ -615,7 +615,7 @@
     "name": "Mooshroom Cow",
     "baseRarity": "Epic",
     "hours": 72,
-    "cost": 500000,
+    "cost": 200000,
     "material": "ENCHANTED_MYCELIUM",
     "amount": 32,
     "material2": "DIGESTED_MUSHROOMS",
