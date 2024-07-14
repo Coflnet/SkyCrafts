@@ -6,8 +6,10 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using Newtonsoft.Json;
+using System;
 
 namespace Coflnet.Sky.Crafts.Services;
+#nullable enable
 public class ForgeCraftService
 {
     private IConfiguration config;
@@ -33,7 +35,7 @@ public class ForgeCraftService
         if (Requirements.Count == 0)
         {
             var stringRequirements = File.ReadAllText("Data/forge_requirements.json");
-            var parsed = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(stringRequirements);
+            var parsed = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(stringRequirements) ?? throw new Exception("Failed to parse forge requirements");
             foreach (var item in parsed)
             {
                 var list = item.Value.Select(s => s.Replace("Heart of the Mountain Tier", "HotM")).ToList();
@@ -45,7 +47,8 @@ public class ForgeCraftService
         {
             var time = timeLookup[item.ItemId].recipes[0].duration;
             var requiredLevel = 0;
-            if (Requirements[item.ItemId].TryGetValue("HotM", out string level))
+            var forgeRequirements = Requirements.GetValueOrDefault(item.ItemId);
+            if (forgeRequirements?.TryGetValue("HotM", out string? level) ?? false)
             {
                 requiredLevel = int.Parse(level);
             }
@@ -55,7 +58,7 @@ public class ForgeCraftService
                 Duration = time,
                 RequiredHotMLevel = requiredLevel,
                 ProfitPerHour = (item.SellPrice - item.CraftCost) / time * 3600,
-                Requirements = Requirements[item.ItemId].ToDictionary(r => r.Key, r => int.Parse(r.Value))
+                Requirements = forgeRequirements?.ToDictionary(r => r.Key, r => int.Parse(r.Value))
             };
         }
     }
@@ -68,5 +71,5 @@ public class ForgeFlip
     public int Duration { get; set; }
     public int RequiredHotMLevel { get; set; }
     public double ProfitPerHour { get; set; }
-    public Dictionary<string, int> Requirements { get; set; }
+    public Dictionary<string, int>? Requirements { get; set; }
 }
