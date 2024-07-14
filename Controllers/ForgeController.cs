@@ -24,6 +24,6 @@ public class ForgeController : ControllerBase
     [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
     public IEnumerable<ForgeFlip> GetAll()
     {
-        return forgeService.FlipList.OrderByDescending(f => f.CraftData.Profit);
+        return forgeService.FlipList.OrderByDescending(f => f.ProfitPerHour);
     }
 }

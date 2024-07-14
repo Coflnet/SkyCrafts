@@ -25,7 +25,8 @@ public class ForgeCraftService
     public async Task Update(Dictionary<string, ProfitableCraft> crafts, List<ItemData> craftable)
     {
         var forgeItems = crafts.Values.Where(c => c.Type == "forge").ToList();
-        var timeLookup = craftable.ToDictionary(c => c.internalname, c => c);
+        var forgeItemLookup = forgeItems.ToDictionary(c => c.ItemId, c => c);
+        var timeLookup = craftable.Where(c => forgeItemLookup.ContainsKey(c.internalname)).ToDictionary(c => c.internalname, c => c);
         if (Requirements.Count == 0)
         {
             var stringRequirements = File.ReadAllText("Data/forge_requirements.json");
