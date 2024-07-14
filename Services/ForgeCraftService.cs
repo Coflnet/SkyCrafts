@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using Newtonsoft.Json;
 using System;
+using System.Text.RegularExpressions;
 
 namespace Coflnet.Sky.Crafts.Services;
 #nullable enable
@@ -45,12 +46,18 @@ public class ForgeCraftService
         }
         foreach (var item in forgeItems)
         {
-            var time = timeLookup[item.ItemId].recipes[0].duration;
+            var itemData = timeLookup[item.ItemId];
+            var time = itemData.recipes[0].duration;
             var requiredLevel = 0;
-            var forgeRequirements = Requirements.GetValueOrDefault(item.ItemId);
+            // replace §x with nothing
+            var forgeRequirements = Requirements.GetValueOrDefault(Regex.Replace(itemData.displayname, @"§\w", ""));
             if (forgeRequirements?.TryGetValue("HotM", out string? level) ?? false)
             {
                 requiredLevel = int.Parse(level);
+            }
+            if(forgeRequirements == null)
+            {
+                logger.LogWarning($"No requirements found for {item.ItemId}");
             }
             Flips[item.ItemId] = new ForgeFlip()
             {
