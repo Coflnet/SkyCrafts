@@ -97,7 +97,7 @@ namespace Coflnet.Sky.Crafts.Services
                 return new PriceResponse()
                 {
                     Available = 0,
-                    BuyPrice = int.MaxValue,
+                    BuyPrice = 10_000_000_000,
                     SellPrice = 0
                 };
             }

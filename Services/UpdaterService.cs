@@ -21,6 +21,7 @@ namespace Coflnet.Sky.Crafts.Services
         private CalculatorService calculatorService;
         private CollectionService collectionService;
         private KatUpgradeService katService;
+        private ForgeCraftService forgeCraftService;
         private Api.Client.Api.IPricesApi pricesApi;
         private ILogger<UpdaterService> logger;
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
@@ -32,7 +33,7 @@ namespace Coflnet.Sky.Crafts.Services
         public UpdaterService(CraftingRecipeService craftingRecipeService,
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
-                    CollectionService collectionService, KatUpgradeService katService, IConfiguration config, Api.Client.Api.IPricesApi pricesApi)
+                    CollectionService collectionService, KatUpgradeService katService, IConfiguration config, Api.Client.Api.IPricesApi pricesApi, ForgeCraftService forgeCraftService)
         {
             this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
@@ -41,6 +42,7 @@ namespace Coflnet.Sky.Crafts.Services
             this.katService = katService;
             this.config = config;
             this.pricesApi = pricesApi;
+            this.forgeCraftService = forgeCraftService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -53,36 +55,44 @@ namespace Coflnet.Sky.Crafts.Services
             {
                 await katService.Update();
                 await IterateAll(craftable, stoppingToken);
+                try
+                {
+                    await forgeCraftService.Update(Crafts, craftable);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Failed to update forge flips");
+                }
             }
         }
 
         private void AddRecipes()
         {
-            AddRecipe("NIBBLE_CHOCOLATE_STICK", 
+            AddRecipe("NIBBLE_CHOCOLATE_STICK",
                 new Ingredient()
                 {
                     Count = 250_000_000,
                     ItemId = "SKYBLOCK_CHOCOLATE"
                 });
-            AddRecipe("SMOOTH_CHOCOLATE_BAR", 
+            AddRecipe("SMOOTH_CHOCOLATE_BAR",
                 new Ingredient()
                 {
                     Count = 250_000_000,
                     ItemId = "SKYBLOCK_CHOCOLATE"
                 }, "NIBBLE_CHOCOLATE_STICK");
-            AddRecipe("RICH_CHOCOLATE_CHUNK", 
+            AddRecipe("RICH_CHOCOLATE_CHUNK",
                 new Ingredient()
                 {
                     Count = 2_000_000_000,
                     ItemId = "SKYBLOCK_CHOCOLATE"
                 }, "SMOOTH_CHOCOLATE_BAR");
-            AddRecipe("GANACHE_CHOCOLATE_SLAB", 
+            AddRecipe("GANACHE_CHOCOLATE_SLAB",
                 new Ingredient()
                 {
                     Count = 3_000_000_000,
                     ItemId = "SKYBLOCK_CHOCOLATE"
                 }, "RICH_CHOCOLATE_CHUNK");
-            AddRecipe("PRESTIGE_CHOCOLATE_REALM", 
+            AddRecipe("PRESTIGE_CHOCOLATE_REALM",
                 new Ingredient()
                 {
                     Count = 4_500_000_000,
