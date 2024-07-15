@@ -49,15 +49,15 @@ public class ForgeCraftService
             var itemData = timeLookup[item.ItemId];
             var time = itemData.recipes[0].duration;
             var requiredLevel = 0;
-            // replace §x with nothing
-            var forgeRequirements = Requirements.GetValueOrDefault(Regex.Replace(itemData.displayname, @"§\w", ""));
+            var cleanedName = Regex.Replace(itemData.displayname, @"§\w", "").Replace("❈ ", "");
+            var forgeRequirements = Requirements.GetValueOrDefault(cleanedName);
             if (forgeRequirements?.TryGetValue("HotM", out string? level) ?? false)
             {
                 requiredLevel = int.Parse(level);
             }
             if(forgeRequirements == null)
             {
-                logger.LogWarning($"No requirements found for {item.ItemId}");
+                logger.LogWarning($"No requirements found for {item.ItemId} {cleanedName}");
             }
             Flips[item.ItemId] = new ForgeFlip()
             {
