@@ -49,7 +49,7 @@ public class ForgeCraftService
             var itemData = timeLookup[item.ItemId];
             var time = itemData.recipes[0].duration;
             var requiredLevel = 0;
-            var cleanedName = Regex.Replace(itemData.displayname, @"§\w", "").Replace("❈ ", "");
+            var cleanedName = Regex.Replace(itemData.displayname, @"§\w", "").Replace("[^-a-zA-Z ]", "").Trim();
             var forgeRequirements = Requirements.GetValueOrDefault(cleanedName);
             if (forgeRequirements?.TryGetValue("HotM", out string? level) ?? false)
             {
