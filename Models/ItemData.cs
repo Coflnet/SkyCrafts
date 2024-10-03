@@ -27,7 +27,7 @@ public class NewRecipe
 {
     public string type { get; set; }
     public List<string> inputs { get; set; }
-    public int count { get; set; }
+    public float count { get; set; }
     public string overrideOutputId { get; set; }
     public int duration { get; set; }
     public string result { get; set; }
