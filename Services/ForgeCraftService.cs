@@ -31,7 +31,7 @@ public class ForgeCraftService
         var forgeItemLookup = forgeItems.GroupBy(l => l.ItemId)
             .Select(s => s.First()).ToDictionary(c => c.ItemId, c => c);
         var timeLookup = craftable.Where(c => forgeItemLookup.ContainsKey(c.internalname))
-            .GroupBy(l => l.internalname).Select(s => s.OrderByDescending(w => (w.Type == "forge") ? 1 : 0).First())
+            .GroupBy(l => l.internalname).Select(s => s.OrderByDescending(w => (w.Type == "npc") ? -1 : 0).First())
             .ToDictionary(c => c.internalname, c => c);
         if (Requirements.Count == 0)
         {
