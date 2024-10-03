@@ -46,28 +46,40 @@ public class ForgeCraftService
         }
         foreach (var item in forgeItems)
         {
-            var itemData = timeLookup[item.ItemId];
-            var time = itemData.recipes[0].duration;
-            var requiredLevel = 0;
-            var cleanedName = Regex.Replace(itemData.displayname, @"§\w", "").Replace("[^-a-zA-Z ]", "").Trim();
-            var forgeRequirements = Requirements.GetValueOrDefault(cleanedName);
-            if (forgeRequirements?.TryGetValue("HotM", out string? level) ?? false)
+            try
             {
-                requiredLevel = int.Parse(level);
+                UpdateItem(timeLookup, item);
             }
-            if(forgeRequirements == null)
+            catch (System.Exception e)
             {
-                logger.LogWarning($"No requirements found for {item.ItemId} {cleanedName}");
+                logger.LogError(e, $"Failed to update {item.ItemId}");
             }
-            Flips[item.ItemId] = new ForgeFlip()
-            {
-                CraftData = item,
-                Duration = time,
-                RequiredHotMLevel = requiredLevel,
-                ProfitPerHour = Math.Clamp((item.SellPrice - item.CraftCost) / time * 3600, 0, int.MaxValue),
-                Requirements = forgeRequirements?.ToDictionary(r => r.Key, r => int.Parse(r.Value))
-            };
         }
+    }
+
+    private void UpdateItem(Dictionary<string, ItemData> timeLookup, ProfitableCraft? item)
+    {
+        var itemData = timeLookup[item.ItemId];
+        var time = itemData.recipes[0].duration;
+        var requiredLevel = 0;
+        var cleanedName = Regex.Replace(itemData.displayname, @"§\w", "").Replace("[^-a-zA-Z ]", "").Trim();
+        var forgeRequirements = Requirements.GetValueOrDefault(cleanedName);
+        if (forgeRequirements?.TryGetValue("HotM", out string? level) ?? false)
+        {
+            requiredLevel = int.Parse(level);
+        }
+        if (forgeRequirements == null)
+        {
+            logger.LogWarning($"No requirements found for {item.ItemId} {cleanedName}");
+        }
+        Flips[item.ItemId] = new ForgeFlip()
+        {
+            CraftData = item,
+            Duration = time,
+            RequiredHotMLevel = requiredLevel,
+            ProfitPerHour = Math.Clamp((item.SellPrice - item.CraftCost) / time * 3600, 0, int.MaxValue),
+            Requirements = forgeRequirements?.ToDictionary(r => r.Key, r => int.Parse(r.Value))
+        };
     }
 }
 
