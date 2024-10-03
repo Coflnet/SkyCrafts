@@ -72,6 +72,8 @@ public class ForgeCraftService
         {
             logger.LogWarning($"No requirements found for {item.ItemId} {cleanedName}");
         }
+        if (item.ItemId == "REFINED_MITHRIL_PICKAXE")
+            Console.WriteLine($"Updating {item.ItemId} {cleanedName} {time} {requiredLevel}");
         Flips[item.ItemId] = new ForgeFlip()
         {
             CraftData = item,
