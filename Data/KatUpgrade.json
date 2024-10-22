@@ -564,8 +564,8 @@
   {
     "name": "Mithril_Golem",
     "baseRarity": "Legendary",
-    "hours": 0,
-    "cost": 0,
+    "hours": 1,
+    "cost": 700000,
     "material": "PET_ITEM_PURE_MITHRIL_GEM",
     "amount": 1
   },
