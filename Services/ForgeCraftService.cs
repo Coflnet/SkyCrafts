@@ -15,7 +15,7 @@ public class ForgeCraftService
 {
     private IConfiguration config;
     private ILogger<ForgeCraftService> logger;
-    private Dictionary<string, Dictionary<string, string>> Requirements = new();
+    private Dictionary<string, Dictionary<string, string>> Requirements = new(StringComparer.OrdinalIgnoreCase);
     private Dictionary<string, ForgeFlip> Flips = new();
     public IEnumerable<ForgeFlip> FlipList => Flips.Values;
 
