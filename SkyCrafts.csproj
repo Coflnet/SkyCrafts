@@ -9,9 +9,9 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Coflnet.Core" Version="0.2.0" />
+    <PackageReference Include="Coflnet.Core" Version="0.3.0" />
     <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.7.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
   </ItemGroup>
 
 </Project>
