@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Crafts.Models;
 public class ItemData
@@ -19,11 +22,15 @@ public class ItemData
             return recipe.GetIngredients();
         else if (recipes != null && recipes.Count > 0 && (recipes[0].type == "forge" || recipes[0].type == "npc_shop" || recipes[0].type == "carpentry"))
             return recipes[0].inputs;
+        if (recipes?.Count > 0 && recipes.All(r => r.type == "crafting"))
+        {
+            return recipes.OrderBy(r => r.GetIngredients().Count(i => i?.Contains(":") ?? false)).First().GetIngredients();
+        }
         return new List<string>();
     }
 }
 
-public class NewRecipe
+public class NewRecipe : Recipe
 {
     public string type { get; set; }
     public List<string> inputs { get; set; }
