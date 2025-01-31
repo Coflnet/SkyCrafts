@@ -41,7 +41,7 @@ namespace Coflnet.Sky.Crafts.Services
                     var canBeCrafteDirectly = CanBeCraftedDirectly(lookup, item);
                     if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
                     {
-                        var craftWithProfit = craft.CraftCost * item.Count * 1.12;
+                        var craftWithProfit = craft.CraftCost * item.Count * 1.05;
                         item.CraftCost = craft.CraftCost * item.Count;
                         if (!canBeCrafteDirectly)
                             craftWithProfit *= 100;
