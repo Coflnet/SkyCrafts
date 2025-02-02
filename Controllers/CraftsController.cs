@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
@@ -39,10 +40,30 @@ namespace Coflnet.Sky.Crafts.Controllers
         public IEnumerable<ProfitableCraft> GetProfitable()
         {
             return updaterService.Crafts.Values.Where(e => e != null).Where(c =>
-                (c.CraftCost < c.SellPrice * 0.98 -1
+                (c.CraftCost < c.SellPrice * (1.0f - GetFeeRateForStartingBid((long)c.SellPrice) / 100) - 1
                     || c.CraftCost < c.SellPrice * 0.99 && updaterService.BazaarItems.Contains(c.ItemId)
                 ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && c.Type == null && c.Volume > 2);
         }
+
+        static DateTime DerpyStart = new DateTime(2024, 8, 26, 7, 15, 0);
+        public static float GetFeeRateForStartingBid(long targetPrice, DateTime? date = null)
+        {
+            date ??= DateTime.UtcNow;
+            var hoursSince = (date.Value - DerpyStart).TotalHours;
+            var isDerpy = (hoursSince % (124 * 24)) < 124 && hoursSince > 0;
+            var reduction = 2f;
+            if (targetPrice > 10_000_000)
+                reduction = 3;
+            if (targetPrice >= 100_000_000)
+                reduction = 3.5f;
+            if (isDerpy && targetPrice >= 1_000_000)
+            {
+                // derpy 4xes the claiming tax
+                reduction += 3;
+            }
+            return reduction;
+        }
+
         /// <summary>
         /// Returns craft prices of all know craftable items
         /// </summary>
