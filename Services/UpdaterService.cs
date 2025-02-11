@@ -204,11 +204,20 @@ namespace Coflnet.Sky.Crafts.Services
                 result.ReqCollection = await collectionService.GetRequiredCollection(name);
             }
             if (!string.IsNullOrEmpty(item.slayer_req))
+            {
+                var level = int.Parse(item.slayer_req.Split("_").Last());
+                if (!string.IsNullOrEmpty(item.Crafttext))
+                {
+                    var craftText = Regex.Match(item.Crafttext, @"Slayer (\d*)");
+                    if (craftText.Success)
+                        level = int.Parse(craftText.Groups[1].Value);
+                }
                 result.ReqSlayer = new Models.RequiredCollection()
                 {
                     Name = item.slayer_req.Split("_").First(),
-                    Level = int.Parse(item.slayer_req.Split("_").Last())
+                    Level = level
                 };
+            }
             else
             {
                 var SlayerLine = item.lore?.Where(l => l.Contains("Slayer ")).FirstOrDefault();
