@@ -206,9 +206,9 @@ namespace Coflnet.Sky.Crafts.Services
             if (!string.IsNullOrEmpty(item.slayer_req))
             {
                 var level = int.Parse(item.slayer_req.Split("_").Last());
-                if (!string.IsNullOrEmpty(item.Crafttext))
+                if (!string.IsNullOrEmpty(item.crafttext))
                 {
-                    var craftText = Regex.Match(item.Crafttext, @"Slayer (\d*)");
+                    var craftText = Regex.Match(item.crafttext, @"Slayer (\d*)");
                     if (craftText.Success)
                         level = int.Parse(craftText.Groups[1].Value);
                 }

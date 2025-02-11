@@ -13,7 +13,7 @@ public class ItemData
     public List<NewRecipe> recipes { get; set; }
     public string internalname { get; set; }
     public string slayer_req { get; set; }
-    public string Crafttext { get; set; }
+    public string crafttext { get; set; }
     public string Type { get; set; }
 
     public IEnumerable<string> GetIngredients()
