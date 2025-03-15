@@ -407,9 +407,43 @@
   },
   {
     "name": "Hermit Crab",
-    "baseRarity": "Legendary",
+    "baseRarity": "Common",
     "hours": 1,
-    "material": "SCUTTLER_SHELL"
+    "cost": 10000,
+    "material": "RUSTY_COIN",
+    "amount": 4
+  },
+  {
+    "name": "Hermit Crab",
+    "baseRarity": "Uncommon",
+    "hours": 2,
+    "cost": 50000,
+    "material": "RUSTY_COIN",
+    "amount": 16
+  },
+  {
+    "name": "Hermit Crab",
+    "baseRarity": "Rare",
+    "hours": 6,
+    "cost": 200000,
+    "material": "BUSTED_BELT_BUCKLE",
+    "amount": 8
+  },
+  {
+    "name": "Hermit Crab",
+    "baseRarity": "Epic",
+    "hours": 48,
+    "cost": 1000000,
+    "material": "OLD_LEATHER_BOOT",
+    "amount": 1
+  },
+  {
+    "name": "Hermit Crab",
+    "baseRarity": "Legendary",
+    "cost": 1000000,
+    "hours": 1,
+    "material": "SCUTTLER_SHELL",
+    "amount": 1
   },
   {
     "name": "Horse",
