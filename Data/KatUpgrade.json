@@ -406,6 +406,12 @@
     "amount": 1
   },
   {
+    "name": "Hermit Crab",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "material": "SCUTTLER_SHELL"
+  },
+  {
     "name": "Horse",
     "baseRarity": "Common",
     "hours": 1,
