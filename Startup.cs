@@ -27,10 +27,6 @@ namespace Coflnet.Sky.Crafts
             services.AddControllers().AddJsonOptions(json=>{
                 json.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkyCrafts", Version = "v1" });
-            });
             services.AddSingleton<CalculatorService>();
             services.AddSingleton<CraftingRecipeService>();
             services.AddSingleton<UpdaterService>();
