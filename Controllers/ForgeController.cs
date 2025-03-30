@@ -22,7 +22,7 @@ public class ForgeController : ControllerBase
     [HttpGet]
     [Route("all")]
     [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
-    public IEnumerable<ForgeFlip> GetAll()
+    public IEnumerable<ForgeFlip> GetAllForge()
     {
         return forgeService.FlipList.OrderByDescending(f => f.ProfitPerHour);
     }

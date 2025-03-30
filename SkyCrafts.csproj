@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Coflnet.Core" Version="0.5.0" />
     <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.7.2" />
+    <PackageReference Include="Coflnet.Sky.PlayerState.Client" Version="0.5.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
   </ItemGroup>
 

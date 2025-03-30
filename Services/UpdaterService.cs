@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
@@ -19,7 +18,7 @@ namespace Coflnet.Sky.Crafts.Services
     {
         private CraftingRecipeService craftingRecipeService;
         private CalculatorService calculatorService;
-        private CollectionService collectionService;
+        private RequirementService skillService;
         private KatUpgradeService katService;
         private ForgeCraftService forgeCraftService;
         private Api.Client.Api.IPricesApi pricesApi;
@@ -33,16 +32,17 @@ namespace Coflnet.Sky.Crafts.Services
         public UpdaterService(CraftingRecipeService craftingRecipeService,
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
-                    CollectionService collectionService, KatUpgradeService katService, IConfiguration config, Api.Client.Api.IPricesApi pricesApi, ForgeCraftService forgeCraftService)
+                    KatUpgradeService katService, IConfiguration config, Api.Client.Api.IPricesApi pricesApi, ForgeCraftService forgeCraftService,
+                    RequirementService skillService)
         {
             this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
             this.logger = logger;
-            this.collectionService = collectionService;
             this.katService = katService;
             this.config = config;
             this.pricesApi = pricesApi;
             this.forgeCraftService = forgeCraftService;
+            this.skillService = skillService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -171,7 +171,7 @@ namespace Coflnet.Sky.Crafts.Services
                     }
                     await TryAddmedianAndVolume(result, tag);
                     Crafts[tag] = result;
-                    await AssignRequirements(item, result);
+                    await skillService.AssignRequirements(item, result);
                     if (result.CraftCost < result.SellPrice)
                     {
                         profitableFound.Inc();
@@ -196,46 +196,7 @@ namespace Coflnet.Sky.Crafts.Services
             await Task.Delay(TimeSpan.FromSeconds(10));
         }
 
-        private async Task AssignRequirements(ItemData item, ProfitableCraft result)
-        {
-            if (result.ReqCollection == default)
-            {
-                var name = MinecraftFormatRemoveRegex().Replace(item.displayname, "");
-                result.ReqCollection = await collectionService.GetRequiredCollection(name);
-            }
-            if (!string.IsNullOrEmpty(item.slayer_req))
-            {
-                var level = int.Parse(item.slayer_req.Split("_").Last());
-                if (!string.IsNullOrEmpty(item.crafttext))
-                {
-                    var craftText = Regex.Match(item.crafttext, @"Slayer (\d*)");
-                    if (craftText.Success)
-                        level = int.Parse(craftText.Groups[1].Value);
-                }
-                result.ReqSlayer = new Models.RequiredCollection()
-                {
-                    Name = item.slayer_req.Split("_").First(),
-                    Level = level
-                };
-            }
-            else
-            {
-                var SlayerLine = item.lore?.Where(l => l.Contains("Slayer ")).FirstOrDefault();
-                if (SlayerLine != null)
-                {
-                    var match = Regex.Match(MinecraftFormatRemoveRegex().Replace(SlayerLine, ""), @"☠ Requires (.*) Slayer (\d)");
-                    if (match.Success)
-                    {
-                        result.ReqSlayer = new RequiredCollection()
-                        {
-                            Name = match.Groups[1].Value,
-                            Level = int.Parse(match.Groups[2].Value)
-                        };
-                    }
 
-                }
-            }
-        }
 
         private async Task TryAddmedianAndVolume(ProfitableCraft result, string tag)
         {
@@ -306,7 +267,5 @@ namespace Coflnet.Sky.Crafts.Services
             return tag;
         }
 
-        [GeneratedRegex(@"§[\da-f]")]
-        private static partial Regex MinecraftFormatRemoveRegex();
     }
 }

@@ -38,7 +38,7 @@ public class Recipe : IGetIngredients
     public string C3 { get; set; }
 
     [JsonPropertyName("count")]
-    public int count { get; set; }
+    public float count { get; set; }
 
     public virtual IEnumerable<string> GetIngredients()
     {

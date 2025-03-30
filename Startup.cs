@@ -33,7 +33,9 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<CollectionService>();
             services.AddSingleton<KatUpgradeService>();
             services.AddSingleton<ForgeCraftService>();
+            services.AddSingleton<RequirementService>();
             services.AddSingleton<Api.Client.Api.IPricesApi>(provider => new Api.Client.Api.PricesApi(Configuration["API_BASE_URL"]));
+            services.AddSingleton<PlayerState.Client.Api.IItemsApi>(provider => new PlayerState.Client.Api.ItemsApi(Configuration["PLAYERSTATE_BASE_URL"]));
             services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
 

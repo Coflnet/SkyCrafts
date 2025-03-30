@@ -26,14 +26,14 @@ namespace Coflnet.Sky.Crafts.Controllers
         [HttpGet]
         [Route("profit")]
         [ResponseCache(Duration = 10, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public IEnumerable<KatUpgradeResult> GetProfitable()
+        public IEnumerable<KatUpgradeResult> GetProfitableKat()
         {
             return katService.Results.Where(c => c.Profit > 0).OrderByDescending(r => r.Profit / r.CoreData.Hours);
         }
         [HttpGet]
         [Route("all")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public IEnumerable<KatUpgradeResult> GetAll()
+        public IEnumerable<KatUpgradeResult> GetAllKat()
         {
             return katService.Results.OrderByDescending(c => c.Profit / c.CoreData.Hours);
         }
