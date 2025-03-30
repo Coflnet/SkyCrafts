@@ -74,7 +74,7 @@ public partial class RequirementService
 
     private async Task AssignSkillRequirement(ItemData item, ProfitableCraft result)
     {
-        var recipes = await itemsApi.ApiItemsRecipeTagGetAsync(item.itemid);
+        var recipes = await itemsApi.ApiItemsRecipeTagGetAsync(result.ItemId);
         if (recipes.Count == 0)
         {
             result.ReqSkill = new RequiredSkill()
