@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ public partial class RequirementService
     private CollectionService collectionService;
     private IItemsApi itemsApi;
     private ILogger<RequirementService> logger;
+    private ConcurrentDictionary<string, (RequiredSkill, DateTime)> skillCache = new();
     public RequirementService(CollectionService collectionService, IItemsApi itemsApi, ILogger<RequirementService> logger)
     {
         this.collectionService = collectionService;
@@ -31,7 +34,15 @@ public partial class RequirementService
         {
             try
             {
-                await AssignSkillRequirement(item, result);
+                if (skillCache.TryGetValue(result.ItemId, out var cache) && cache.Item2.AddHours(1) > DateTime.UtcNow)
+                {
+                    result.ReqSkill = cache.Item1;
+                }
+                else
+                {
+                    await AssignSkillRequirement(item, result);
+                    skillCache[result.ItemId] = (result.ReqSkill, DateTime.UtcNow);
+                }
             }
             catch (System.Exception e)
             {
@@ -95,7 +106,7 @@ public partial class RequirementService
                     Name = match.Groups[1].Value,
                     Level = int.Parse(match.Groups[2].Value)
                 };
-                logger.LogInformation($"Found skill requirement for {item.itemid} {result.ReqSkill.Name} {result.ReqSkill.Level}");
+                logger.LogInformation($"Found skill requirement for {result.ItemId} {result.ReqSkill.Name} {result.ReqSkill.Level}");
             }
             else
                 result.ReqSkill = new RequiredSkill()
