@@ -87,33 +87,18 @@ public partial class RequirementService
     {
         var recipes = await itemsApi.ApiItemsRecipeTagGetAsync(result.ItemId);
         if (recipes.Count == 0)
+            return;
+        var recipe = recipes.OrderByDescending(r => r.Requirements.Count).First();
+        var matchingSkill = recipe.Requirements.FirstOrDefault(r => r.Contains("Skill "));
+        if (matchingSkill == null)
+            return;
+        var match = Regex.Match(matchingSkill, @"§a(.*) Skill (\d+)");
+        result.ReqSkill = new RequiredSkill()
         {
-            result.ReqSkill = new RequiredSkill()
-            {
-                Name = "None",
-                Level = 0
-            };
-        }
-        else
-        {
-            var recipe = recipes.OrderByDescending(r => r.Requirements.Count).First();
-            var matchingSkill = recipe.Requirements.FirstOrDefault(r => r.Contains("Skill "));
-            if (matchingSkill != null)
-            {
-                var match = Regex.Match(matchingSkill, @"§a(.*) Skill (\d+)");
-                result.ReqSkill = new RequiredSkill()
-                {
-                    Name = match.Groups[1].Value,
-                    Level = int.Parse(match.Groups[2].Value)
-                };
-                logger.LogInformation($"Found skill requirement for {result.ItemId} {result.ReqSkill.Name} {result.ReqSkill.Level}");
-            }
-            else
-                result.ReqSkill = new RequiredSkill()
-                {
-                    Name = "None",
-                    Level = 0
-                };
-        }
+            Name = match.Groups[1].Value,
+            Level = int.Parse(match.Groups[2].Value)
+        };
+        logger.LogInformation($"Found skill requirement for {result.ItemId} {result.ReqSkill.Name} {result.ReqSkill.Level}");
+
     }
 }
