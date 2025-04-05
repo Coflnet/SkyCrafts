@@ -20,6 +20,7 @@ namespace Coflnet.Sky.Crafts.Services
         private CalculatorService calculatorService;
         private RequirementService skillService;
         private KatUpgradeService katService;
+        private PriceDropService priceDropService;
         private ForgeCraftService forgeCraftService;
         private Api.Client.Api.IPricesApi pricesApi;
         private ILogger<UpdaterService> logger;
@@ -33,7 +34,7 @@ namespace Coflnet.Sky.Crafts.Services
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
                     KatUpgradeService katService, IConfiguration config, Api.Client.Api.IPricesApi pricesApi, ForgeCraftService forgeCraftService,
-                    RequirementService skillService)
+                    RequirementService skillService, PriceDropService priceDropService)
         {
             this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
@@ -43,6 +44,7 @@ namespace Coflnet.Sky.Crafts.Services
             this.pricesApi = pricesApi;
             this.forgeCraftService = forgeCraftService;
             this.skillService = skillService;
+            this.priceDropService = priceDropService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -51,6 +53,7 @@ namespace Coflnet.Sky.Crafts.Services
             var getBazaarItemsTask = GetBazaarItems();
             var craftable = craftingRecipeService.CraftAbleItems().ToList();
             await getBazaarItemsTask;
+            var i = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
                 await katService.Update();
@@ -58,6 +61,11 @@ namespace Coflnet.Sky.Crafts.Services
                 try
                 {
                     await forgeCraftService.Update(Crafts, craftable);
+                    if (i % 20 == 0)
+                    {
+                        await priceDropService.UpdateAll(Crafts);
+                        logger.LogInformation("Updated price drops");
+                    }
                 }
                 catch (Exception e)
                 {

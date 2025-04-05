@@ -1,4 +1,4 @@
-VERSION=0.5.0
+VERSION=0.6.0
 PACKAGE_NAME=Coflnet.Sky.Crafts.Client
 
 docker run --rm -v "${PWD}:/local" --network host -u $(id -u ${USER}):$(id -g ${USER})  openapitools/openapi-generator-cli generate \
@@ -17,3 +17,4 @@ sed -i '34i    <None Include="../../../../README.md" Pack="true" PackagePath="\"
 dotnet pack
 cp src/$PACKAGE_NAME/bin/Release/$PACKAGE_NAME.*.nupkg ..
 dotnet nuget push ../$PACKAGE_NAME.$VERSION.nupkg --api-key $NUGET_API_KEY --source "nuget.org" --skip-duplicate
+rm -r *
