@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
 using System;
+using System.Linq;
 
 namespace Coflnet.Sky.Crafts.Services
 {
@@ -84,7 +85,7 @@ namespace Coflnet.Sky.Crafts.Services
         public async Task<Recipe> GetRecipe(string id)
         {
             var itemData = await GetItemData(id);
-            return itemData?.recipe;
+            return itemData?.recipe ?? itemData?.recipes?.FirstOrDefault();
         }
 
         public async Task<ItemData> GetItemData(string id)
