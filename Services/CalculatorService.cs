@@ -60,7 +60,7 @@ namespace Coflnet.Sky.Crafts.Services
             }).ToArray());
             return new ProfitableCraft()
             {
-                CraftCost = ingredients.Sum(i => i.Cost),
+                CraftCost = ingredients.Sum(i => i.Cost) / ((item.recipe?.count ?? 0) < 1 ? 1 : item.recipe?.count ?? 1),
                 Ingredients = ingredients,
                 ItemId = item.internalname,
                 ItemName = item.displayname,
