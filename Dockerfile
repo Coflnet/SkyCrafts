@@ -13,7 +13,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
 COPY --from=build /app .
-COPY --from=build /build/itemData .
+COPY --from=build /build/sky/itemData .
 
 ENV ASPNETCORE_URLS=http://+:8000
 # using a non-root user is a best practice for security related execution. 
