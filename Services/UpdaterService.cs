@@ -52,6 +52,7 @@ namespace Coflnet.Sky.Crafts.Services
             AddRecipes();
             var getBazaarItemsTask = GetBazaarItems();
             var craftable = craftingRecipeService.CraftAbleItems().ToList();
+            craftable.AddRange(await craftingRecipeService.LoadExtraCraftable());
             await getBazaarItemsTask;
             var i = 0;
             while (!stoppingToken.IsCancellationRequested)

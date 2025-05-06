@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Prometheus;
 using Coflnet.Core;
+using Coflnet.Sky.Core.Services;
 
 namespace Coflnet.Sky.Crafts
 {
@@ -34,6 +35,8 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<KatUpgradeService>();
             services.AddSingleton<ForgeCraftService>();
             services.AddSingleton<RequirementService>();
+            services.AddSingleton<HypixelItemService>();
+            services.AddHttpClient();
             services.AddSingleton<Api.Client.Api.IPricesApi>(provider => new Api.Client.Api.PricesApi(Configuration["API_BASE_URL"]));
             services.AddSingleton<Api.Client.Api.IItemApi>(provider => new Api.Client.Api.ItemApi(Configuration["API_BASE_URL"]));
             services.AddSingleton<PlayerState.Client.Api.IItemsApi>(provider => new PlayerState.Client.Api.ItemsApi(Configuration["PLAYERSTATE_BASE_URL"]));

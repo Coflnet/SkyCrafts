@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
 using System;
 using System.Linq;
+using Coflnet.Sky.Core.Services;
 
 namespace Coflnet.Sky.Crafts.Services;
-public class CraftingRecipeService
+public class CraftingRecipeService(HypixelItemService itemService)
 {
     public IEnumerable<ItemData> CraftAbleItems()
     {
@@ -93,5 +94,36 @@ public class CraftingRecipeService
         if (!File.Exists(path))
             return null;
         return JsonSerializer.Deserialize<ItemData>(await File.ReadAllTextAsync(path));
+    }
+
+    internal async Task<IEnumerable<ItemData>> LoadExtraCraftable()
+    {
+        var items = await itemService.GetItemsAsync();
+        return items.Where(i => i.Value.prestige != null).Select(i =>
+        {
+            var item = i.Value;
+            var ingredients = item.UpgradeCosts.SelectMany(uc => uc).Concat(item.prestige.costs)
+                .GroupBy(i => i.Type == "ESSENCE" ? $"ESSENCE_{i.EssenceType}" : i.ItemId)
+                .Select(g => new Ingredient()
+                {
+                    ItemId = g.Key,
+                    Count = g.Sum(i => i.Amount)
+                }).ToList();
+            var recipe = new NewRecipe()
+            {
+                inputs = ingredients.Select(i => i.ItemId.Replace(":", "-") + ":" + i.Count)
+                    .Append("SKYBLOCK_COIN:15740000")
+                    .Append(i.Key + ":1").ToList(),
+                type = "malik",
+                result = item.prestige.item_id,
+            };
+            return new ItemData()
+            {
+                internalname = recipe.result,
+                displayname = items[recipe.result].Name,
+                Type = "malik",
+                recipes = [recipe]
+            };
+        });
     }
 }

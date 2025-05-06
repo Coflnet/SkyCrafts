@@ -1,5 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
 WORKDIR /build
+RUN git clone --depth=1 https://github.com/Coflnet/HypixelSkyblock.git dev
+WORKDIR /build/sky
+
 COPY SkyCrafts.csproj SkyCrafts.csproj
 RUN dotnet restore
 RUN git clone --depth=1 https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO.git itemData

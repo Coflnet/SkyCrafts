@@ -20,7 +20,7 @@ public class ItemData
     {
         if (recipe != null)
             return recipe.GetIngredients();
-        else if (recipes != null && recipes.Count > 0 && (recipes[0].type == "forge" || recipes[0].type == "npc_shop" || recipes[0].type == "carpentry"))
+        else if (recipes != null && recipes.Count > 0 && (recipes[0].type == "forge" || recipes[0].type == "npc_shop" || recipes[0].type == "carpentry" ||recipes[0].type == "malik"))
             return recipes[0].inputs;
         if (recipes?.Count > 0 && recipes.All(r => r.type == "crafting"))
         {
