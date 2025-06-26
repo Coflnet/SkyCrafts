@@ -324,6 +324,38 @@
     "amount": 1
   },
   {
+    "name": "Frog",
+    "baseRarity": "Common",
+    "hours": 1,
+    "cost": 10000,
+    "material": "SMALL_FROG_TREAT",
+    "amount": 1
+  },
+  {
+    "name": "Frog",
+    "baseRarity": "Uncommon",
+    "hours": 2,
+    "cost": 50000,
+    "material": "MEDIUM_FROG_TREAT",
+    "amount": 1
+  },
+  {
+    "name": "Frog",
+    "baseRarity": "Rare",
+    "hours": 3,
+    "cost": 100000,
+    "material": "LARGE_FROG_TREAT",
+    "amount": 1
+  },
+  {
+    "name": "Frog",
+    "baseRarity": "Epic",
+    "hours": 4,
+    "cost": 200000,
+    "material": "GIANT_FROG_TREAT",
+    "amount": 1
+  },
+  {
     "name": "Ghoul",
     "baseRarity": "Epic",
     "hours": 240,
