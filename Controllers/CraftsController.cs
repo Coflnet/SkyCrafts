@@ -42,7 +42,7 @@ namespace Coflnet.Sky.Crafts.Controllers
             return updaterService.Crafts.Values.Where(e => e != null).Where(c =>
                 (c.CraftCost < c.SellPrice * (1.0f - GetFeeRateForStartingBid((long)c.SellPrice) / 100) - 1
                     || c.CraftCost < c.SellPrice * 0.99 && updaterService.BazaarItems.Contains(c.ItemId)
-                ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && c.Type == null && c.Volume > 2);
+                ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && (c.Type == null || c.Type == "crafting") && c.Volume > 2);
         }
 
         static DateTime DerpyStart = new DateTime(2024, 8, 26, 7, 15, 0);
