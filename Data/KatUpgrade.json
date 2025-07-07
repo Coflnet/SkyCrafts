@@ -34,36 +34,54 @@
   {
     "name": "Bat",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "RED_MUSHROOM",
+    "amount": 128,
+    "material2": "BROWN_MUSHROOM",
+    "amount2": 128
   },
   {
     "name": "Bat",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_RED_MUSHROOM",
+    "amount": 4,
+    "material2": "ENCHANTED_BROWN_MUSHROOM",
+    "amount2": 4
   },
   {
     "name": "Bat",
     "baseRarity": "Rare",
     "hours": 24,
-    "cost": 190000
+    "cost": 250000,
+    "material": "ENCHANTED_RED_MUSHROOM",
+    "amount": 64,
+    "material2": "ENCHANTED_BROWN_MUSHROOM",
+    "amount2": 64
   },
   {
     "name": "Bat",
     "baseRarity": "Epic",
     "hours": 72,
-    "cost": 250000,
-    "material": "ENCHANTED_RED_MUSHROOM",
-    "amount": 64
+    "cost": 500000,
+    "material": "ENCHANTED_HUGE_MUSHROOM_2",
+    "amount": 8,
+    "material2": "ENCHANTED_HUGE_MUSHROOM_1",
+    "amount2": 8
   },
   {
     "name": "Bat",
     "baseRarity": "Legendary",
-    "hours": 0,
-    "cost": 0,
-    "material": "PET_ITEM_VAMPIRE_FANG",
-    "amount": 1
+    "hours": 168,
+    "cost": 1000000,
+    "material": "ENCHANTED_HUGE_MUSHROOM_2",
+    "amount": 16,
+    "material2": "ENCHANTED_HUGE_MUSHROOM_1",
+    "amount2": 16,
+    "material3": "PET_ITEM_VAMPIRE_FANG",
+    "amount3": 1
   },
   {
     "name": "Bal",
@@ -115,11 +133,35 @@
   },
   {
     "name": "Blaze",
+    "baseRarity": "Common",
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "BLAZE_ROD",
+    "amount": 256
+  },
+  {
+    "name": "Blaze",
+    "baseRarity": "Uncommon",
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_BLAZE_POWDER",
+    "amount": 8
+  },
+  {
+    "name": "Blaze",
+    "baseRarity": "Rare",
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_BLAZE_POWDER",
+    "amount": 128
+  },
+  {
+    "name": "Blaze",
     "baseRarity": "Epic",
-    "hours": 288,
-    "cost": 200000,
+    "hours": 72,
+    "cost": 500000,
     "material": "ENCHANTED_BLAZE_ROD",
-    "amount": 64
+    "amount": 4
   },
   {
     "name": "Blue_Whale",
@@ -152,28 +194,42 @@
   {
     "name": "Chicken",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "RAW_CHICKEN",
+    "amount": 256,
+    "material2": "FEATHER",
+    "amount2": 256
   },
   {
     "name": "Chicken",
     "baseRarity": "Uncommon",
-    "hours": 4,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_RAW_CHICKEN",
+    "amount": 8,
+    "material2": "ENCHANTED_FEATHER",
+    "amount2": 8
   },
   {
     "name": "Chicken",
     "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_RAW_CHICKEN",
+    "amount": 128,
+    "material2": "ENCHANTED_FEATHER",
+    "amount2": 128
   },
   {
     "name": "Chicken",
     "baseRarity": "Epic",
-    "hours": 24,
-    "cost": 250000,
+    "hours": 72,
+    "cost": 500000,
     "material": "ENCHANTED_RAW_CHICKEN",
-    "amount": 8
+    "amount": 512,
+    "material2": "ENCHANTED_FEATHER",
+    "amount2": 512
   },
   {
     "name": "Dolphin",
@@ -270,36 +326,48 @@
   {
     "name": "Endermite",
     "baseRarity": "Common",
-    "hours": 2,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "END_STONE",
+    "amount": 256
   },
   {
     "name": "Endermite",
     "baseRarity": "Uncommon",
-    "hours": 8,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_ENDSTONE",
+    "amount": 8
   },
   {
     "name": "Endermite",
     "baseRarity": "Rare",
-    "hours": 72,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_ENDSTONE",
+    "amount": 128,
+    "material2": "MITE_GEL",
+    "amount2": 32
   },
   {
     "name": "Endermite",
     "baseRarity": "Epic",
-    "hours": 168,
-    "cost": 1000000,
-    "material": "MITE_GEL",
-    "amount": 128
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_ENDSTONE",
+    "amount": 512,
+    "material2": "MITE_GEL",
+    "amount2": 128
   },
   {
     "name": "Endermite",
     "baseRarity": "Legendary",
-    "hours": 1,
+    "hours": 168,
     "cost": 1000000,
-    "material": "MIXED_MITE_GEL",
-    "amount": 1
+    "material": "ENCHANTED_ENDSTONE",
+    "amount": 1024,
+    "material2": "MIXED_MITE_GEL",
+    "amount2": 1
   },
   {
     "name": "Flying_Fish",
@@ -396,6 +464,42 @@
     "amount": 512
   },
   {
+    "name": "Glacite Golem",
+    "baseRarity": "Common",
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "GLACITE",
+    "amount": 256
+  },
+  {
+    "name": "Glacite Golem",
+    "baseRarity": "Uncommon",
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_GLACITE",
+    "amount": 8
+  },
+  {
+    "name": "Glacite Golem",
+    "baseRarity": "Rare",
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_GLACITE",
+    "amount": 128,
+    "material2": "GLACITE_AMALGAMATION",
+    "amount2": 8
+  },
+  {
+    "name": "Glacite Golem",
+    "baseRarity": "Epic",
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_GLACITE",
+    "amount": 512,
+    "material2": "GLACITE_AMALGAMATION",
+    "amount2": 16
+  },
+  {
     "name": "Golem",
     "baseRarity": "Epic",
     "hours": 480,
@@ -480,28 +584,34 @@
   {
     "name": "Horse",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "LEATHER",
+    "amount": 256
   },
   {
     "name": "Horse",
     "baseRarity": "Uncommon",
-    "hours": 4,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_LEATHER",
+    "amount": 8
   },
   {
     "name": "Horse",
     "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_LEATHER",
+    "amount": 128
   },
   {
     "name": "Horse",
     "baseRarity": "Epic",
-    "hours": 24,
-    "cost": 250000,
+    "hours": 72,
+    "cost": 500000,
     "material": "ENCHANTED_LEATHER",
-    "amount": 8
+    "amount": 512
   },
   {
     "name": "Hound",
@@ -522,6 +632,14 @@
   {
     "name": "Jerry",
     "baseRarity": "Common",
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "MOVE_JERRY",
+    "amount": 1
+  },
+  {
+    "name": "Jerry",
+    "baseRarity": "Uncommon",
     "hours": 1,
     "cost": 10000,
     "material": "MOVE_JERRY",
@@ -529,17 +647,9 @@
   },
   {
     "name": "Jerry",
-    "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 20000,
-    "material": "MOVE_JERRY",
-    "amount": 1
-  },
-  {
-    "name": "Jerry",
     "baseRarity": "Rare",
     "hours": 24,
-    "cost": 40000,
+    "cost": 250000,
     "material": "MOVE_JERRY",
     "amount": 1
   },
@@ -547,8 +657,16 @@
     "name": "Jerry",
     "baseRarity": "Epic",
     "hours": 72,
-    "cost": 100000,
+    "cost": 500000,
     "material": "MOVE_JERRY",
+    "amount": 1
+  },
+  {
+    "name": "Jerry",
+    "baseRarity": "Legendary",
+    "hours": 168,
+    "cost": 1000000,
+    "material": "PET_ITEM_TOY_JERRY",
     "amount": 1
   },
   {
@@ -612,34 +730,44 @@
   {
     "name": "Mithril_Golem",
     "baseRarity": "Common",
-    "hours": 5000,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "MITHRIL",
+    "amount": 256
   },
   {
     "name": "Mithril_Golem",
     "baseRarity": "Uncommon",
-    "hours": 10000,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_MITHRIL",
+    "amount": 8
   },
   {
     "name": "Mithril_Golem",
     "baseRarity": "Rare",
-    "hours": 120,
-    "cost": 25000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_MITHRIL",
+    "amount": 128
   },
   {
     "name": "Mithril_Golem",
     "baseRarity": "Epic",
-    "hours": 480,
-    "cost": 50000
+    "hours": 72,
+    "cost": 500000,
+    "material": "REFINED_MITHRIL",
+    "amount": 4
   },
   {
     "name": "Mithril_Golem",
     "baseRarity": "Legendary",
-    "hours": 1,
+    "hours": 168,
     "cost": 1000000,
-    "material": "PET_ITEM_PURE_MITHRIL_GEM",
-    "amount": 1
+    "material": "REFINED_MITHRIL",
+    "amount": 8,
+    "material2": "PET_ITEM_PURE_MITHRIL_GEM",
+    "amount2": 1
   },
   {
     "name": "Monkey",
@@ -668,54 +796,68 @@
   {
     "name": "Mooshroom Cow",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 10000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "MYCELIUM",
+    "amount": 256
   },
   {
     "name": "Mooshroom Cow",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 50000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_MYCELIUM",
+    "amount": 8
   },
   {
     "name": "Mooshroom Cow",
     "baseRarity": "Rare",
     "hours": 24,
-    "cost": 100000
+    "cost": 250000,
+    "material": "ENCHANTED_MYCELIUM",
+    "amount": 128,
+    "material2": "DIGESTED_MUSHROOMS",
+    "amount2": 32
   },
   {
     "name": "Mooshroom Cow",
     "baseRarity": "Epic",
     "hours": 72,
-    "cost": 200000,
-    "material": "ENCHANTED_MYCELIUM",
-    "amount": 32,
+    "cost": 500000,
+    "material": "ENCHANTED_MYCELIUM_CUBE",
+    "amount": 4,
     "material2": "DIGESTED_MUSHROOMS",
-    "amount2": 20
+    "amount2": 128
   },
   {
     "name": "Ocelot",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "JUNGLE_WOOD",
+    "amount": 256
   },
   {
     "name": "Ocelot",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_JUNGLE_LOG",
+    "amount": 8
   },
   {
     "name": "Ocelot",
     "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_JUNGLE_LOG",
+    "amount": 128
   },
   {
     "name": "Ocelot",
     "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 250000,
+    "hours": 72,
+    "cost": 500000,
     "material": "ENCHANTED_JUNGLE_LOG",
     "amount": 512
   },
@@ -738,70 +880,128 @@
   {
     "name": "Pig",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "RAW_PORKCHOP",
+    "amount": 256
   },
   {
     "name": "Pig",
     "baseRarity": "Uncommon",
-    "hours": 3,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_RAW_PORKCHOP",
+    "amount": 8
   },
   {
     "name": "Pig",
     "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_RAW_PORKCHOP",
+    "amount": 128
   },
   {
     "name": "Pig",
     "baseRarity": "Epic",
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_GRILLED_PORK",
+    "amount": 4
+  },
+  {
+    "name": "Pigman",
+    "baseRarity": "Common",
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "RAW_PORKCHOP",
+    "amount": 256
+  },
+  {
+    "name": "Pigman",
+    "baseRarity": "Uncommon",
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_RAW_PORKCHOP",
+    "amount": 8
+  },
+  {
+    "name": "Pigman",
+    "baseRarity": "Rare",
     "hours": 24,
     "cost": 250000,
-    "material": "PORK",
-    "amount": 512
+    "material": "ENCHANTED_RAW_PORKCHOP",
+    "amount": 128
   },
   {
     "name": "Pigman",
     "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 250000,
+    "hours": 72,
+    "cost": 500000,
     "material": "ENCHANTED_GRILLED_PORK",
-    "amount": 8
+    "amount": 4
   },
   {
     "name": "Rabbit",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "RAW_RABBIT",
+    "amount": 256,
+    "material2": "RABBIT_HIDE",
+    "amount2": 128,
+    "material3": "RABBIT_FOOT",
+    "amount3": 128
   },
   {
     "name": "Rabbit",
     "baseRarity": "Uncommon",
-    "hours": 4,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_RAW_RABBIT",
+    "amount": 8,
+    "material2": "ENCHANTED_RABBIT_HIDE",
+    "amount2": 4,
+    "material3": "ENCHANTED_RABBIT_FOOT",
+    "amount3": 4
   },
   {
     "name": "Rabbit",
     "baseRarity": "Rare",
-    "hours": 12,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_RAW_RABBIT",
+    "amount": 128,
+    "material2": "ENCHANTED_RABBIT_HIDE",
+    "amount2": 64,
+    "material3": "ENCHANTED_RABBIT_FOOT",
+    "amount3": 64
   },
   {
     "name": "Rabbit",
     "baseRarity": "Epic",
-    "hours": 24,
-    "cost": 250000,
-    "material": "RABBIT",
-    "amount": 64
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_COOKED_RABBIT",
+    "amount": 4,
+    "material2": "ENCHANTED_RABBIT_HIDE",
+    "amount2": 256,
+    "material3": "ENCHANTED_RABBIT_FOOT",
+    "amount3": 256
   },
   {
     "name": "Rabbit",
     "baseRarity": "Legendary",
-    "hours": 1,
+    "hours": 168,
     "cost": 1000000,
-    "material": "PET_ITEM_CHOCOLATE_SYRINGE",
-    "amount": 1
+    "material": "ENCHANTED_COOKED_RABBIT",
+    "amount": 8,
+    "material2": "ENCHANTED_RABBIT_HIDE",
+    "amount2": 512,
+    "material3": "ENCHANTED_RABBIT_FOOT",
+    "amount3": 512,
+    "material4": "PET_ITEM_CHOCOLATE_SYRINGE",
+    "amount4": 1
   },
   {
     "name": "Rat",
@@ -856,54 +1056,74 @@
   {
     "name": "Sheep",
     "baseRarity": "Common",
-    "hours": 2,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "RAW_MUTTON",
+    "amount": 256,
+    "material2": "WOOL",
+    "amount2": 256
   },
   {
     "name": "Sheep",
     "baseRarity": "Uncommon",
-    "hours": 8,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_RAW_MUTTON",
+    "amount": 8,
+    "material2": "ENCHANTED_WOOL",
+    "amount2": 8
   },
   {
     "name": "Sheep",
     "baseRarity": "Rare",
-    "hours": 72,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_RAW_MUTTON",
+    "amount": 128,
+    "material2": "ENCHANTED_WOOL",
+    "amount2": 128
   },
   {
     "name": "Sheep",
     "baseRarity": "Epic",
-    "hours": 168,
-    "cost": 250000,
-    "material": "ENCHANTED_MUTTON",
-    "amount": 512
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_RAW_MUTTON",
+    "amount": 512,
+    "material2": "ENCHANTED_WOOL",
+    "amount2": 512
   },
   {
     "name": "Silverfish",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "COBBLESTONE",
+    "amount": 256
   },
   {
     "name": "Silverfish",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_COBBLESTONE",
+    "amount": 8
   },
   {
     "name": "Silverfish",
     "baseRarity": "Rare",
     "hours": 24,
-    "cost": 190000
+    "cost": 250000,
+    "material": "ENCHANTED_COBBLESTONE",
+    "amount": 128
   },
   {
     "name": "Silverfish",
     "baseRarity": "Epic",
     "hours": 72,
-    "cost": 250000,
+    "cost": 500000,
     "material": "ENCHANTED_COBBLESTONE",
-    "amount": 64
+    "amount": 512
   },
   {
     "name": "Silverfish",
@@ -914,28 +1134,34 @@
   {
     "name": "Skeleton",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "BONE",
+    "amount": 256
   },
   {
     "name": "Skeleton",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_BONE",
+    "amount": 8
   },
   {
     "name": "Skeleton",
     "baseRarity": "Rare",
     "hours": 24,
-    "cost": 190000
+    "cost": 250000,
+    "material": "ENCHANTED_BONE",
+    "amount": 128
   },
   {
     "name": "Skeleton",
     "baseRarity": "Epic",
     "hours": 72,
-    "cost": 250000,
-    "material": "ENCHANTED_BONE",
-    "amount": 128
+    "cost": 500000,
+    "material": "ENCHANTED_BONE_BLOCK",
+    "amount": 4
   },
   {
     "name": "Slug",
@@ -948,34 +1174,38 @@
   {
     "name": "Snail",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 1000,
-    "material": "BURNING_EYE",
-    "amount": 5
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "RED_SAND",
+    "amount": 256
   },
   {
     "name": "Snail",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 50000,
-    "material": "BURNING_EYE",
-    "amount": 10
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_RED_SAND",
+    "amount": 8
   },
   {
     "name": "Snail",
     "baseRarity": "Rare",
     "hours": 24,
-    "cost": 100000,
-    "material": "BURNING_EYE",
-    "amount": 20
+    "cost": 250000,
+    "material": "ENCHANTED_RED_SAND",
+    "amount": 128,
+    "material2": "BURNING_EYE",
+    "amount2": 32
   },
   {
     "name": "Snail",
     "baseRarity": "Epic",
     "hours": 72,
-    "cost": 200000,
-    "material": "ENCHANTED_RED_SAND",
-    "amount": 32
+    "cost": 500000,
+    "material": "ENCHANTED_RED_SAND_CUBE",
+    "amount": 4,
+    "material2": "BURNING_EYE",
+    "amount2": 128
   },
   {
     "name": "Snowman",
@@ -988,36 +1218,54 @@
   {
     "name": "Spider",
     "baseRarity": "Common",
-    "hours": 2,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "STRING",
+    "amount": 256,
+    "material2": "SPIDER_EYE",
+    "amount2": 128
   },
   {
     "name": "Spider",
     "baseRarity": "Uncommon",
-    "hours": 8,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_STRING",
+    "amount": 8,
+    "material2": "ENCHANTED_SPIDER_EYE",
+    "amount2": 4
   },
   {
     "name": "Spider",
     "baseRarity": "Rare",
-    "hours": 72,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_STRING",
+    "amount": 128,
+    "material2": "ENCHANTED_SPIDER_EYE",
+    "amount2": 64
   },
   {
     "name": "Spider",
     "baseRarity": "Epic",
-    "hours": 168,
-    "cost": 250000,
+    "hours": 72,
+    "cost": 500000,
     "material": "ENCHANTED_STRING",
-    "amount": 512
+    "amount": 512,
+    "material2": "ENCHANTED_SPIDER_EYE",
+    "amount2": 256
   },
   {
     "name": "Spider",
     "baseRarity": "Legendary",
-    "hours": 1,
+    "hours": 168,
     "cost": 1000000,
-    "material": "FAKE_NEUROSCIENCE_DEGREE",
-    "amount": 1
+    "material": "ENCHANTED_STRING",
+    "amount": 1024,
+    "material2": "ENCHANTED_SPIDER_EYE",
+    "amount2": 512,
+    "material3": "FAKE_NEUROSCIENCE_DEGREE",
+    "amount3": 1
   },
   {
     "name": "Spirit",
@@ -1105,35 +1353,65 @@
   },
   {
     "name": "Wither_Skeleton",
-    "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 250000,
-    "material": "ENCHANTED_COAL_BLOCK",
+    "baseRarity": "Common",
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "COAL",
+    "amount": 256
+  },
+  {
+    "name": "Wither_Skeleton",
+    "baseRarity": "Uncommon",
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_COAL",
     "amount": 8
+  },
+  {
+    "name": "Wither_Skeleton",
+    "baseRarity": "Rare",
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_COAL",
+    "amount": 128
+  },
+  {
+    "name": "Wither_Skeleton",
+    "baseRarity": "Epic",
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_COAL_BLOCK",
+    "amount": 4
   },
   {
     "name": "Wolf",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "LOG:1",
+    "amount": 256
   },
   {
     "name": "Wolf",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_SPRUCE_LOG",
+    "amount": 8
   },
   {
     "name": "Wolf",
     "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_SPRUCE_LOG",
+    "amount": 128
   },
   {
     "name": "Wolf",
     "baseRarity": "Epic",
-    "hours": 120,
-    "cost": 250000,
+    "hours": 72,
+    "cost": 500000,
     "material": "ENCHANTED_SPRUCE_LOG",
     "amount": 512
   },
@@ -1172,27 +1450,33 @@
   {
     "name": "Zombie",
     "baseRarity": "Common",
-    "hours": 1,
-    "cost": 2000
+    "hours": 0.0167,
+    "cost": 100,
+    "material": "ROTTEN_FLESH",
+    "amount": 256
   },
   {
     "name": "Zombie",
     "baseRarity": "Uncommon",
-    "hours": 6,
-    "cost": 5000
+    "hours": 1,
+    "cost": 10000,
+    "material": "ENCHANTED_ROTTEN_FLESH",
+    "amount": 8
   },
   {
     "name": "Zombie",
     "baseRarity": "Rare",
-    "hours": 48,
-    "cost": 190000
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_ROTTEN_FLESH",
+    "amount": 128
   },
   {
     "name": "Zombie",
     "baseRarity": "Epic",
-    "hours": 240,
-    "cost": 250000,
-    "material": "ZOMBIES_HEART",
-    "amount": 8
+    "hours": 72,
+    "cost": 500000,
+    "material": "ENCHANTED_ROTTEN_FLESH",
+    "amount": 512
   }
 ]
