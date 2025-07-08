@@ -20,7 +20,7 @@ namespace Coflnet.Sky.Crafts.Models
         /// Time it takes to upgrade
         /// </summary>
         [JsonProperty("hours")]
-        public int Hours { get; set; }
+        public double Hours { get; set; }
 
         /// <summary>
         /// Base cost of coins it takes to do the upgrade
@@ -43,6 +43,10 @@ namespace Coflnet.Sky.Crafts.Models
         public string Material2 { get; set; }
 
         public int Amount2 { get; set; }
+        public string Material3 { get; set; }
+        public int Amount3 { get; set; }
+        public string Material4 { get; set; }
+        public int Amount4 { get; set; }
 
         /// <summary>
         /// Coflnet Item tag for the Pet

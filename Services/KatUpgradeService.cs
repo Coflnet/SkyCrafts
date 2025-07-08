@@ -69,6 +69,10 @@ namespace Coflnet.Sky.Crafts.Services
             var materialCost = await MaterialCost(item.Material, item.Amount);
             if (item.Material2 != null)
                 materialCost += await MaterialCost(item.Material2, item.Amount2);
+            if (item.Material3 != null)
+                materialCost += await MaterialCost(item.Material3, item.Amount3);
+            if (item.Material4 != null)
+                materialCost += await MaterialCost(item.Material4, item.Amount4);
             foreach (var auction in auctions)
             {
                 var singleResult = SingleResult(item, auction, lbin, materialCost);
