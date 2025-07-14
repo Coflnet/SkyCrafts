@@ -1,8 +1,4 @@
 {
-    "Mining Level 12": [
-        "Mining Level 12",
-        "Heart of the Mountain Tier 2"
-    ],
     "Refined Diamond": [
         "Heart of the Mountain Tier 2"
     ],
@@ -71,7 +67,7 @@
     "Jasper Drill X": [
         "Heart of the Mountain Tier 6"
     ],
-    "Polished Topaz Rod": [
+    "Topaz Rod": [
         "Heart of the Mountain Tier 5"
     ],
     "Titanium Drill DR-X355": [
@@ -272,7 +268,8 @@
         "Heart of the Mountain Tier 5",
         "Gemstone Collection X"
     ],
-    "Perfect Jasper Gemstone": [
+    "Perfect Jasper Gemstone":
+    [
         "Heart of the Mountain Tier 5",
         "Gemstone Collection X"
     ],
@@ -319,33 +316,27 @@
     ],
     "Penguin Pet": [
         "Heart of the Mountain Tier 7",
-        "Webbed Fossil",
-        "Dr. Stone"
+        "Donating a Webbed Fossil to Dr. Stone"
     ],
     "T-Rex Pet": [
         "Heart of the Mountain Tier 7",
-        "Footprint Fossil",
-        "Dr. Stone"
+        "Donating a Footprint Fossil to Dr. Stone"
     ],
     "Spinosaurus Pet": [
         "Heart of the Mountain Tier 7",
-        "Spine Fossil",
-        "Dr. Stone"
+        "Donating a Spine Fossil to Dr. Stone"
     ],
     "Goblin Pet": [
         "Heart of the Mountain Tier 7",
-        "Ugly Fossil",
-        "Dr. Stone"
+        "Donating an Ugly Fossil to Dr. Stone"
     ],
     "Ankylosaurus Pet": [
         "Heart of the Mountain Tier 7",
-        "Clubbed Fossil",
-        "Dr. Stone"
+        "Donating a Clubbed Fossil to Dr. Stone"
     ],
     "Mammoth Pet": [
         "Heart of the Mountain Tier 7",
-        "Tusk Fossil",
-        "Dr. Stone"
+        "Donating a Tusk Fossil to Dr. Stone"
     ],
     "Beacon II": [
         "Heart of the Mountain Tier 2"
@@ -364,15 +355,14 @@
     ],
     "Travel Scroll To The Dwarven Base Camp": [
         "Heart of the Mountain Tier 7",
-        "Minecart",
-        "Dwarven Base Camp"
+        "Riding a Minecart to the Dwarven Base Camp"
     ],
     "Power Crystal": [
         "Heart of the Mountain Tier 2"
     ],
     "Secret Railroad Pass": [
         "Heart of the Mountain Tier 7",
-        "Dulin"
+        "Talk to Dulin"
     ],
     "Tungsten Key": [
         "Tungsten Collection IV",
