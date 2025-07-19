@@ -59,8 +59,10 @@ namespace Coflnet.Sky.Crafts.Services
                 }
             }).ToArray());
             var recipeCount = (item.recipe?.count ?? 0) < 1 ? item.BestRecipe()?.count ?? 1 : item.recipe?.count ?? 1;
+            if (recipeCount < 1)
+                recipeCount = 1;
             if (recipeCount > 1)
-                Console.WriteLine($"Recipe result count for {item.internalname} is {recipeCount}");
+                    Console.WriteLine($"Recipe result count for {item.internalname} is {recipeCount}");
             return new ProfitableCraft()
             {
                 CraftCost = ingredients.Sum(i => i.Cost) / recipeCount,
