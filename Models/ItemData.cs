@@ -31,7 +31,7 @@ public class ItemData
 
     public NewRecipe BestRecipe()
     {
-        return recipes.OrderBy(r => r.GetIngredients().Count(i => i?.Contains(":") ?? false) - r.count).First();
+        return recipes?.OrderBy(r => r.GetIngredients().Count(i => i?.Contains(":") ?? false) - r.count).FirstOrDefault();
     }
 }
 
