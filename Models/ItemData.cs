@@ -24,9 +24,14 @@ public class ItemData
             return recipes[0].inputs;
         if (recipes?.Count > 0 && recipes.All(r => r.type == "crafting"))
         {
-            return recipes.OrderBy(r => r.GetIngredients().Count(i => i?.Contains(":") ?? false)).First().GetIngredients();
+            return BestRecipe().GetIngredients();
         }
         return new List<string>();
+    }
+
+    public NewRecipe BestRecipe()
+    {
+        return recipes.OrderBy(r => r.GetIngredients().Count(i => i?.Contains(":") ?? false) - r.count).First();
     }
 }
 
