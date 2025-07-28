@@ -826,6 +826,38 @@
     "amount2": 64
   },
   {
+    "name": "Mosquito",
+    "baseRarity": "Common",
+    "hours": 24,
+    "cost": 250000,
+    "material": "TARANTULA_SILK",
+    "amount": 8
+  },
+  {
+    "name": "Mosquito",
+    "baseRarity": "Uncommon",
+    "hours": 48,
+    "cost": 500000,
+    "material": "TARANTULA_SILK",
+    "amount": 16
+  },
+  {
+    "name": "Mosquito",
+    "baseRarity": "Rare",
+    "hours": 72,
+    "cost": 1000000,
+    "material": "TARANTULA_SILK",
+    "amount": 32
+  },
+  {
+    "name": "Mosquito",
+    "baseRarity": "Epic",
+    "hours": 120,
+    "cost": 2500000,
+    "material": "TARANTULA_SILK",
+    "amount": 64
+  },
+  {
     "name": "Ocelot",
     "baseRarity": "Common",
     "hours": 0.0833,
