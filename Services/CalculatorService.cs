@@ -25,6 +25,7 @@ namespace Coflnet.Sky.Crafts.Services
             //var item = JsonSerializer.Deserialize<ItemData>(File.ReadAllText($"itemData/items/{itemId}.json"));
             var ingredients = NeedCount(item).ToList();
             var sellPriceTask = GetPriceFor(item.internalname, 1);
+            var result = new ProfitableCraft();
             await Task.WhenAll(ingredients.Select(async item =>
             {
                 try
@@ -49,6 +50,12 @@ namespace Coflnet.Sky.Crafts.Services
                         {
                             item.Cost = Math.Min(item.Cost, craftWithProfit);
                             item.Type = "craft";
+                            if (craft.ReqSkill != null)
+                                result.ReqSkill = craft.ReqSkill;
+                            if (craft.ReqCollection != null)
+                                result.ReqCollection = craft.ReqCollection;
+                            if (craft.ReqSlayer != null)
+                                result.ReqSlayer = craft.ReqSlayer;
                         }
                     }
                 }
@@ -62,16 +69,15 @@ namespace Coflnet.Sky.Crafts.Services
             if (recipeCount < 1)
                 recipeCount = 1;
             if (recipeCount > 1)
-                    Console.WriteLine($"Recipe result count for {item.internalname} is {recipeCount}");
-            return new ProfitableCraft()
-            {
-                CraftCost = ingredients.Sum(i => i.Cost) / recipeCount,
-                Ingredients = ingredients,
-                ItemId = item.internalname,
-                ItemName = item.displayname,
-                SellPrice = (await sellPriceTask).SellPrice,
-                Type = item.recipes?.FirstOrDefault()?.type
-            };
+                Console.WriteLine($"Recipe result count for {item.internalname} is {recipeCount}");
+
+            result.CraftCost = ingredients.Sum(i => i.Cost) / recipeCount;
+            result.Ingredients = ingredients;
+            result.ItemId = item.internalname;
+            result.ItemName = item.displayname;
+            result.SellPrice = (await sellPriceTask).SellPrice;
+            result.Type = item.recipes?.FirstOrDefault()?.type;
+            return result;
         }
 
         private static bool CanBeCraftedDirectly(Dictionary<string, ItemData> lookup, Ingredient item)
