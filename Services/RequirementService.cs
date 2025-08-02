@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Coflnet.Sky.Core.Services;
 using Coflnet.Sky.Crafts.Models;
 using Coflnet.Sky.PlayerState.Client.Api;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,13 @@ public partial class RequirementService
     private IItemsApi itemsApi;
     private ILogger<RequirementService> logger;
     private ConcurrentDictionary<string, (RequiredSkill, DateTime)> skillCache = new();
-    public RequirementService(CollectionService collectionService, IItemsApi itemsApi, ILogger<RequirementService> logger)
+    private HypixelItemService hypixelItemService;
+    public RequirementService(CollectionService collectionService, IItemsApi itemsApi, ILogger<RequirementService> logger, HypixelItemService hypixelItemService)
     {
         this.collectionService = collectionService;
         this.itemsApi = itemsApi;
         this.logger = logger;
+        this.hypixelItemService = hypixelItemService;
     }
 
     [GeneratedRegex(@"§[\da-f]")]
@@ -37,6 +40,7 @@ public partial class RequirementService
                 }
             }
         }
+        var items = await hypixelItemService.GetItemsAsync();
         if (result.ReqSkill == default)
         {
             try
@@ -73,6 +77,19 @@ public partial class RequirementService
         }
         else
         {
+            if (items.TryGetValue(item.internalname, out var hypixelData) && hypixelData.Requirements.Any(r => r.Type == "SLAYER"))
+            {
+                var slayerReq = hypixelData.Requirements.FirstOrDefault(r => r.Type == "SLAYER");
+                if (slayerReq != null)
+                {
+                    result.ReqSlayer = new RequiredCollection()
+                    {
+                        Name = slayerReq.SlayerBossType,
+                        Level = slayerReq.Level
+                    };
+                    return;
+                }
+            }
             var SlayerLine = item.lore?.Where(l => l.Contains("Slayer ")).FirstOrDefault();
             if (SlayerLine != null)
             {
