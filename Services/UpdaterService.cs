@@ -180,7 +180,7 @@ namespace Coflnet.Sky.Crafts.Services
                     }
                     await TryAddmedianAndVolume(result, tag);
                     Crafts[tag] = result;
-                    await skillService.AssignRequirements(item, result);
+                    await skillService.AssignRequirements(item, result, Crafts);
                     if (result.CraftCost < result.SellPrice)
                     {
                         profitableFound.Inc();

@@ -50,12 +50,6 @@ namespace Coflnet.Sky.Crafts.Services
                         {
                             item.Cost = Math.Min(item.Cost, craftWithProfit);
                             item.Type = "craft";
-                            if (craft.ReqSkill != null)
-                                result.ReqSkill = craft.ReqSkill;
-                            if (craft.ReqCollection != null)
-                                result.ReqCollection = craft.ReqCollection;
-                            if (craft.ReqSlayer != null)
-                                result.ReqSlayer = craft.ReqSlayer;
                         }
                     }
                 }

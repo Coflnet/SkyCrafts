@@ -23,12 +23,19 @@ public partial class RequirementService
 
     [GeneratedRegex(@"§[\da-f]")]
     private static partial Regex MinecraftFormatRemoveRegex();
-    public async Task AssignRequirements(ItemData item, ProfitableCraft result)
+    public async Task AssignRequirements(ItemData item, ProfitableCraft result, System.Collections.Generic.Dictionary<string, ProfitableCraft> crafts)
     {
-        if (result.ReqCollection == default)
+        if (result.ReqCollection == default || result.Ingredients.Any(i => i?.Type == "craft"))
         {
             var name = MinecraftFormatRemoveRegex().Replace(item.displayname, "");
             result.ReqCollection = await collectionService.GetRequiredCollection(name);
+            foreach (var ingridient in result.Ingredients.Where(i => i?.Type == "craft"))
+            {
+                if (crafts.TryGetValue(ingridient.ItemId, out var subItem) && subItem.ReqCollection != default && result.ReqCollection == default)
+                {
+                    result.ReqCollection = subItem.ReqCollection;
+                }
+            }
         }
         if (result.ReqSkill == default)
         {
