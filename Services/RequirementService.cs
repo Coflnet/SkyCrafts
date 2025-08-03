@@ -59,7 +59,7 @@ public partial class RequirementService
         }
         else
         {
-            if (items.TryGetValue(item.internalname, out var hypixelData) && hypixelData.Requirements.Any(r => r.Type == "SLAYER"))
+            if (items.TryGetValue(item.internalname, out var hypixelData) && (hypixelData.Requirements?.Any(r => r.Type == "SLAYER") ?? false))
             {
                 var slayerReq = hypixelData.Requirements.FirstOrDefault(r => r.Type == "SLAYER");
                 if (slayerReq != null)
@@ -104,7 +104,7 @@ public partial class RequirementService
             }
             catch (System.Exception e)
             {
-                logger.LogError(e, $"Error while assigning skill requirement for {item.itemid}");
+                logger.LogError(e, $"Error while assigning skill requirement for {item.internalname}");
             }
         }
     }
