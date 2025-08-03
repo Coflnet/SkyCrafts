@@ -96,6 +96,10 @@ public partial class RequirementService
                 if (skillCache.TryGetValue(result.ItemId, out var cache) && cache.expires.AddHours(1) > DateTime.UtcNow)
                 {
                     result.ReqSkill = cache.Item1;
+                    if (cache.collection != default)
+                        result.ReqCollection = cache.collection;
+                    if (cache.slayer != default)
+                        result.ReqSlayer = cache.slayer;
                 }
                 else
                 {
@@ -115,7 +119,7 @@ public partial class RequirementService
         var recipes = await itemsApi.ApiItemsRecipeTagGetAsync(result.ItemId);
         if (recipes.Count == 0)
             return;
-        var recipe = recipes.Where(r=>!r.LastUpdatedBy.StartsWith('-')).OrderByDescending(r => r.Requirements.Count).ThenByDescending(r=>r.LastUpdated).First();
+        var recipe = recipes.Where(r => !r.LastUpdatedBy.StartsWith('-')).OrderByDescending(r => r.Requirements.Count).ThenByDescending(r => r.LastUpdated).First();
         var matchingSkill = recipe.Requirements.FirstOrDefault(r => r.Contains("Skill "));
         if (matchingSkill != null)
         {
