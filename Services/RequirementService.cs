@@ -130,7 +130,7 @@ public partial class RequirementService
         var slayerRequirement = recipe.Requirements.FirstOrDefault(r => r.Contains("Slayer "));
         if (slayerRequirement != null)
         {
-            var match = Regex.Match(slayerRequirement, @"§c(.*) Slayer (\d+)");
+            var match = Regex.Match(slayerRequirement, @"§cRequires §.(.*) Slayer (\d+)");
             result.ReqSlayer = new RequiredCollection()
             {
                 Name = match.Groups[1].Value,
