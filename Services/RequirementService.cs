@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Coflnet.Sky.Core;
 using Coflnet.Sky.Core.Services;
 using Coflnet.Sky.Crafts.Models;
 using Coflnet.Sky.PlayerState.Client.Api;
@@ -140,11 +141,11 @@ public partial class RequirementService
         var collectionRequirement = recipe.Requirements.FirstOrDefault(r => r.Contains("Collection "));
         if (collectionRequirement != null)
         {
-            var match = Regex.Match(collectionRequirement, @"§b(.*) Collection (\d+)");
+            var match = Regex.Match(collectionRequirement, @"Requires §.(.*) Collection (.+)§c");
             result.ReqCollection = new RequiredCollection()
             {
                 Name = match.Groups[1].Value,
-                Level = int.Parse(match.Groups[2].Value)
+                Level = int.TryParse(match.Groups[2].Value, out var lvl) ? lvl : Roman.From(match.Groups[2].Value)
             };
             logger.LogInformation($"Found collection requirement for {result.ItemId} {result.ReqCollection.Name} {result.ReqCollection.Level}");
         }
