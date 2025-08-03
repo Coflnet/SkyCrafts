@@ -9,12 +9,13 @@ using Coflnet.Sky.PlayerState.Client.Api;
 using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Sky.Crafts.Services;
+
 public partial class RequirementService
 {
     private CollectionService collectionService;
     private IItemsApi itemsApi;
     private ILogger<RequirementService> logger;
-    private ConcurrentDictionary<string, (RequiredSkill, DateTime)> skillCache = new();
+    private ConcurrentDictionary<string, (RequiredSkill, RequiredCollection collection, RequiredCollection slayer, DateTime expires)> skillCache = new();
     private HypixelItemService hypixelItemService;
     public RequirementService(CollectionService collectionService, IItemsApi itemsApi, ILogger<RequirementService> logger, HypixelItemService hypixelItemService)
     {
@@ -41,25 +42,6 @@ public partial class RequirementService
             }
         }
         var items = await hypixelItemService.GetItemsAsync();
-        if (result.ReqSkill == default)
-        {
-            try
-            {
-                if (skillCache.TryGetValue(result.ItemId, out var cache) && cache.Item2.AddHours(1) > DateTime.UtcNow)
-                {
-                    result.ReqSkill = cache.Item1;
-                }
-                else
-                {
-                    await AssignSkillRequirement(item, result);
-                    skillCache[result.ItemId] = (result.ReqSkill, DateTime.UtcNow);
-                }
-            }
-            catch (System.Exception e)
-            {
-                logger.LogError(e, $"Error while assigning skill requirement for {item.itemid}");
-            }
-        }
         if (!string.IsNullOrEmpty(item.slayer_req))
         {
             var level = int.Parse(item.slayer_req.Split("_").Last());
@@ -105,6 +87,26 @@ public partial class RequirementService
 
             }
         }
+
+        if (result.ReqSkill == default)
+        {
+            try
+            {
+                if (skillCache.TryGetValue(result.ItemId, out var cache) && cache.expires.AddHours(1) > DateTime.UtcNow)
+                {
+                    result.ReqSkill = cache.Item1;
+                }
+                else
+                {
+                    await AssignSkillRequirement(item, result);
+                    skillCache[result.ItemId] = (result.ReqSkill, result.ReqCollection, result.ReqSlayer, DateTime.UtcNow);
+                }
+            }
+            catch (System.Exception e)
+            {
+                logger.LogError(e, $"Error while assigning skill requirement for {item.itemid}");
+            }
+        }
     }
 
     private async Task AssignSkillRequirement(ItemData item, ProfitableCraft result)
@@ -114,15 +116,37 @@ public partial class RequirementService
             return;
         var recipe = recipes.OrderByDescending(r => r.Requirements.Count).First();
         var matchingSkill = recipe.Requirements.FirstOrDefault(r => r.Contains("Skill "));
-        if (matchingSkill == null)
-            return;
-        var match = Regex.Match(matchingSkill, @"§a(.*) Skill (\d+)");
-        result.ReqSkill = new RequiredSkill()
+        if (matchingSkill != null)
         {
-            Name = match.Groups[1].Value,
-            Level = int.Parse(match.Groups[2].Value)
-        };
-        logger.LogInformation($"Found skill requirement for {result.ItemId} {result.ReqSkill.Name} {result.ReqSkill.Level}");
-
+            var match = Regex.Match(matchingSkill, @"§a(.*) Skill (\d+)");
+            result.ReqSkill = new RequiredSkill()
+            {
+                Name = match.Groups[1].Value,
+                Level = int.Parse(match.Groups[2].Value)
+            };
+            logger.LogInformation($"Found skill requirement for {result.ItemId} {result.ReqSkill.Name} {result.ReqSkill.Level}");
+        }
+        var slayerRequirement = recipe.Requirements.FirstOrDefault(r => r.Contains("Slayer "));
+        if (slayerRequirement != null)
+        {
+            var match = Regex.Match(slayerRequirement, @"§c(.*) Slayer (\d+)");
+            result.ReqSlayer = new RequiredCollection()
+            {
+                Name = match.Groups[1].Value,
+                Level = int.Parse(match.Groups[2].Value)
+            };
+            logger.LogInformation($"Found slayer requirement for {result.ItemId} {result.ReqSlayer.Name} {result.ReqSlayer.Level}");
+        }
+        var collectionRequirement = recipe.Requirements.FirstOrDefault(r => r.Contains("Collection "));
+        if (collectionRequirement != null)
+        {
+            var match = Regex.Match(collectionRequirement, @"§b(.*) Collection (\d+)");
+            result.ReqCollection = new RequiredCollection()
+            {
+                Name = match.Groups[1].Value,
+                Level = int.Parse(match.Groups[2].Value)
+            };
+            logger.LogInformation($"Found collection requirement for {result.ItemId} {result.ReqCollection.Name} {result.ReqCollection.Level}");
+        }
     }
 }
