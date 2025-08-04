@@ -171,7 +171,7 @@ namespace Coflnet.Sky.Crafts.Services
                     return; // too different
                 try
                 {
-                    var result = await calculatorService.GetCreaftingCost(item, Crafts, lookup);
+                    var result = await calculatorService.GetCreaftingCost(item, Crafts, lookup, BazaarItems);
                     var tag = result.ItemId;
 
                     if (item.displayname == "§fEnchanted Book")
