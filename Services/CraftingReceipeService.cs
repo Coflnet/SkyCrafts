@@ -8,7 +8,8 @@ using System.Linq;
 using Coflnet.Sky.Core.Services;
 
 namespace Coflnet.Sky.Crafts.Services;
-public class CraftingRecipeService(HypixelItemService itemService)
+
+public class CraftingRecipeService(HypixelItemService itemService, PlayerState.Client.Api.IItemsApi itemsApi)
 {
     public IEnumerable<ItemData> CraftAbleItems()
     {
@@ -64,11 +65,12 @@ public class CraftingRecipeService(HypixelItemService itemService)
 
     private static ItemData PortToItem(NPCRecipe recipe)
     {
+        var parts = recipe.result.Split(':');
         return new ItemData()
         {
-            itemid = recipe.result,
-            internalname = recipe.result,
-            displayname = recipe.result,
+            itemid = parts[0],
+            internalname = parts[0],
+            displayname = parts[0],
             Type = "npc",
             recipes =
                 [
@@ -76,7 +78,8 @@ public class CraftingRecipeService(HypixelItemService itemService)
                     {
                         type = recipe.type,
                         inputs = recipe.cost,
-                        result = recipe.result
+                        result = recipe.result,
+                        count =  float.TryParse(parts[1], out var count) ? (int)count : 1
                     }
                 ]
         };
