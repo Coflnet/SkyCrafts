@@ -37,7 +37,7 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
                 }
                 foreach (var recipe in npc.recipes)
                 {
-                    yield return PortToItem(recipe);
+                    yield return PortToItem(recipe, npc.displayname);
                 }
             }
         }
@@ -63,7 +63,7 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
         }
     }
 
-    private static ItemData PortToItem(NPCRecipe recipe)
+    private static ItemData PortToItem(NPCRecipe recipe, string displayname)
     {
         var parts = recipe.result.Split(':');
         if (parts.Length < 2)
@@ -76,6 +76,7 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
             itemid = parts[0],
             internalname = parts[0],
             displayname = parts[0],
+            crafttext = $"Bought from {displayname?.Substring(2)}",
             Type = "npc",
             recipes =
                 [

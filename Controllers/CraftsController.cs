@@ -45,6 +45,20 @@ namespace Coflnet.Sky.Crafts.Controllers
                 ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && (c.Type == null || c.Type == "crafting") && c.Volume > 2);
         }
 
+        /// <summary>
+        /// Profitable npc flips
+        /// </summary>
+        [HttpGet]
+        [Route("profit/npc")]
+        [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public IEnumerable<ProfitableCraft> GetProfitableNpc()
+        {
+            return updaterService.Crafts.Values.Where(e => e != null).Where(c =>
+                (c.CraftCost < c.SellPrice * (1.0f - GetFeeRateForStartingBid((long)c.SellPrice) / 100) - 1
+                    || c.CraftCost < c.SellPrice * 0.99 && updaterService.BazaarItems.Contains(c.ItemId)
+                ) && !c.Ingredients.Where(i => i.Cost <= 0).Any() && (c.Type == "npc" || c.Type == "npc_shop")&& c.Volume > 2);
+        }
+
         static DateTime DerpyStart = new DateTime(2024, 8, 26, 7, 15, 0);
         public static float GetFeeRateForStartingBid(long targetPrice, DateTime? date = null)
         {
@@ -80,9 +94,9 @@ namespace Coflnet.Sky.Crafts.Controllers
         [HttpGet]
         [Route("recipe/{itemTag}")]
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public Task<Recipe> GetRecipe(string itemTag)
+        public async Task<Recipe> GetRecipe(string itemTag)
         {
-            return craftingRecipeService.GetRecipe(itemTag);
+            return await craftingRecipeService.GetRecipe(itemTag);
         }
         /// <summary>
         /// Returns true if all items been calculated once.
@@ -103,7 +117,8 @@ namespace Coflnet.Sky.Crafts.Controllers
         [Route("neu/{itemTag}")]
         public async Task<ItemData> GetNeu(string itemTag)
         {
-            return await craftingRecipeService.GetItemData(itemTag);
+            return await craftingRecipeService.GetItemData(itemTag)
+             ?? updaterService.GetRecipe(itemTag);
         }
     }
 }

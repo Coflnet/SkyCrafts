@@ -28,6 +28,7 @@ namespace Coflnet.Sky.Crafts.Services
         public HashSet<string> BazaarItems = new();
         private IConfiguration config;
         public bool IteratedAll = false;
+        public Dictionary<string, ItemData> Recipes = new Dictionary<string, ItemData>();
         Prometheus.Counter profitableFound = Prometheus.Metrics.CreateCounter("sky_craft_profitable", "How many profitable items were found");
 
         public UpdaterService(CraftingRecipeService craftingRecipeService,
@@ -53,6 +54,7 @@ namespace Coflnet.Sky.Crafts.Services
             var getBazaarItemsTask = GetBazaarItems();
             var craftable = craftingRecipeService.CraftAbleItems().ToList();
             craftable.AddRange(await craftingRecipeService.LoadExtraCraftable());
+            Recipes = craftable.GroupBy(c=>c.internalname).Select(g=>g.First()).ToDictionary(c => c.internalname, c => c);
             await getBazaarItemsTask;
             var i = 0;
             while (!stoppingToken.IsCancellationRequested)
@@ -217,7 +219,7 @@ namespace Coflnet.Sky.Crafts.Services
                     return; // not relevant on first iteration
                 tag = tag.Split(":").First();
             }
-            if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.CraftCost != result.CraftCost)
+            if ((!Crafts.TryGetValue(tag, out ProfitableCraft existing) || existing.CraftCost != result.CraftCost || IteratedAll && result.Median == 0)
                 && result.CraftCost < int.MaxValue && !result.ItemId.StartsWith("ENCHANTMENT_"))
             {
                 // update volume and median
@@ -276,5 +278,9 @@ namespace Coflnet.Sky.Crafts.Services
             return tag;
         }
 
+        internal ItemData GetRecipe(string itemTag)
+        {
+            return Recipes.GetValueOrDefault(itemTag);
+        }
     }
 }

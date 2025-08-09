@@ -47,6 +47,7 @@ public class NewRecipe : Recipe
 public class NPC
 {
     public List<NPCRecipe> recipes { get; set; }
+    public string displayname { get; set; }
 }
 
 public class NPCRecipe : IGetIngredients
