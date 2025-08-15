@@ -40,7 +40,7 @@ public class PriceDropService
 
     private async Task UpdatePrice(Dictionary<string, ProfitableCraft> crafts, Api.Client.Model.ItemMetadataElement item)
     {
-        var prices = await pricesApi.ApiItemPriceItemTagHistoryMonthGetAsync(item.Tag);
+        var prices = await pricesApi.ApiItemPriceItemTagHistoryMonthGetAsync(item.Tag, new Dictionary<string, string>() { { "Clean", "true" } });
         if (prices.Count == 0)
         {
             logger.LogWarning($"No prices found for {item.Tag}");
