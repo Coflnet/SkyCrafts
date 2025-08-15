@@ -54,6 +54,7 @@ public class PriceDropService
             stats[item.Tag] = new DropStatistic()
             {
                 Monthly = median,
+                Now = craft.SellPrice,
                 Recent = current,
                 Tag = item.Tag,
                 Volume = craft.Volume,
@@ -63,6 +64,7 @@ public class PriceDropService
         else
         {
             var currentPrice = await pricesApi.ApiItemPriceItemTagGetAsync(item.Tag, new Dictionary<string, string>() { { "Clean", "true" } });
+            var lbin = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(item.Tag);
             if (currentPrice == null)
             {
                 logger.LogWarning($"No current price found for {item.Tag}");
@@ -73,6 +75,7 @@ public class PriceDropService
             {
                 Monthly = median,
                 Recent = current,
+                Now = lbin.Buy,
                 Tag = item.Tag,
                 Volume = currentPrice.Volume,
                 LastUpdated = DateTime.UtcNow
@@ -99,5 +102,6 @@ public class PriceDropService
         public string Tag { get; set; }
         public double Volume { get; set; }
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+        public double Now { get; set; }
     }
 }
