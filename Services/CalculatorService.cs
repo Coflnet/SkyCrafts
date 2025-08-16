@@ -48,7 +48,8 @@ namespace Coflnet.Sky.Crafts.Services
                             craftWithProfit *= 100;
                         if (item.Cost > craftWithProfit && craftWithProfit > 0)
                         {
-                            item.Cost = Math.Min(item.Cost, craft.CraftCost * item.Count);
+                            var costAfterOrderDepleting = craft.CraftCost * item.Count * 1.01 + 1;
+                            item.Cost = Math.Min(item.Cost, costAfterOrderDepleting);
                             item.Type = "craft";
                         }
                     }
