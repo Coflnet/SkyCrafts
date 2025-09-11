@@ -728,7 +728,7 @@
     "baseRarity": "Common",
     "hours": 0.0833,
     "cost": 5000,
-    "material": "MITHRIL",
+    "material": "MITHRIL_ORE",
     "amount": 512
   },
   {
