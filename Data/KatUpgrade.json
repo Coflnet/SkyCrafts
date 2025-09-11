@@ -752,7 +752,7 @@
     "baseRarity": "Epic",
     "hours": 0.5,
     "cost": 50000,
-    "material": "REFINED_MITHRIL",
+    "material": "ENCHANTED_MITHRIL",
     "amount": 32
   },
   {
@@ -760,7 +760,7 @@
     "baseRarity": "Legendary",
     "hours": 1,
     "cost": 100000,
-    "material": "REFINED_MITHRIL",
+    "material": "ENCHANTED_MITHRIL",
     "amount": 64,
     "material2": "PET_ITEM_PURE_MITHRIL_GEM",
     "amount2": 1
