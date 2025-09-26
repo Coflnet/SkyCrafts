@@ -146,7 +146,7 @@ public class NpcSellService
                         else
                             buyPrice = 0;
                     }
-                    if (buyPrice <= 0 || buyPrice >= npcSellPrice)
+                    if (buyPrice <= 0 || buyPrice >= npcSellPrice - 0.1)
                         return;
                     var profit = npcSellPrice - buyPrice;
                     var margin = buyPrice > 0 ? profit / buyPrice : 0;
