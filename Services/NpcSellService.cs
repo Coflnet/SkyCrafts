@@ -141,7 +141,10 @@ public class NpcSellService
                     if (buyPrice <= 0)
                     {
                         var price = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(tag);
-                        buyPrice = price?.Buy ?? 0;
+                        if (price.Available > 0)
+                            buyPrice = price?.Buy ?? 0;
+                        else
+                            buyPrice = 0;
                     }
                     if (buyPrice <= 0 || buyPrice >= npcSellPrice)
                         return;
