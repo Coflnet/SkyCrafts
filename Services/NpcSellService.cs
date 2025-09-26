@@ -124,33 +124,16 @@ public class NpcSellService
                 try
                 {
                     double buyPrice = 0;
-                    // Prefer the cached buy price from the UpdaterService crafts if available
-                    try
-                    {
-                        if (updaterService?.Crafts != null && updaterService.Crafts.TryGetValue(tag, out var craft) && craft.Volume > 0)
-                        {
-                            // UpdaterService stores SellPrice (what players sell for) and Median. For buy price we prefer the current LBin buy (players buying price)
-                            buyPrice = craft.SellPrice; // conservative fallback from craft data
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogDebug(ex, "Error while reading price from UpdaterService for {tag}", tag);
-                    }
-
-                    if (buyPrice <= 0)
-                    {
-                        var price = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(tag);
-                        if(tag.Contains("PERFECT_"))
-                            logger.LogDebug("Fetched current price for {tag}: {@price} available: {available}", tag, price, price?.Available ?? 0);
-                        if (price.Available > 0)
-                            buyPrice = price?.Buy ?? 0;
-                        else
-                            buyPrice = 0;
-                    }
+                    var price = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(tag);
+                    if (tag.Contains("PERFECT_"))
+                        logger.LogDebug("Fetched current price for {tag}: {@price} available: {available}", tag, price, price?.Available ?? 0);
+                    if (price.Available > 0)
+                        buyPrice = price?.Buy ?? 0;
+                    else
+                        buyPrice = 0;
                     if (buyPrice <= 0 || buyPrice >= npcSellPrice - 0.1)
                     {
-                        if(tag.Contains("PERFECT_"))
+                        if (tag.Contains("PERFECT_"))
                             logger.LogDebug("Skipping npc flip for {tag} because buy price is {buyPrice} and npc sell price is {npcSellPrice}", tag, buyPrice, npcSellPrice);
                         return;
                     }
