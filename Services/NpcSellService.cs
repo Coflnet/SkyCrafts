@@ -141,13 +141,19 @@ public class NpcSellService
                     if (buyPrice <= 0)
                     {
                         var price = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(tag);
+                        if(tag.Contains("PERFECT_"))
+                            logger.LogDebug("Fetched current price for {tag}: {@price} available: {available}", tag, price, price?.Available ?? 0);
                         if (price.Available > 0)
                             buyPrice = price?.Buy ?? 0;
                         else
                             buyPrice = 0;
                     }
                     if (buyPrice <= 0 || buyPrice >= npcSellPrice - 0.1)
+                    {
+                        if(tag.Contains("PERFECT_"))
+                            logger.LogDebug("Skipping npc flip for {tag} because buy price is {buyPrice} and npc sell price is {npcSellPrice}", tag, buyPrice, npcSellPrice);
                         return;
+                    }
                     var profit = npcSellPrice - buyPrice;
                     var margin = buyPrice > 0 ? profit / buyPrice : 0;
                     cachedItemNames.TryGetValue(tag, out var displayName);
