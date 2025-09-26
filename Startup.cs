@@ -39,9 +39,11 @@ namespace Coflnet.Sky.Crafts
             services.AddHttpClient();
             services.AddSingleton<Api.Client.Api.IPricesApi>(provider => new Api.Client.Api.PricesApi(Configuration["API_BASE_URL"]));
             services.AddSingleton<Api.Client.Api.IItemApi>(provider => new Api.Client.Api.ItemApi(Configuration["API_BASE_URL"]));
+            services.AddSingleton<Items.Client.Api.IItemsApi>(provider => new Items.Client.Api.ItemsApi(Configuration["ITEMS_BASE_URL"]));
             services.AddSingleton<PlayerState.Client.Api.IItemsApi>(provider => new PlayerState.Client.Api.ItemsApi(Configuration["PLAYERSTATE_BASE_URL"]));
             services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddSingleton<PriceDropService>();
+            services.AddSingleton<NpcSellService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
 
             services.AddCoflnetCore();
