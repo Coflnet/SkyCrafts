@@ -45,6 +45,7 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<PriceDropService>();
             services.AddSingleton<NpcSellService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
+            services.AddHostedService<NpcSellRefresher>();
 
             services.AddCoflnetCore();
             services.AddResponseCaching();
