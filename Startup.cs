@@ -43,6 +43,7 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<PlayerState.Client.Api.IItemsApi>(provider => new PlayerState.Client.Api.ItemsApi(Configuration["PLAYERSTATE_BASE_URL"]));
             services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddSingleton<PriceDropService>();
+            services.AddSingleton<GeorgePetOfferService>();
             services.AddSingleton<NpcSellService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
             services.AddHostedService<NpcSellRefresher>();

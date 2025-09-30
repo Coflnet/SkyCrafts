@@ -11,12 +11,14 @@ namespace Coflnet.Sky.Crafts.Controllers
     [Route("npc")]
     public class NpcController : ControllerBase
     {
-        private readonly NpcSellService npcSellService;
+    private readonly NpcSellService npcSellService;
+    private readonly GeorgePetOfferService georgePetOfferService;
         private readonly ILogger<NpcController> logger;
 
-        public NpcController(NpcSellService npcSellService, ILogger<NpcController> logger)
+        public NpcController(NpcSellService npcSellService, GeorgePetOfferService georgePetOfferService, ILogger<NpcController> logger)
         {
             this.npcSellService = npcSellService;
+            this.georgePetOfferService = georgePetOfferService;
             this.logger = logger;
         }
 
@@ -27,6 +29,15 @@ namespace Coflnet.Sky.Crafts.Controllers
             var flips = await npcSellService.GetNpcFlipOpportunities(forceRefresh);
             logger.LogInformation("Returning {count} NPC flips", flips.Count);
             return flips;
+        }
+
+        [HttpGet("george-offers")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public async Task<IReadOnlyDictionary<string, PetOffer>> GetGeorgeOffers([FromQuery] bool forceRefresh = false)
+        {
+            var snapshot = await georgePetOfferService.GetSnapshotAsync(forceRefresh);
+            logger.LogInformation("Returning {count} George pet offers", snapshot.OffersByTag.Count);
+            return snapshot.OffersByTag;
         }
     }
 }

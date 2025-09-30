@@ -14,6 +14,12 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Compile Remove="SkyCrafts.Tests/**/*.cs" />
+    <EmbeddedResource Remove="SkyCrafts.Tests/**/*.resx" />
+    <None Remove="SkyCrafts.Tests/**/*" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="Coflnet.Core" Version="0.5.1" />
     <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.7.2" />
     <PackageReference Include="Coflnet.Sky.PlayerState.Client" Version="0.11.0" />

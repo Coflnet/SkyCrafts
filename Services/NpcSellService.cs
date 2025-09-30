@@ -2,12 +2,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
 using Coflnet.Sky.Api.Client.Api;
 using Coflnet.Sky.Crafts.Models;
 using Coflnet.Sky.Items.Client.Api;
+using Coflnet.Sky.Items.Client.Model;
 using Microsoft.Extensions.Logging;
 
 namespace Coflnet.Sky.Crafts.Services;
@@ -18,6 +19,7 @@ public class NpcSellService
     private readonly IPricesApi pricesApi;
     private readonly ILogger<NpcSellService> logger;
     private readonly UpdaterService updaterService;
+    private readonly GeorgePetOfferService georgePetOfferService;
     private readonly TimeSpan npcPriceCacheDuration = TimeSpan.FromHours(12);
     private readonly TimeSpan flipCacheDuration = TimeSpan.FromHours(3);
     private readonly SemaphoreSlim npcPriceSemaphore = new(1, 1);
@@ -28,11 +30,12 @@ public class NpcSellService
     private IReadOnlyCollection<NpcFlip> cachedFlips = Array.Empty<NpcFlip>();
     private DateTime flipsLastUpdated = DateTime.MinValue;
 
-    public NpcSellService(IItemsApi itemsApi, IPricesApi pricesApi, UpdaterService updaterService, ILogger<NpcSellService> logger)
+    public NpcSellService(IItemsApi itemsApi, IPricesApi pricesApi, UpdaterService updaterService, GeorgePetOfferService georgePetOfferService, ILogger<NpcSellService> logger)
     {
         this.itemsApi = itemsApi;
         this.pricesApi = pricesApi;
         this.updaterService = updaterService;
+        this.georgePetOfferService = georgePetOfferService;
         this.logger = logger;
     }
 
@@ -52,11 +55,22 @@ public class NpcSellService
             try
             {
                 var items = await itemsApi.ItemsGetAsync();
-                foreach (var item in items)
+                var itemList = items?.Where(i => i != null).ToList() ?? new List<Item>();
+                var georgeSnapshot = await georgePetOfferService.GetSnapshotAsync(itemList, forceRefresh);
+
+                foreach (var item in itemList)
                 {
-                    if (item?.Tag == null || item.NpcSellPrice <= 0)
+                    if (item?.Tag == null)
                         continue;
-                    npcSellPrices[item.Tag] = item.NpcSellPrice;
+
+                    double price = item.NpcSellPrice;
+                    if (georgeSnapshot.TryGetPrice(item.Tag, out var georgePrice))
+                        price = georgePrice;
+
+                    if (price <= 0)
+                        continue;
+
+                    npcSellPrices[item.Tag] = price;
                     metadataLookup[item.Tag] = ResolveItemName(item, item.Tag);
                 }
             }
@@ -127,10 +141,10 @@ public class NpcSellService
                     var price = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(tag);
                     if (tag.Contains("PERFECT_"))
                         logger.LogDebug("Fetched current price for {tag}: {@price} available: {available}", tag, price, price?.Available ?? 0);
-                    if (price.Available > 0)
+                    var available = price?.Available ?? 0;
+                    if (available > 0)
                         buyPrice = price?.Buy ?? 0;
-                    else
-                        buyPrice = 0;
+
                     if (buyPrice <= 0 || buyPrice >= npcSellPrice - 0.1)
                     {
                         if (tag.Contains("PERFECT_"))
@@ -167,7 +181,7 @@ public class NpcSellService
         }
     }
 
-    private static string ResolveItemName(object item, string fallback)
+    private static string ResolveItemName(Item item, string fallback)
     {
         if (item == null)
             return fallback;
