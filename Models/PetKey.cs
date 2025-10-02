@@ -1,4 +1,4 @@
-using CoreTier = Coflnet.Sky.Core.Tier;
+using CoreTier = Coflnet.Sky.Api.Client.Model.Tier;
 
 namespace Coflnet.Sky.Crafts.Models;
 

@@ -8,7 +8,7 @@ using Coflnet.Sky.Crafts.Models;
 using Coflnet.Sky.Items.Client.Api;
 using Coflnet.Sky.Items.Client.Model;
 using Microsoft.Extensions.Logging;
-using CoreTier = Coflnet.Sky.Core.Tier;
+using CoreTier = Coflnet.Sky.Api.Client.Model.Tier;
 using ItemsItem = Coflnet.Sky.Items.Client.Model.Item;
 
 namespace Coflnet.Sky.Crafts.Services;
@@ -64,7 +64,7 @@ public sealed class GeorgePetOfferService
         if (tierNameLookup.TryGetValue(key, out var tier))
             return tier;
 
-        throw new InvalidOperationException($"Unknown tier '{value}' for Coflnet.Sky.Core.Tier");
+        throw new InvalidOperationException($"Unknown tier '{value}' for Coflnet.Sky.Api.Client.Model.Tier");
     }
 
     public async Task<GeorgePetPriceSnapshot> GetSnapshotAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)

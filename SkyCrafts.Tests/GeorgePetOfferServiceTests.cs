@@ -8,7 +8,7 @@ using Coflnet.Sky.Items.Client.Model;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Xunit;
-using CoreTier = Coflnet.Sky.Core.Tier;
+using CoreTier = Coflnet.Sky.Api.Client.Model.Tier;
 
 namespace SkyCrafts.Tests;
 
