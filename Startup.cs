@@ -44,6 +44,7 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddSingleton<PriceDropService>();
             services.AddSingleton<GeorgePetOfferService>();
+            services.AddSingleton<GeorgeFlipService>();
             services.AddSingleton<NpcSellService>();
             services.AddHostedService<UpdaterService>(provider => provider.GetService<UpdaterService>());
             services.AddHostedService<NpcSellRefresher>();
