@@ -24,6 +24,14 @@
     "cost": 1000000
   },
   {
+    "name": "Armadillo",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 700000,
+    "material": "FROZEN_SCUTE",
+    "amount": 1
+  },
+  {
     "name": "Baby_Yeti",
     "baseRarity": "Epic",
     "hours": 288,
