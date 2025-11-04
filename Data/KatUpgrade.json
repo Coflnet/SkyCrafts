@@ -1484,6 +1484,14 @@
     "amount": 1
   },
   {
+    "name": "Griffin",
+    "baseRarity": "Legendary",
+    "hours": 0,
+    "cost": 0,
+    "material": "GRIFFIN_UPGRADE_STONE_MYTHIC",
+    "amount": 1
+  },
+  {
     "name": "Zombie",
     "baseRarity": "Common",
     "hours": 0.0028,
