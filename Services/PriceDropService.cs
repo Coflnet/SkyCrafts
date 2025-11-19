@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Api.Client.Api;
+using Coflnet.Sky.Core;
 using Coflnet.Sky.Crafts.Models;
 using Microsoft.Extensions.Logging;
 
@@ -40,7 +41,13 @@ public class PriceDropService
 
     private async Task UpdatePrice(Dictionary<string, ProfitableCraft> crafts, Api.Client.Model.ItemMetadataElement item)
     {
-        var prices = await pricesApi.ApiItemPriceItemTagHistoryMonthGetAsync(item.Tag, new Dictionary<string, string>() { { "Clean", "true" } });
+        var filter = new Dictionary<string, string>() { { "Clean", "true" } };
+        if(NBT.IsPet(item.Tag))
+        {
+            filter["Rarity"] = "LEGENDARY";
+            filter["PetLevel"] = "100";
+        }
+        var prices = await pricesApi.ApiItemPriceItemTagHistoryMonthGetAsync(item.Tag, filter);
         if (prices.Count == 0)
         {
             logger.LogWarning($"No prices found for {item.Tag}");
@@ -63,8 +70,13 @@ public class PriceDropService
         }
         else
         {
-            var currentPrice = await pricesApi.ApiItemPriceItemTagGetAsync(item.Tag, new Dictionary<string, string>() { { "Clean", "true" } });
+            var currentPrice = await pricesApi.ApiItemPriceItemTagGetAsync(item.Tag, filter);
             var lbin = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(item.Tag);
+            var nowPrice = lbin.Buy;
+            if(NBT.IsPet(item.Tag))
+            {
+                nowPrice = (await pricesApi.ApiItemPriceItemTagBinGetAsync(item.Tag, filter)).Lowest;
+            }
             if (currentPrice == null)
             {
                 logger.LogWarning($"No current price found for {item.Tag}");
@@ -75,7 +87,7 @@ public class PriceDropService
             {
                 Monthly = median,
                 Recent = current,
-                Now = lbin.Buy,
+                Now = nowPrice,
                 Tag = item.Tag,
                 Volume = currentPrice.Volume,
                 LastUpdated = DateTime.UtcNow
