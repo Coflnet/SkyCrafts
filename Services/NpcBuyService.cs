@@ -83,7 +83,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
                 {
                     ItemName = i.Key,
                     ItemTag = lookup.ContainsKey(i.Key) ? lookup[i.Key] : null,
-                    Amount = i.Value
+                    Amount = i.Value / item.ResultCount
                 }).ToList() ?? new List<ReverseNpcFlip.Cost>(),
 
             };
