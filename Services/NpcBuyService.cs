@@ -36,7 +36,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
             {
                 var costPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(cost.ItemTag);
                 cost.Price = costPrice.Sell > 0 ? costPrice.Sell : costPrice.Buy;
-                if (cost.Price <= 0 && cost.Amount <= 0)
+                if (cost.Price <= 0 && costPrice.Available <= 0)
                 {
                     logger.LogWarning("Item {item} used in reverse npc flip {flip} has no valid price, removing flip", cost.ItemName, item.Value.ItemName);
                     flips.TryRemove(item.Key, out _);
@@ -80,7 +80,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
                 }).ToList() ?? new List<ReverseNpcFlip.Cost>(),
 
             };
-            if (flip.Costs.Any(e => e.ItemTag == null))
+            if (flip.Costs.Any(e => e.ItemTag == null || e.Price <= 0))
             {
                 logger.LogWarning("Skipping reverse flip for {item} because some item tags could not be resolved", flip.ItemName);
                 continue;
