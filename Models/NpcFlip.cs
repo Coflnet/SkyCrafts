@@ -16,6 +16,7 @@ public class NpcFlip
 
 public class ReverseNpcFlip
 {
+    public string NpcName { get; set; }
     public string ItemId { get; set; }
     public string ItemName { get; set; }
     public double NpcBuyPrice { get; set; }

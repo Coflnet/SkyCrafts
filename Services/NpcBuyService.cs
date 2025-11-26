@@ -63,12 +63,13 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         var names = await apiItemsApi.ApiItemsGetAsync();
         var lookup = names.GroupBy(n => n.Name).Select(g => g.First()).Where(e=>e.Name != null).ToDictionary(n => n.Name, n => n.Tag);
         var reverseLookup = names.ToDictionary(n => n.Tag, n => n.Name);
-        foreach (var item in allItems)
+        foreach (var item in allItems.GroupBy(i=>i.ItemTag).Select(g=>g.OrderByDescending(i=>i.Stock).First()))
         {
             if (item.Description.Contains("Soulbound"))
                 continue; // Can't sell soulbound items
             var flip = new ReverseNpcFlip()
             {
+                NpcName = item.NpcName,
                 ItemId = item.ItemTag,
                 ItemName = reverseLookup.ContainsKey(item.ItemTag) ? reverseLookup[item.ItemTag] : item.ItemTag,
                 Costs = item.Costs?.Select(i => new ReverseNpcFlip.Cost()
