@@ -61,7 +61,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
     {
         var allItems = await playerItemsApi.ApiItemsNpccostGetAsync();
         var names = await apiItemsApi.ApiItemsGetAsync();
-        var lookup = names.GroupBy(n => n.Name).Select(g => g.First()).ToDictionary(n => n.Name, n => n.Tag);
+        var lookup = names.GroupBy(n => n.Name).Select(g => g.First()).Where(e=>e.Name != null).ToDictionary(n => n.Name, n => n.Tag);
         var reverseLookup = names.ToDictionary(n => n.Tag, n => n.Name);
         foreach (var item in allItems)
         {
