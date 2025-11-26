@@ -34,7 +34,12 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
             item.Value.SellPrice = Math.Min(sellPrice.Sell > 0 ? sellPrice.Sell : sellPrice.Buy, generalPriceInfo.Median * 2);
             foreach (var cost in item.Value.Costs)
             {
-                var costPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(cost.ItemTag);
+                if(cost.ItemTag == "SKYBLOCK_COINS")
+                {
+                    cost.Price = cost.Amount;
+                    continue;
+                }
+                var costPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(cost.ItemTag, cost.Amount);
                 cost.Price = costPrice.Sell > 0 ? costPrice.Sell : costPrice.Buy;
                 if (cost.Price <= 0 && costPrice.Available <= 0)
                 {
@@ -61,7 +66,8 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
     {
         var allItems = await playerItemsApi.ApiItemsNpccostGetAsync();
         var names = await apiItemsApi.ApiItemsGetAsync();
-        var lookup = names.GroupBy(n => n.Name).Select(g => g.First()).Where(e=>e.Name != null).ToDictionary(n => n.Name, n => n.Tag);
+        var lookup = names.GroupBy(n => n.Name).Select(g => g.First()).Where(e => e.Name != null).ToDictionary(n => n.Name, n => n.Tag);
+        lookup.Add("Coins", "SKYBLOCK_COINS");
         var reverseLookup = names.ToDictionary(n => n.Tag, n => n.Name);
         foreach (var item in allItems.GroupBy(i=>i.ItemTag).Select(g=>g.OrderByDescending(i=>i.Stock).First()))
         {
