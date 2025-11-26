@@ -68,7 +68,7 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
         var parts = recipe.result.Split(':');
         if (parts.Length < 2)
         {
-            Console.WriteLine($"Invalid NPC recipe result: {recipe.result} from {recipe.cost}");
+            Console.WriteLine($"Invalid NPC recipe result: {recipe.result} from {string.Join(",", recipe.cost)}");
             parts = new[] { parts[0], "1" }; // default to 1 if no count is specified
         }
         return new ItemData()

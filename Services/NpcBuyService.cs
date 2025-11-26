@@ -68,6 +68,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         var names = await apiItemsApi.ApiItemsGetAsync();
         var lookup = names.GroupBy(n => n.Name).Select(g => g.First()).Where(e => e.Name != null).ToDictionary(n => n.Name, n => n.Tag);
         lookup.Add("Coins", "SKYBLOCK_COINS");
+        lookup.Add("Coin", "SKYBLOCK_COINS");
         var reverseLookup = names.ToDictionary(n => n.Tag, n => n.Name);
         foreach (var item in allItems.GroupBy(i=>i.ItemTag).Select(g=>g.OrderByDescending(i=>i.Stock).First()))
         {
@@ -91,6 +92,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
                 logger.LogWarning("Skipping reverse flip for {item} because some item tags could not be resolved {unknown}", item.ItemTag, string.Join(", ", flip.Costs.Where(c => c.ItemTag == null).Select(c => c.ItemName)));
                 continue;
             }
+            logger.LogInformation("Loaded reverse npc flip for {item} from npc {npc}", flip.ItemName, flip.NpcName);
             flips[item.ItemTag] = flip;
         }
     }
