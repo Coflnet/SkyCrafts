@@ -48,7 +48,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
                     break;
                 }
             }
-            var totalCost = item.Value.Costs.Sum(c => c.Price * c.Amount);
+            var totalCost = item.Value.Costs.Sum(c => c.Price);
             item.Value.NpcBuyPrice = totalCost;
             item.Value.Profit = item.Value.SellPrice - totalCost;
             item.Value.ProfitMargin = totalCost > 0 ? item.Value.Profit / totalCost : 0;
