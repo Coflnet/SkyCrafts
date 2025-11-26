@@ -86,7 +86,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
                 }).ToList() ?? new List<ReverseNpcFlip.Cost>(),
 
             };
-            if (flip.Costs.Any(e => e.ItemTag == null || e.Price <= 0))
+            if (flip.Costs.Any(e => e.ItemTag == null))
             {
                 logger.LogWarning("Skipping reverse flip for {item} because some item tags could not be resolved", flip.ItemName);
                 continue;
