@@ -11,17 +11,19 @@ namespace Coflnet.Sky.Crafts.Controllers
     [Route("npc")]
     public class NpcController : ControllerBase
     {
-    private readonly NpcSellService npcSellService;
-    private readonly GeorgePetOfferService georgePetOfferService;
-    private readonly GeorgeFlipService georgeFlipService;
+        private readonly NpcSellService npcSellService;
+        private readonly GeorgePetOfferService georgePetOfferService;
+        private readonly GeorgeFlipService georgeFlipService;
+        private readonly NpcBuyService npcBuyService;
         private readonly ILogger<NpcController> logger;
 
-        public NpcController(NpcSellService npcSellService, GeorgePetOfferService georgePetOfferService, GeorgeFlipService georgeFlipService, ILogger<NpcController> logger)
+        public NpcController(NpcSellService npcSellService, GeorgePetOfferService georgePetOfferService, GeorgeFlipService georgeFlipService, ILogger<NpcController> logger, NpcBuyService npcBuyService)
         {
             this.npcSellService = npcSellService;
             this.georgePetOfferService = georgePetOfferService;
             this.georgeFlipService = georgeFlipService;
             this.logger = logger;
+            this.npcBuyService = npcBuyService;
         }
 
         [HttpGet("flips")]
@@ -30,6 +32,13 @@ namespace Coflnet.Sky.Crafts.Controllers
         {
             var flips = await npcSellService.GetNpcFlipOpportunities(forceRefresh);
             logger.LogInformation("Returning {count} NPC flips", flips.Count);
+            return flips;
+        }
+        [HttpGet("flips/reverse")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public IEnumerable<ReverseNpcFlip> GetReverseNpcFlips()
+        {
+            var flips = npcBuyService.GetReverseFlips();
             return flips;
         }
 

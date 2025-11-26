@@ -22,6 +22,7 @@ namespace Coflnet.Sky.Crafts.Services
         private KatUpgradeService katService;
         private PriceDropService priceDropService;
         private ForgeCraftService forgeCraftService;
+        private NpcBuyService npcBuyService;
         private Api.Client.Api.IPricesApi pricesApi;
         private ILogger<UpdaterService> logger;
         public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
@@ -35,7 +36,7 @@ namespace Coflnet.Sky.Crafts.Services
                     CalculatorService calculatorService,
                     ILogger<UpdaterService> logger,
                     KatUpgradeService katService, IConfiguration config, Api.Client.Api.IPricesApi pricesApi, ForgeCraftService forgeCraftService,
-                    RequirementService skillService, PriceDropService priceDropService)
+                    RequirementService skillService, PriceDropService priceDropService, NpcBuyService npcBuyService)
         {
             this.craftingRecipeService = craftingRecipeService;
             this.calculatorService = calculatorService;
@@ -46,6 +47,7 @@ namespace Coflnet.Sky.Crafts.Services
             this.forgeCraftService = forgeCraftService;
             this.skillService = skillService;
             this.priceDropService = priceDropService;
+            this.npcBuyService = npcBuyService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -68,6 +70,7 @@ namespace Coflnet.Sky.Crafts.Services
                     {
                         await priceDropService.UpdateAll(Crafts);
                         logger.LogInformation("Updated price drops");
+                        await npcBuyService.UpdatePrices();
                     }
                 }
                 catch (Exception e)
