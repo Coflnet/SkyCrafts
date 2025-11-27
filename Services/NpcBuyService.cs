@@ -65,14 +65,14 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         var totalCost = item.Value.Costs.Sum(c => c.Price);
         item.Value.NpcBuyPrice = totalCost;
         item.Value.Profit = item.Value.SellPrice - totalCost;
-        item.Value.ProfitMargin = totalCost > 0 ? item.Value.Profit / totalCost : 0;
+        item.Value.ProfitMargin = totalCost > 0 ? 1 / (totalCost / item.Value.Profit) : 0;
         item.Value.Volume = generalPriceInfo.Volume;
         item.Value.LastUpdated = DateTime.UtcNow;
     }
 
     internal IEnumerable<ReverseNpcFlip> GetReverseFlips()
     {
-        return flips.Values.Where(f => f.Profit > 0).OrderByDescending(f => f.ProfitMargin);
+        return flips.Values.Where(f => f.Profit > 0).OrderByDescending(f => f.ProfitMargin * f.Volume);
     }
 
     internal IEnumerable<ReverseNpcFlip> GetAllFlips()
@@ -88,7 +88,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         lookup.Add("Coins", "SKYBLOCK_COINS");
         lookup.Add("Coin", "SKYBLOCK_COINS");
         var reverseLookup = names.ToDictionary(n => n.Tag, n => n.Name);
-        foreach (var item in allItems.Where(n=>n.NpcName != "Featured Update Items") // ignore alpha server
+        foreach (var item in allItems.Where(n => n.NpcName != "Featured Update Items") // ignore alpha server
             .GroupBy(i => i.ItemTag).Select(g => g.OrderByDescending(i => i.Stock + (i.Costs.Any(c => c.Key.Contains('.')) ? -1000 : 0)).First()))
         {
             if (item.Description.Contains("Soulbound"))
