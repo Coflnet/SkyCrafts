@@ -64,6 +64,10 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         }
         var totalCost = item.Value.Costs.Sum(c => c.Price);
         item.Value.NpcBuyPrice = totalCost;
+        if(generalPriceInfo.Volume < 5)
+        {
+            item.Value.SellPrice = Math.Min(item.Value.SellPrice, totalCost * 1.1); // avoid low volume price manipulation
+        }
         item.Value.Profit = item.Value.SellPrice - totalCost;
         item.Value.ProfitMargin = totalCost > 0 ? 1 / (totalCost / item.Value.Profit) : 0;
         item.Value.Volume = generalPriceInfo.Volume;
