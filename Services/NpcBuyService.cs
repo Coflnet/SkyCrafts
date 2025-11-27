@@ -62,6 +62,11 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         return flips.Values.Where(f => f.Profit > 0).OrderByDescending(f => f.ProfitMargin);
     }
 
+    internal IEnumerable<ReverseNpcFlip> GetAllFlips()
+    {
+        return flips.Values;
+    }
+
     private async Task LoadItems()
     {
         var allItems = await playerItemsApi.ApiItemsNpccostGetAsync();

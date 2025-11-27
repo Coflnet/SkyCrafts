@@ -42,6 +42,14 @@ namespace Coflnet.Sky.Crafts.Controllers
             return flips;
         }
 
+        [HttpGet("flips/reverse/all")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public IEnumerable<ReverseNpcFlip> GetAllReverseNpcFlips()
+        {
+            var flips = npcBuyService.GetAllFlips();
+            return flips;
+        }
+
         [HttpGet("george-offers")]
         [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<IReadOnlyDictionary<string, PetOffer>> GetGeorgeOffers([FromQuery] bool forceRefresh = false)
