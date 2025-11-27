@@ -34,7 +34,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
             item.Value.SellPrice = Math.Min(sellPrice.Sell > 0 ? sellPrice.Sell : sellPrice.Buy, generalPriceInfo.Median * 2);
             foreach (var cost in item.Value.Costs)
             {
-                if(cost.ItemTag == "SKYBLOCK_COINS")
+                if (cost.ItemTag == "SKYBLOCK_COINS")
                 {
                     cost.Price = cost.Amount;
                     continue;
@@ -75,7 +75,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         lookup.Add("Coins", "SKYBLOCK_COINS");
         lookup.Add("Coin", "SKYBLOCK_COINS");
         var reverseLookup = names.ToDictionary(n => n.Tag, n => n.Name);
-        foreach (var item in allItems.GroupBy(i=>i.ItemTag).Select(g=>g.OrderByDescending(i=>i.Stock).First()))
+        foreach (var item in allItems.GroupBy(i => i.ItemTag).Select(g => g.OrderByDescending(i => i.Stock + (i.Costs.Any(c => c.Key.Contains('.')) ? -1000 : 0)).First()))
         {
             if (item.Description.Contains("Soulbound"))
                 continue; // Can't sell soulbound items
