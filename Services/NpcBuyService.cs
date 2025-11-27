@@ -24,37 +24,51 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
             await LoadItems();
         foreach (var item in flips.ToList())
         {
-            var generalPriceInfo = await pricesApi.ApiItemPriceItemTagGetAsync(item.Key);
-            if (generalPriceInfo.Volume == 0 && generalPriceInfo.Max == 0)
-            { // not sellable
+            try
+            {
+                await UpdatePrice(item);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error updating price for reverse npc flip {item}", item.Key);
                 flips.TryRemove(item.Key, out _);
+            }
+        }
+    }
+
+    private async Task<bool> UpdatePrice(KeyValuePair<string, ReverseNpcFlip> item)
+    {
+        var generalPriceInfo = await pricesApi.ApiItemPriceItemTagGetAsync(item.Key);
+        if (generalPriceInfo.Volume == 0 && generalPriceInfo.Max == 0)
+        { // not sellable
+            flips.TryRemove(item.Key, out _);
+            return false;
+        }
+        var sellPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(item.Key);
+        item.Value.SellPrice = Math.Min(sellPrice.Sell > 0 ? sellPrice.Sell : sellPrice.Buy, generalPriceInfo.Median * 2);
+        foreach (var cost in item.Value.Costs)
+        {
+            if (cost.ItemTag == "SKYBLOCK_COINS")
+            {
+                cost.Price = cost.Amount;
                 continue;
             }
-            var sellPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(item.Key);
-            item.Value.SellPrice = Math.Min(sellPrice.Sell > 0 ? sellPrice.Sell : sellPrice.Buy, generalPriceInfo.Median * 2);
-            foreach (var cost in item.Value.Costs)
+            var costPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(cost.ItemTag, cost.Amount);
+            cost.Price = costPrice.Sell > 0 ? costPrice.Sell : costPrice.Buy;
+            if (cost.Price <= 0 && costPrice.Available <= 0)
             {
-                if (cost.ItemTag == "SKYBLOCK_COINS")
-                {
-                    cost.Price = cost.Amount;
-                    continue;
-                }
-                var costPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(cost.ItemTag, cost.Amount);
-                cost.Price = costPrice.Sell > 0 ? costPrice.Sell : costPrice.Buy;
-                if (cost.Price <= 0 && costPrice.Available <= 0)
-                {
-                    logger.LogWarning("Item {item} used in reverse npc flip {flip} has no valid price, removing flip", cost.ItemName, item.Value.ItemName);
-                    flips.TryRemove(item.Key, out _);
-                    break;
-                }
+                logger.LogWarning("Item {item} used in reverse npc flip {flip} has no valid price, removing flip", cost.ItemName, item.Value.ItemName);
+                flips.TryRemove(item.Key, out _);
+                break;
             }
-            var totalCost = item.Value.Costs.Sum(c => c.Price);
-            item.Value.NpcBuyPrice = totalCost;
-            item.Value.Profit = item.Value.SellPrice - totalCost;
-            item.Value.ProfitMargin = totalCost > 0 ? item.Value.Profit / totalCost : 0;
-            item.Value.Volume = generalPriceInfo.Volume;
-            item.Value.LastUpdated = DateTime.UtcNow;
         }
+        var totalCost = item.Value.Costs.Sum(c => c.Price);
+        item.Value.NpcBuyPrice = totalCost;
+        item.Value.Profit = item.Value.SellPrice - totalCost;
+        item.Value.ProfitMargin = totalCost > 0 ? item.Value.Profit / totalCost : 0;
+        item.Value.Volume = generalPriceInfo.Volume;
+        item.Value.LastUpdated = DateTime.UtcNow;
+        return true;
     }
 
     internal IEnumerable<ReverseNpcFlip> GetReverseFlips()
