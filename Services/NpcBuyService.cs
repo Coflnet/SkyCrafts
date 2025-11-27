@@ -36,13 +36,13 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         }
     }
 
-    private async Task<bool> UpdatePrice(KeyValuePair<string, ReverseNpcFlip> item)
+    private async Task UpdatePrice(KeyValuePair<string, ReverseNpcFlip> item)
     {
         var generalPriceInfo = await pricesApi.ApiItemPriceItemTagGetAsync(item.Key);
         if (generalPriceInfo.Volume == 0 && generalPriceInfo.Max == 0)
         { // not sellable
             flips.TryRemove(item.Key, out _);
-            return false;
+            return;
         }
         var sellPrice = await pricesApi.ApiItemPriceItemTagCurrentGetAsync(item.Key);
         item.Value.SellPrice = Math.Min(sellPrice.Sell > 0 ? sellPrice.Sell : sellPrice.Buy, generalPriceInfo.Median * 2);
@@ -59,7 +59,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
             {
                 logger.LogWarning("Item {item} used in reverse npc flip {flip} has no valid price, removing flip", cost.ItemName, item.Value.ItemName);
                 flips.TryRemove(item.Key, out _);
-                break;
+                return;
             }
         }
         var totalCost = item.Value.Costs.Sum(c => c.Price);
@@ -68,7 +68,6 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         item.Value.ProfitMargin = totalCost > 0 ? item.Value.Profit / totalCost : 0;
         item.Value.Volume = generalPriceInfo.Volume;
         item.Value.LastUpdated = DateTime.UtcNow;
-        return true;
     }
 
     internal IEnumerable<ReverseNpcFlip> GetReverseFlips()
