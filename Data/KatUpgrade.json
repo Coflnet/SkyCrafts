@@ -1104,7 +1104,7 @@
     "baseRarity": "Uncommon",
     "hours": 0.1667,
     "cost": 10000,
-    "material": "ENCHANTED_RAW_MUTTON",
+    "material": "MUTTON",
     "amount": 8,
     "material2": "ENCHANTED_WOOL",
     "amount2": 8
@@ -1114,7 +1114,7 @@
     "baseRarity": "Rare",
     "hours": 0.25,
     "cost": 25000,
-    "material": "ENCHANTED_RAW_MUTTON",
+    "material": "MUTTON",
     "amount": 16,
     "material2": "ENCHANTED_WOOL",
     "amount2": 16
@@ -1124,7 +1124,7 @@
     "baseRarity": "Epic",
     "hours": 0.5,
     "cost": 50000,
-    "material": "ENCHANTED_RAW_MUTTON",
+    "material": "MUTTON",
     "amount": 32,
     "material2": "ENCHANTED_WOOL",
     "amount2": 32
