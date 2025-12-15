@@ -1523,4 +1523,37 @@
     "material": "ENCHANTED_ROTTEN_FLESH",
     "amount": 8
   }
+,
+  {
+    "name": "Crow",
+    "baseRarity": "Common",
+    "hours": 24,
+    "cost": 250000,
+    "material": "ENCHANTED_MOONFLOWER",
+    "amount": 128
+  },
+  {
+    "name": "Crow",
+    "baseRarity": "Uncommon",
+    "hours": 48,
+    "cost": 500000,
+    "material": "COMPACTED_MOONFLOWER",
+    "amount": 2
+  },
+  {
+    "name": "Crow",
+    "baseRarity": "Rare",
+    "hours": 72,
+    "cost": 1000000,
+    "material": "COMPACTED_MOONFLOWER",
+    "amount": 4
+  },
+  {
+    "name": "Crow",
+    "baseRarity": "Epic",
+    "hours": 120,
+    "cost": 2500000,
+    "material": "COMPACTED_MOONFLOWER",
+    "amount": 8
+  }
 ]
