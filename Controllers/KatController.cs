@@ -42,7 +42,8 @@ namespace Coflnet.Sky.Crafts.Controllers
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
         public Task<IEnumerable<KatUpgradeCost>> GetUpgradeData()
         {
-            return katService.GetKatUpgradeCosts();
+            // return a copy of the raw data where coin costs are virtually increased during Aura
+            return katService.GetKatUpgradeCostsWithAppliedMultipliers();
         }
     }
 }

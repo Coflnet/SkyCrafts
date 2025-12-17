@@ -85,6 +85,7 @@ namespace Coflnet.Sky.Crafts.Services
         {
             var level = (float)int.Parse(Regex.Replace(auction.ItemName.Substring(0, 10), "[^0-9]", ""));
             var upgradeCost = item.Cost * (1 - (level - 1) * 0.003);
+            upgradeCost = ApplyAuraMayorModifier(upgradeCost);
             var profit = lbin.StartingBid - auction.StartingBid - upgradeCost - materialCost;
             return new KatUpgradeResult()
             {
@@ -98,6 +99,36 @@ namespace Coflnet.Sky.Crafts.Services
                 PurchaseCost = auction.StartingBid,
                 OriginAuctionName = auction.ItemName
             };
+        }
+
+        /// <summary>
+        /// Applies the Aura mayor modifier to the upgrade cost.
+        /// Aura increases Kat upgrade costs by 50% from November 20 to December 31.
+        /// </summary>
+        /// <param name="baseCost">The base upgrade cost</param>
+        /// <returns>The cost with Aura modifier applied if active</returns>
+        private static double ApplyAuraMayorModifier(double baseCost)
+        {
+            if (IsAuraMayorActive())
+            {
+                return baseCost * 1.5;
+            }
+            return baseCost;
+        }
+
+        /// <summary>
+        /// Checks if the Aura mayor is currently active.
+        /// Aura is active from November 20 to December 31.
+        /// </summary>
+        /// <returns>True if Aura mayor is active, false otherwise</returns>
+        private static bool IsAuraMayorActive()
+        {
+            var now = DateTime.Now;
+            var year = now.Year;
+            var auraStart = new DateTime(year, 11, 20);
+            var auraEnd = new DateTime(year, 12, 31);
+            
+            return now >= auraStart && now <= auraEnd;
         }
 
         private async Task<List<Api.Client.Model.SaveAuction>> GetActiveBins(string itemTag, Api.Client.Model.Tier rarity)
@@ -134,5 +165,54 @@ namespace Coflnet.Sky.Crafts.Services
             var path = $"Data/KatUpgrade.json";
             return JsonConvert.DeserializeObject<IEnumerable<Models.KatUpgradeCost>>(await File.ReadAllTextAsync(path));
         }
+
+        /// <summary>
+        /// Returns a copy of the Kat upgrade costs where coin costs have the Aura mayor multiplier applied virtually.
+        /// Passing an explicit <paramref name="now"/> makes the method deterministic for tests.
+        /// </summary>
+        public async Task<IEnumerable<Models.KatUpgradeCost>> GetKatUpgradeCostsWithAppliedMultipliers(DateTime? now = null)
+        {
+            var costs = (await GetKatUpgradeCosts()).ToList();
+            var multiplier = GetAuraMultiplier(now);
+            if (Math.Abs(multiplier - 1.0) < 0.000001)
+                return costs; // no change needed
+
+            var copied = new List<Models.KatUpgradeCost>(costs.Count);
+            foreach (var c in costs)
+            {
+                // create a shallow copy and apply multiplier to `Cost` (round to nearest int)
+                var copy = new Models.KatUpgradeCost
+                {
+                    Name = c.Name,
+                    BaseRarity = c.BaseRarity,
+                    Hours = c.Hours,
+                    Cost = (int)Math.Round(c.Cost * multiplier),
+                    Material = c.Material,
+                    Amount = c.Amount,
+                    Material2 = c.Material2,
+                    Amount2 = c.Amount2,
+                    Material3 = c.Material3,
+                    Amount3 = c.Amount3,
+                    Material4 = c.Material4,
+                    Amount4 = c.Amount4
+                };
+                copied.Add(copy);
+            }
+            return copied;
+        }
+
+        /// <summary>
+        /// Returns the Aura multiplier for the given date (1.5 during Nov 20 - Dec 31, otherwise 1.0).
+        /// </summary>
+        private static double GetAuraMultiplier(DateTime? now = null)
+        {
+            var dt = now ?? DateTime.Now;
+            var year = dt.Year;
+            var auraStart = new DateTime(year, 11, 20);
+            var auraEnd = new DateTime(year, 12, 31);
+            return dt >= auraStart && dt <= auraEnd ? 1.5 : 1.0;
+        }
+
+        
     }
 }
