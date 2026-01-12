@@ -9,6 +9,7 @@ namespace Coflnet.Sky.Crafts.Models
         public string ItemName { get; set; }
         public double SellPrice { get; set; }
         public double CraftCost { get; set; }
+        public double BuyOrderCraftCost { get; set; }
         public IEnumerable<Ingredient> Ingredients { get; set; }
         public RequiredCollection ReqCollection { get; set; }
         public RequiredCollection ReqSlayer { get; set; }

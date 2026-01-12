@@ -33,24 +33,38 @@ namespace Coflnet.Sky.Crafts.Services
                     if (item.ItemId == "SKYBLOCK_COIN")
                     {
                         item.Cost = item.Count;
+                        item.BuyOrderCost = item.Count;
                         return;
                     }
                     PriceResponse prices = await GetPriceFor(item.ItemId, item.Count);
                     item.Cost = prices.BuyPrice;
+                    item.BuyOrderCost = prices.SellPrice + 1;
                     if (prices.Available < item.Count)
+                    {
                         item.Cost = 20_000_000_000;
+                        item.BuyOrderCost = 20_000_000_000;
+                    }
                     var canBeCrafteDirectly = CanBeCraftedDirectly(lookup, item);
                     if (crafts.TryGetValue(item.ItemId, out ProfitableCraft craft))
                     {
                         var craftWithProfit = craft.CraftCost * item.Count * 1.02 + 1;
+                        var buyOrderCraftWithProfit = craft.BuyOrderCraftCost * item.Count * 1.02 + 1;
                         item.CraftCost = craft.CraftCost * item.Count;
                         if (!canBeCrafteDirectly)
+                        {
                             craftWithProfit *= 100;
+                            buyOrderCraftWithProfit *= 100;
+                        }
                         if (item.Cost > craftWithProfit && craftWithProfit > 0)
                         {
                             var costAfterOrderDepleting = craft.CraftCost * item.Count * 1.01 + 1;
                             item.Cost = Math.Min(item.Cost, costAfterOrderDepleting);
                             item.Type = "craft";
+                        }
+                        if (item.BuyOrderCost > buyOrderCraftWithProfit && buyOrderCraftWithProfit > 0)
+                        {
+                            var costAfterOrderDepleting = craft.BuyOrderCraftCost * item.Count * 1.01 + 1;
+                            item.BuyOrderCost = Math.Min(item.BuyOrderCost, costAfterOrderDepleting);
                         }
                     }
                 }
@@ -58,6 +72,7 @@ namespace Coflnet.Sky.Crafts.Services
                 {
                     // likely unobtainable
                     item.Cost = 0;
+                    item.BuyOrderCost = 0;
                 }
             }).ToArray());
             var recipeCount = (item.recipe?.count ?? 0) < 1 ? item.BestRecipe()?.count ?? 1 : item.recipe?.count ?? 1;
@@ -67,6 +82,7 @@ namespace Coflnet.Sky.Crafts.Services
                 Console.WriteLine($"Recipe result count for {item.internalname} is {recipeCount}");
 
             result.CraftCost = ingredients.Sum(i => i.Cost) / recipeCount;
+            result.BuyOrderCraftCost = ingredients.Sum(i => i.BuyOrderCost) / recipeCount;
             result.Ingredients = ingredients;
             result.ItemId = item.internalname;
             result.ItemName = item.displayname;
