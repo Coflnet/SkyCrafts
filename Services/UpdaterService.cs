@@ -235,6 +235,7 @@ namespace Coflnet.Sky.Crafts.Services
                         result.Volume = prices.Volume;
                         result.Median = prices.Median;
                         result.SellPrice = Math.Min(result.SellPrice, prices.Median * 11 / 10 + 100_000);
+                        result.SellPrice = Math.Min(result.SellPrice, result.CraftCost * (result.Volume +1)); // probably long time manipulated if several times larger than craft cost
                         logger.LogInformation("Updated price data for " + tag + " " + result.Volume + " " + result.Median);
                     }
                     else
