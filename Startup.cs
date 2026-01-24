@@ -40,6 +40,7 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<Api.Client.Api.IPricesApi>(provider => new Api.Client.Api.PricesApi(Configuration["API_BASE_URL"]));
             services.AddSingleton<Api.Client.Api.IItemApi>(provider => new Api.Client.Api.ItemApi(Configuration["API_BASE_URL"]));
             services.AddSingleton<Items.Client.Api.IItemsApi>(provider => new Items.Client.Api.ItemsApi(Configuration["ITEMS_BASE_URL"]));
+            services.AddSingleton<Bazaar.Client.Api.IBazaarApi>(provider => new Bazaar.Client.Api.BazaarApi(Configuration["BAZAAR_BASE_URL"]));
             services.AddSingleton<PlayerState.Client.Api.IItemsApi>(provider => new PlayerState.Client.Api.ItemsApi(Configuration["PLAYERSTATE_BASE_URL"]));
             services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddSingleton<PriceDropService>();

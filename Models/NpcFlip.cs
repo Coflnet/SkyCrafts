@@ -10,6 +10,7 @@ public class NpcFlip
     public double BuyPrice { get; set; }
     public double NpcSellPrice { get; set; }
     public double Profit { get; set; }
+    public int HourlySells { get; set; }
     public double ProfitMargin { get; set; }
     public DateTime LastUpdated { get; set; }
 }

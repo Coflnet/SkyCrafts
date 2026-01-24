@@ -20,6 +20,7 @@ public class NpcSellService
     private readonly ILogger<NpcSellService> logger;
     private readonly UpdaterService updaterService;
     private readonly GeorgePetOfferService georgePetOfferService;
+    private readonly Bazaar.Client.Api.IBazaarApi bazaarApi;
     private readonly TimeSpan npcPriceCacheDuration = TimeSpan.FromHours(12);
     private readonly TimeSpan flipCacheDuration = TimeSpan.FromHours(3);
     private readonly SemaphoreSlim npcPriceSemaphore = new(1, 1);
@@ -30,13 +31,14 @@ public class NpcSellService
     private IReadOnlyCollection<NpcFlip> cachedFlips = Array.Empty<NpcFlip>();
     private DateTime flipsLastUpdated = DateTime.MinValue;
 
-    public NpcSellService(IItemsApi itemsApi, IPricesApi pricesApi, UpdaterService updaterService, GeorgePetOfferService georgePetOfferService, ILogger<NpcSellService> logger)
+    public NpcSellService(IItemsApi itemsApi, IPricesApi pricesApi, UpdaterService updaterService, GeorgePetOfferService georgePetOfferService, ILogger<NpcSellService> logger, Bazaar.Client.Api.IBazaarApi bazaarApi)
     {
         this.itemsApi = itemsApi;
         this.pricesApi = pricesApi;
         this.updaterService = updaterService;
         this.georgePetOfferService = georgePetOfferService;
         this.logger = logger;
+        this.bazaarApi = bazaarApi;
     }
 
     public async Task<IReadOnlyDictionary<string, double>> GetNpcSellPrices(bool forceRefresh = false)
@@ -104,6 +106,7 @@ public class NpcSellService
             if (!forceRefresh && cachedFlips.Count > 0 && DateTime.UtcNow - flipsLastUpdated < flipCacheDuration)
                 return cachedFlips;
 
+            var pricesTask = bazaarApi.GetAllPricesAsync();
             var npcSellPrices = await GetNpcSellPrices(forceRefresh);
             if (npcSellPrices.Count == 0)
             {
@@ -115,6 +118,15 @@ public class NpcSellService
             var flips = new ConcurrentBag<NpcFlip>();
             var semaphore = new SemaphoreSlim(12);
             var tasks = new List<Task>();
+            var prices = new Dictionary<string, Bazaar.Client.Model.ItemPrice>();
+            try
+            {
+                prices = (await pricesTask).ToDictionary(p => p.ProductId, p => p);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to fetch bazaar prices for npc flip calculation");
+            }
 
             foreach (var kv in npcSellPrices)
             {
@@ -159,6 +171,7 @@ public class NpcSellService
                         ItemId = tag,
                         ItemName = displayName ?? tag,
                         BuyPrice = buyPrice,
+                        HourlySells = prices.GetValueOrDefault(tag)?.DailySellVolume / 24 ?? 0,
                         NpcSellPrice = npcSellPrice,
                         Profit = profit,
                         ProfitMargin = margin,
