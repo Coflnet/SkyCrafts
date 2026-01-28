@@ -1536,24 +1536,30 @@
     "name": "Crow",
     "baseRarity": "Uncommon",
     "hours": 48,
-    "cost": 500000,
+    "cost": 1000000,
     "material": "COMPACTED_MOONFLOWER",
-    "amount": 2
+    "amount": 4,
+    "material2": "VEILSHROOM",
+    "amount2": 2
   },
   {
     "name": "Crow",
     "baseRarity": "Rare",
     "hours": 72,
-    "cost": 1000000,
+    "cost": 5000000,
     "material": "COMPACTED_MOONFLOWER",
-    "amount": 4
+    "amount": 8,
+    "material2": "DUSKBLOOM",
+    "amount2": 4
   },
   {
     "name": "Crow",
     "baseRarity": "Epic",
     "hours": 120,
-    "cost": 2500000,
+    "cost": 10000000,
     "material": "COMPACTED_MOONFLOWER",
-    "amount": 8
+    "amount": 16,
+    "material2": "DO_NOT_EAT_SHROOM",
+    "amount2": 8
   }
 ]
