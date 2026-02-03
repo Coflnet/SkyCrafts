@@ -64,7 +64,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         }
         var totalCost = item.Value.Costs.Sum(c => c.Price);
         item.Value.NpcBuyPrice = totalCost;
-        if(generalPriceInfo.Volume < 5)
+        if (generalPriceInfo.Volume < 5)
         {
             item.Value.SellPrice = Math.Min(item.Value.SellPrice, totalCost * 1.1); // avoid low volume price manipulation
         }
@@ -99,7 +99,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
                 continue; // Can't sell soulbound items
             var flip = new ReverseNpcFlip()
             {
-                NpcName = item.NpcName,
+                NpcName = GetNpcWikiName(item),
                 ItemId = item.ItemTag,
                 ItemName = reverseLookup.ContainsKey(item.ItemTag) ? reverseLookup[item.ItemTag] : item.ItemTag,
                 Costs = item.Costs?.Select(i => new ReverseNpcFlip.Cost()
@@ -118,5 +118,31 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
             logger.LogInformation("Loaded reverse npc flip for {item} from npc {npc}", flip.ItemName, flip.NpcName);
             flips[item.ItemTag] = flip;
         }
+    }
+
+    private static string GetNpcWikiName(PlayerState.Client.Model.NpcCost item)
+    {
+        return item.NpcName switch
+        {
+            "Mage Shop" => "Mage Emissary",
+            "Barbarian Shop" => "Barbarian Emissary",
+            "Brynmor's Shop" => "Brynmor",
+            "Green Thumb" => "Builder",
+            var s when s != null && s.StartsWith("Rusty") => "Rusty",
+            var s when s != null && s.StartsWith("SkyMart") => "SkyMart",
+            "Master Tactician" => "Master Tactician Funk",
+            "" => item.ItemTag switch
+            {
+                "HYPER_CLEAVER" => "Ophelia",
+                "DUNGEONBREAKER" => "Ophelia",
+                "WITHER_BOW" => "Weaponsmith",
+                "SLIME_BALL" => "Adventurer",
+                "SAND" => "Builder",
+                "ARTISANAL_SHORTBOW" => "Weaponsmith",
+                var s when s.StartsWith("CELESTE_") => "Rosetta",
+                _ => "Ophelia" // probably all Ophelia items
+            },
+            _ => item.NpcName
+        };
     }
 }
