@@ -916,34 +916,26 @@
   {
     "name": "Pig",
     "baseRarity": "Common",
-    "hours": 0.0028,
-    "cost": 500,
-    "material": "RAW_PORKCHOP",
-    "amount": 128
+    "material": "SMALL_PIG_EAR",
+    "amount": 1
   },
   {
     "name": "Pig",
     "baseRarity": "Uncommon",
-    "hours": 0.0056,
-    "cost": 2500,
-    "material": "RAW_PORKCHOP",
-    "amount": 256
+    "material": "MEDIUM_PIG_EAR",
+    "amount": 1
   },
   {
     "name": "Pig",
     "baseRarity": "Rare",
-    "hours": 0.0083,
-    "cost": 5000,
-    "material": "RAW_PORKCHOP",
-    "amount": 512
+    "material": "LARGE_PIG_EAR",
+    "amount": 1
   },
   {
     "name": "Pig",
     "baseRarity": "Epic",
-    "hours": 0.0125,
-    "cost": 10000,
-    "material": "ENCHANTED_RAW_PORKCHOP",
-    "amount": 8
+    "material": "GIANT_PIG_EAR",
+    "amount": 1
   },
   {
     "name": "Pigman",
@@ -1088,6 +1080,30 @@
     "cost": 250000000,
     "material": "ENCHANTED_HARD_STONE",
     "amount": 256
+  },
+  {
+    "name": "Seal",
+    "baseRarity": "Common",
+    "material": "SMALL_SEAL_PLUSHIE",
+    "amount": 1
+  },
+  {
+    "name": "Seal",
+    "baseRarity": "Uncommon",
+    "material": "MEDIUM_SEAL_PLUSHIE",
+    "amount": 1
+  },
+  {
+    "name": "Seal",
+    "baseRarity": "Rare",
+    "material": "LARGE_SEAL_PLUSHIE",
+    "amount": 1
+  },
+  {
+    "name": "Seal",
+    "baseRarity": "Epic",
+    "material": "GIANT_SEAL_PLUSHIE",
+    "amount": 1
   },
   {
     "name": "Sheep",
@@ -1386,6 +1402,30 @@
     "cost": 15000000,
     "material": "ENCHANTED_RAW_FISH",
     "amount": 16
+  },
+  {
+    "name": "Witch",
+    "baseRarity": "Common",
+    "material": "SMALL_WITCH_CAULDRON",
+    "amount": 1
+  },
+  {
+    "name": "Witch",
+    "baseRarity": "Uncommon",
+    "material": "MEDIUM_WITCH_CAULDRON",
+    "amount": 1
+  },
+  {
+    "name": "Witch",
+    "baseRarity": "Rare",
+    "material": "LARGE_WITCH_CAULDRON",
+    "amount": 1
+  },
+  {
+    "name": "Witch",
+    "baseRarity": "Epic",
+    "material": "GIANT_WITCH_CAULDRON",
+    "amount": 1
   },
   {
     "name": "Wither_Skeleton",
