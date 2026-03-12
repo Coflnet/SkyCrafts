@@ -105,6 +105,17 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
         return JsonSerializer.Deserialize<ItemData>(await File.ReadAllTextAsync(path));
     }
 
+    public static long CalculatePrestigeCoinCost(string itemId, IEnumerable<Ingredient> ingredients)
+    {
+        long sum = 1935000;
+        if (itemId.Contains("CRIMSON") || itemId.Contains("AURORA"))
+        {
+            var teeth = ingredients.FirstOrDefault(x => x.ItemId == "KUUDRA_TEETH")?.Count ?? 0;
+            sum += teeth switch { 10 => 2000000, 20 => 5000000, 50 => 10000000, 80 => 20000000, _ => 0 };
+        }
+        return sum;
+    }
+
     internal async Task<IEnumerable<ItemData>> LoadExtraCraftable()
     {
         var items = await itemService.GetItemsAsync();
@@ -118,10 +129,11 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
                     ItemId = g.Key,
                     Count = g.Sum(i => i.Amount)
                 }).ToList();
+            var coinCost = CalculatePrestigeCoinCost(i.Key, ingredients);
             var recipe = new NewRecipe()
             {
                 inputs = ingredients.Select(i => i.ItemId.Replace(":", "-") + ":" + i.Count)
-                    .Append("SKYBLOCK_COIN:15740000")
+                    .Append($"SKYBLOCK_COIN:{coinCost}")
                     .Append(i.Key + ":1").ToList(),
                 type = "malik",
                 result = item.prestige.item_id,
