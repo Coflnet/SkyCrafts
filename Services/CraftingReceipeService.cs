@@ -108,11 +108,8 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
     public static long CalculatePrestigeCoinCost(string itemId, IEnumerable<Ingredient> ingredients)
     {
         long sum = 1935000;
-        if (itemId.Contains("CRIMSON") || itemId.Contains("AURORA"))
-        {
-            var teeth = ingredients.FirstOrDefault(x => x.ItemId == "KUUDRA_TEETH")?.Count ?? 0;
-            sum += teeth switch { 10 => 2000000, 20 => 5000000, 50 => 10000000, 80 => 20000000, _ => 0 };
-        }
+        var teeth = ingredients.FirstOrDefault(x => x.ItemId == "KUUDRA_TEETH")?.Count ?? 0;
+        sum += teeth switch { 10 => 2000000, 20 => 5000000, 50 => 10000000, 80 => 20000000, _ => 0 };
         return sum;
     }
 
