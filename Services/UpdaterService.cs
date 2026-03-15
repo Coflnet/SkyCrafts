@@ -232,6 +232,11 @@ namespace Coflnet.Sky.Crafts.Services
                     var prices = await pricesApi.ApiItemPriceItemTagGetAsync(tag, new Dictionary<string, string>() { { "Clean", "true" } });
                     if (prices != null)
                     {
+                        if(prices.Median == 0)
+                        {
+                            prices = await pricesApi.ApiItemPriceItemTagGetAsync(tag);
+                            prices.Median /= 2; // guess where the median would be
+                        }
                         result.Volume = prices.Volume;
                         result.Median = prices.Median;
                         result.SellPrice = Math.Min(result.SellPrice, prices.Median * 11 / 10 + 100_000);
