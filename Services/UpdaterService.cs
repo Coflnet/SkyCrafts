@@ -235,6 +235,7 @@ namespace Coflnet.Sky.Crafts.Services
                         if(prices.Median == 0)
                         {
                             prices = await pricesApi.ApiItemPriceItemTagGetAsync(tag);
+                            logger.LogInformation($"Used unclean price data for {tag} at price {prices.Median} because clean data had no median");
                             prices.Median /= 2; // guess where the median would be
                         }
                         result.Volume = prices.Volume;
