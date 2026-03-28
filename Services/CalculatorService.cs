@@ -39,6 +39,10 @@ namespace Coflnet.Sky.Crafts.Services
                     PriceResponse prices = await GetPriceFor(item.ItemId, item.Count);
                     item.Cost = prices.BuyPrice;
                     item.BuyOrderCost = prices.SellPrice + 1;
+                    if (prices.IsAh)
+                    {
+                        item.BuyOrderCost = item.Cost; // can't buy order on ah
+                    }
                     if (prices.Available < item.Count)
                     {
                         item.Cost = 20_000_000_000;
