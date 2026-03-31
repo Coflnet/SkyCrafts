@@ -41,6 +41,10 @@ public class PriceDropService
 
     private async Task UpdatePrice(Dictionary<string, ProfitableCraft> crafts, Api.Client.Model.ItemMetadataElement item)
     {
+        if(item.Tag.StartsWith("MAP:"))
+        {
+            return; // skip maps they are generally irrelevant
+        }
         var filter = new Dictionary<string, string>() { { "Clean", "true" } };
         if(NBT.IsPet(item.Tag))
         {
