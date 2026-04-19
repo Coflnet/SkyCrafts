@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Models;
+using Coflnet.Sky.PlayerState.Client.Api;
 using Microsoft.Extensions.Configuration;
 
 namespace Coflnet.Sky.Crafts.Services
@@ -14,10 +15,33 @@ namespace Coflnet.Sky.Crafts.Services
     {
         private static readonly HttpClient client = new HttpClient();
         private IConfiguration config;
+        private IItemsApi playerItemsApi;
+        private Dictionary<string, double> npcCosts;
 
-        public CalculatorService(IConfiguration config)
+        public CalculatorService(IConfiguration config, IItemsApi playerItemsApi)
         {
             this.config = config;
+            this.playerItemsApi = playerItemsApi;
+        }
+
+        public async Task<Dictionary<string, double>> GetNpcCosts()
+        {
+            if (npcCosts != null)
+                return npcCosts;
+            var allItems = await playerItemsApi.ApiItemsNpccostGetAsync();
+            var costs = new Dictionary<string, double>();
+            foreach (var item in allItems)
+            {
+                if (item.Costs == null || !item.Costs.ContainsKey("Coins") || item.Costs.Count != 1)
+                    continue; // only consider pure coin costs
+                if (item.ResultCount <= 0)
+                    continue;
+                var perUnitCost = (double)item.Costs["Coins"] / item.ResultCount;
+                if (!costs.TryGetValue(item.ItemTag, out var existing) || perUnitCost < existing)
+                    costs[item.ItemTag] = perUnitCost;
+            }
+            npcCosts = costs;
+            return npcCosts;
         }
 
         public async Task<ProfitableCraft> GetCreaftingCost(ItemData item, Dictionary<string, ProfitableCraft> crafts, Dictionary<string, ItemData> lookup, HashSet<string> bazaarItems)
@@ -69,6 +93,20 @@ namespace Coflnet.Sky.Crafts.Services
                         {
                             var costAfterOrderDepleting = craft.BuyOrderCraftCost * item.Count * 1.01 + 1;
                             item.BuyOrderCost = Math.Min(item.BuyOrderCost, costAfterOrderDepleting);
+                        }
+                    }
+                    var npcPrices = await GetNpcCosts();
+                    if (npcPrices.TryGetValue(item.ItemId, out var npcUnitPrice))
+                    {
+                        var totalNpcCost = npcUnitPrice * item.Count;
+                        if (totalNpcCost < item.Cost)
+                        {
+                            item.Cost = totalNpcCost;
+                            item.Type = "npc";
+                        }
+                        if (totalNpcCost < item.BuyOrderCost)
+                        {
+                            item.BuyOrderCost = totalNpcCost;
                         }
                     }
                 }
