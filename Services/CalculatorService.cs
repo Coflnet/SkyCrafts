@@ -14,6 +14,14 @@ namespace Coflnet.Sky.Crafts.Services
     public class CalculatorService
     {
         private static readonly HttpClient client = new HttpClient();
+        private static readonly IReadOnlyDictionary<string, double> HardcodedSourceCosts = new Dictionary<string, double>(StringComparer.Ordinal)
+        {
+            // Hypixel exposes the Cheap Tuxedo as a 3m set in the UI, so each of the three pieces
+            // needs a fixed 1m source cost until the per-piece pricing is available automatically.
+            ["CHEAP_TUXEDO_BOOTS"] = 1_000_000,
+            ["CHEAP_TUXEDO_CHESTPLATE"] = 1_000_000,
+            ["CHEAP_TUXEDO_LEGGINGS"] = 1_000_000,
+        };
         private IConfiguration config;
         private IItemsApi playerItemsApi;
         private Dictionary<string, double> npcCosts;
@@ -39,6 +47,11 @@ namespace Coflnet.Sky.Crafts.Services
                 var perUnitCost = (double)item.Costs["Coins"] / item.ResultCount;
                 if (!costs.TryGetValue(item.ItemTag, out var existing) || perUnitCost < existing)
                     costs[item.ItemTag] = perUnitCost;
+            }
+            foreach (var sourceCost in HardcodedSourceCosts)
+            {
+                if (!costs.TryGetValue(sourceCost.Key, out var existing) || sourceCost.Value < existing)
+                    costs[sourceCost.Key] = sourceCost.Value;
             }
             npcCosts = costs;
             return npcCosts;

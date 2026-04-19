@@ -75,4 +75,23 @@ public class CalculatorServiceTests
         Assert.False(npcCosts.ContainsKey("SOME_GEM_ITEM"));
         Assert.False(npcCosts.ContainsKey("MIXED_COST"));
     }
+
+    [Fact]
+    public async Task GetNpcCosts_AddsHardcodedCheapTuxedoPieceCosts()
+    {
+        // Arrange
+        var config = Substitute.For<IConfiguration>();
+        var playerItemsApi = Substitute.For<IItemsApi>();
+        playerItemsApi.ApiItemsNpccostGetAsync().Returns(new List<NpcCost>());
+
+        var service = new CalculatorService(config, playerItemsApi);
+
+        // Act
+        var npcCosts = await service.GetNpcCosts();
+
+        // Assert
+        Assert.Equal(1_000_000, npcCosts["CHEAP_TUXEDO_BOOTS"]);
+        Assert.Equal(1_000_000, npcCosts["CHEAP_TUXEDO_CHESTPLATE"]);
+        Assert.Equal(1_000_000, npcCosts["CHEAP_TUXEDO_LEGGINGS"]);
+    }
 }
