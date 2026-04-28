@@ -290,6 +290,14 @@
     "cost": 14000000
   },
   {
+    "name": "Elephant",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 14000000,
+    "material": "TRUNK_POLISH",
+    "amount": 1
+  },
+  {
     "name": "Ender_Dragon",
     "baseRarity": "Epic",
     "hours": 480,
