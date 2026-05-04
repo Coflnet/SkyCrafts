@@ -24,10 +24,13 @@ public class NpcSellService
     private readonly TimeSpan npcPriceCacheDuration = TimeSpan.FromHours(12);
     private readonly TimeSpan flipCacheDuration = TimeSpan.FromHours(3);
     private readonly SemaphoreSlim npcPriceSemaphore = new(1, 1);
+    private readonly SemaphoreSlim bazaarPriceSemaphore = new(1, 1);
     private readonly SemaphoreSlim flipSemaphore = new(1, 1);
-    private IReadOnlyDictionary<string, string> cachedItemNames = new Dictionary<string, string>();
-    private IReadOnlyDictionary<string, double> cachedNpcSellPrices = new Dictionary<string, double>();
+    private IReadOnlyDictionary<string, string> cachedItemNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyDictionary<string, double> cachedNpcSellPrices = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyDictionary<string, Bazaar.Client.Model.ItemPrice> cachedBazaarPrices = new Dictionary<string, Bazaar.Client.Model.ItemPrice>(StringComparer.OrdinalIgnoreCase);
     private DateTime npcPricesLastFetched = DateTime.MinValue;
+    private DateTime bazaarPricesLastFetched = DateTime.MinValue;
     private IReadOnlyCollection<NpcFlip> cachedFlips = Array.Empty<NpcFlip>();
     private DateTime flipsLastUpdated = DateTime.MinValue;
 
@@ -52,8 +55,8 @@ public class NpcSellService
             if (!forceRefresh && cachedNpcSellPrices.Count > 0 && DateTime.UtcNow - npcPricesLastFetched < npcPriceCacheDuration)
                 return cachedNpcSellPrices;
 
-            var npcSellPrices = new Dictionary<string, double>();
-            var metadataLookup = new Dictionary<string, string>();
+            var npcSellPrices = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+            var metadataLookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             try
             {
                 var items = await itemsApi.ItemsGetAsync();
@@ -106,7 +109,6 @@ public class NpcSellService
             if (!forceRefresh && cachedFlips.Count > 0 && DateTime.UtcNow - flipsLastUpdated < flipCacheDuration)
                 return cachedFlips;
 
-            var pricesTask = bazaarApi.GetAllPricesAsync();
             var npcSellPrices = await GetNpcSellPrices(forceRefresh);
             if (npcSellPrices.Count == 0)
             {
@@ -115,18 +117,25 @@ public class NpcSellService
                 return cachedFlips;
             }
 
+            IReadOnlyDictionary<string, Bazaar.Client.Model.ItemPrice> prices;
+            try
+            {
+                prices = await GetBazaarPrices(forceRefresh);
+            }
+            catch (Exception)
+            {
+                if (cachedFlips.Count > 0)
+                {
+                    logger.LogWarning("Using stale npc flip cache from {LastUpdated} because bazaar price refresh failed", flipsLastUpdated);
+                    return cachedFlips;
+                }
+
+                throw;
+            }
+
             var flips = new ConcurrentBag<NpcFlip>();
             var semaphore = new SemaphoreSlim(12);
             var tasks = new List<Task>();
-            var prices = new Dictionary<string, Bazaar.Client.Model.ItemPrice>();
-            try
-            {
-                prices = (await pricesTask).ToDictionary(p => p.ProductId, p => p);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Failed to fetch bazaar prices for npc flip calculation");
-            }
 
             foreach (var kv in npcSellPrices)
             {
@@ -191,6 +200,43 @@ public class NpcSellService
         finally
         {
             flipSemaphore.Release();
+        }
+    }
+
+    private async Task<IReadOnlyDictionary<string, Bazaar.Client.Model.ItemPrice>> GetBazaarPrices(bool forceRefresh)
+    {
+        if (!forceRefresh && cachedBazaarPrices.Count > 0 && DateTime.UtcNow - bazaarPricesLastFetched < flipCacheDuration)
+            return cachedBazaarPrices;
+
+        await bazaarPriceSemaphore.WaitAsync();
+        try
+        {
+            if (!forceRefresh && cachedBazaarPrices.Count > 0 && DateTime.UtcNow - bazaarPricesLastFetched < flipCacheDuration)
+                return cachedBazaarPrices;
+
+            try
+            {
+                cachedBazaarPrices = (await bazaarApi.GetAllPricesAsync())
+                    .Where(price => price?.ProductId != null)
+                    .ToDictionary(price => price.ProductId, price => price, StringComparer.OrdinalIgnoreCase);
+                bazaarPricesLastFetched = DateTime.UtcNow;
+                return cachedBazaarPrices;
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to fetch bazaar prices for npc flip calculation");
+                if (cachedBazaarPrices.Count > 0)
+                {
+                    logger.LogWarning("Using stale bazaar price cache from {LastUpdated} for npc flip calculation", bazaarPricesLastFetched);
+                    return cachedBazaarPrices;
+                }
+
+                throw;
+            }
+        }
+        finally
+        {
+            bazaarPriceSemaphore.Release();
         }
     }
 
