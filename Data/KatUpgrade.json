@@ -925,7 +925,7 @@
     "name": "Pig",
     "baseRarity": "Common",
     "material": "SMALL_PIG_EAR",
-    "amount": 1
+    "amount": 0.017
   },
   {
     "name": "Pig",
@@ -937,13 +937,13 @@
     "name": "Pig",
     "baseRarity": "Rare",
     "material": "LARGE_PIG_EAR",
-    "amount": 1
+    "amount": 24
   },
   {
     "name": "Pig",
     "baseRarity": "Epic",
     "material": "GIANT_PIG_EAR",
-    "amount": 1
+    "amount": 72
   },
   {
     "name": "Pigman",
