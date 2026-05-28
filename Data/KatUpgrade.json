@@ -440,6 +440,14 @@
     "amount": 1
   },
   {
+    "name": "Frog",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "BUCKET_OF_FROGSPAWN",
+    "amount": 1
+  },
+  {
     "name": "Ghoul",
     "baseRarity": "Epic",
     "hours": 240,
