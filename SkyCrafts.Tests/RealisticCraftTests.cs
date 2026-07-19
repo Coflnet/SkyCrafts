@@ -67,19 +67,16 @@ public class RealisticCraftTests
 
     private class FakeRecipes : IRecipeSource
     {
-        public Dictionary<string, (List<(string tag, long count)> ings, long yield, bool direct)> Recipes { get; } = new();
-        public bool TryGetRecipe(string tag, out IReadOnlyList<(string tag, long count)> ingredients, out long yield, out bool directlyCraftable)
+        public Dictionary<string, List<RecipeOption>> Recipes { get; } = new();
+
+        public bool TryGetRecipes(string tag, out IReadOnlyList<RecipeOption> recipes)
         {
             if (Recipes.TryGetValue(tag, out var r))
             {
-                ingredients = r.ings;
-                yield = r.yield;
-                directlyCraftable = r.direct;
+                recipes = r;
                 return true;
             }
-            ingredients = null!;
-            yield = 1;
-            directlyCraftable = false;
+            recipes = null!;
             return false;
         }
     }
@@ -99,7 +96,7 @@ public class RealisticCraftTests
             new PriceTranche(6000, 100_000_000, "insta"),
         };
         var recipes = new FakeRecipes();
-        recipes.Recipes["ENCHANTED_OBSIDIAN"] = (new() { ("OBSIDIAN", 160) }, 1, true);
+        recipes.Recipes["ENCHANTED_OBSIDIAN"] = new() { new RecipeOption(new List<(string tag, long count)> { ("OBSIDIAN", 160) }, 1) };
         return (market, recipes);
     }
 
@@ -160,7 +157,7 @@ public class RealisticCraftTests
         // NULL_SPHERE <- 4 ENCHANTED_OBSIDIAN <- 160 OBSIDIAN each. Buying spheres @20k is cheapest.
         var (market, recipes) = BuildObsidianWorld();
         market.Tranches["NULL_SPHERE"] = new() { new PriceTranche(20_000, 100_000_000, "insta") };
-        recipes.Recipes["NULL_SPHERE"] = (new() { ("ENCHANTED_OBSIDIAN", 4) }, 1, true);
+        recipes.Recipes["NULL_SPHERE"] = new() { new RecipeOption(new List<(string tag, long count)> { ("ENCHANTED_OBSIDIAN", 4) }, 1) };
         var result = await RealisticCraft.ObtainAsync("NULL_SPHERE", 1000, market, recipes);
         Assert.Equal("buy", result.Method);
         Assert.Equal(1000 * 20_000, result.Cost);
@@ -172,7 +169,7 @@ public class RealisticCraftTests
         // With no direct market for null spheres they must be crafted, but the 640k obsidian needed is
         // far beyond npc stock, so the intermediates are bought rather than crafted from base obsidian.
         var (market, recipes) = BuildObsidianWorld();
-        recipes.Recipes["NULL_SPHERE"] = (new() { ("ENCHANTED_OBSIDIAN", 4) }, 1, true);
+        recipes.Recipes["NULL_SPHERE"] = new() { new RecipeOption(new List<(string tag, long count)> { ("ENCHANTED_OBSIDIAN", 4) }, 1) };
         var result = await RealisticCraft.ObtainAsync("NULL_SPHERE", 1000, market, recipes);
         Assert.Equal("craft", result.Method);
         // 4000 enchanted obsidian bought at 6000 each (no markup - they're bought, not crafted),
@@ -208,9 +205,9 @@ public class RealisticCraftTests
         market.Tranches["X"] = new() { new PriceTranche(6000, 100_000_000, "insta") };
         // M and T have no buy tranches at all, so buying them is never "Enough" and crafting always wins.
         var recipes = new FakeRecipes();
-        recipes.Recipes["X"] = (new() { ("BASE", 160) }, 1, true);
-        recipes.Recipes["M"] = (new() { ("X", 1) }, 1, true);
-        recipes.Recipes["T"] = (new() { ("M", 1), ("X", 1) }, 1, true);
+        recipes.Recipes["X"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 160) }, 1) };
+        recipes.Recipes["M"] = new() { new RecipeOption(new List<(string tag, long count)> { ("X", 1) }, 1) };
+        recipes.Recipes["T"] = new() { new RecipeOption(new List<(string tag, long count)> { ("M", 1), ("X", 1) }, 1) };
         var options = new RealisticCraft.Options { MaxDepth = 2 };
 
         var result = await RealisticCraft.ObtainAsync("T", 1, market, recipes, options);
@@ -253,10 +250,10 @@ public class RealisticCraftTests
         market.Tranches["Y"] = new() { new PriceTranche(6000, 100_000_000, "insta") };
         // M has no buy option at all, so buying it is never "Enough" and crafting M always wins.
         var recipes = new FakeRecipes();
-        recipes.Recipes["X"] = (new() { ("BASE", 160) }, 1, true);
-        recipes.Recipes["Y"] = (new() { ("X", 1) }, 1, true);
-        recipes.Recipes["M"] = (new() { ("Y", 1) }, 1, true);
-        recipes.Recipes["T"] = (new() { ("M", 1), ("Y", 1) }, 1, true);
+        recipes.Recipes["X"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 160) }, 1) };
+        recipes.Recipes["Y"] = new() { new RecipeOption(new List<(string tag, long count)> { ("X", 1) }, 1) };
+        recipes.Recipes["M"] = new() { new RecipeOption(new List<(string tag, long count)> { ("Y", 1) }, 1) };
+        recipes.Recipes["T"] = new() { new RecipeOption(new List<(string tag, long count)> { ("M", 1), ("Y", 1) }, 1) };
         var options = new RealisticCraft.Options { MaxDepth = 3 };
 
         var result = await RealisticCraft.ObtainAsync("T", 1, market, recipes, options);
@@ -292,8 +289,8 @@ public class RealisticCraftTests
         var market = new FakeMarket();
         market.Tranches["BASE"] = new() { new PriceTranche(30, 100_000_000, "npc") };
         var recipes = new FakeRecipes();
-        recipes.Recipes["INNER"] = (new() { ("BASE", 10) }, 1, true);
-        recipes.Recipes["OUTER"] = (new() { ("INNER", 2) }, 1, true);
+        recipes.Recipes["INNER"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 10) }, 1) };
+        recipes.Recipes["OUTER"] = new() { new RecipeOption(new List<(string tag, long count)> { ("INNER", 2) }, 1) };
         var options = new RealisticCraft.Options();
 
         var result = await RealisticCraft.ObtainAsync("OUTER", 5, market, recipes, options);
@@ -367,7 +364,7 @@ public class RealisticCraftTests
         var market = new FakeMarket();
         market.Tranches["RAW"] = new() { new PriceTranche(25, 100_000_000, "npc") };
         var recipes = new FakeRecipes();
-        recipes.Recipes["FORGED_MAT"] = (new() { ("RAW", 1) }, 1, false); // indirect (forge)
+        recipes.Recipes["FORGED_MAT"] = new() { new RecipeOption(new List<(string tag, long count)> { ("RAW", 1) }, 1) }; // indirect (forge)
         var options = new RealisticCraft.Options();
 
         var result = await RealisticCraft.ObtainAsync("FORGED_MAT", 25, market, recipes, options);
@@ -389,7 +386,7 @@ public class RealisticCraftTests
         var market = new FakeMarket();
         market.Tranches["RAW"] = new() { new PriceTranche(25, 100_000_000, "npc") };
         var recipes = new FakeRecipes();
-        recipes.Recipes["BASE_MAT"] = (new() { ("RAW", 1) }, 1, false); // indirect (npc_shop)
+        recipes.Recipes["BASE_MAT"] = new() { new RecipeOption(new List<(string tag, long count)> { ("RAW", 1) }, 1) }; // indirect (npc_shop)
         var options = new RealisticCraft.Options();
 
         var result = await RealisticCraft.ObtainAsync("BASE_MAT", 25, market, recipes, options);
@@ -398,5 +395,60 @@ public class RealisticCraftTests
         var rawCraftCost = 25 * 25;
         var expected = rawCraftCost * options.CraftStepMarkup + options.CraftStepFlatCoins;
         Assert.Equal(expected, result.Cost, 6);
+    }
+
+    // --- Fix #4: multiple recipes per item - the engine must evaluate ALL of them and pick the
+    // cheapest, mirroring the real ENCHANTED_GOLD bug (GOLD_INGOT vs the pointless GOLD_BLOCK detour).
+
+    [Fact]
+    public async Task PrefersCheaperRecipe_WhenItemHasMultipleRecipes()
+    {
+        // BASE: deep, cheap npc-scale insta supply.
+        // BLOCK: no buy tranche of its own, craftable from 9 BASE (yield 1).
+        // ENCH: no buy tranche (crafting forced), two recipes: direct from BASE, or via 160 BLOCK
+        // (= 1440 BASE) - a pointless detour that must lose.
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new() { new PriceTranche(1, 100_000_000, "insta") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["BLOCK"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 9) }, 1) };
+        recipes.Recipes["ENCH"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("BASE", 160) }, 1),  // direct: cheap
+            new RecipeOption(new List<(string tag, long count)> { ("BLOCK", 160) }, 1), // via block: 1440 BASE - pointless detour
+        };
+
+        var result = await RealisticCraft.ObtainAsync("ENCH", 1, market, recipes);
+
+        Assert.Equal("craft", result.Method);
+        Assert.True(result.Enough);
+        var options = new RealisticCraft.Options();
+        var directExpected = 160 * 1 * options.CraftStepMarkup + options.CraftStepFlatCoins;
+        Assert.Equal(directExpected, result.Cost, 6);
+        // Sanity: the block route would cost roughly 1440 raw (9x more) - make sure that is NOT what won.
+        var blockRouteApprox = 1440 * 1;
+        Assert.True(result.Cost < blockRouteApprox);
+    }
+
+    [Fact]
+    public async Task PrefersCheaperRecipe_RegardlessOfCandidateOrder()
+    {
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new() { new PriceTranche(1, 100_000_000, "insta") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["BLOCK"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 9) }, 1) };
+        // Same two recipes, but with the block-route (expensive) one listed FIRST.
+        recipes.Recipes["ENCH"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("BLOCK", 160) }, 1), // via block: 1440 BASE - pointless detour
+            new RecipeOption(new List<(string tag, long count)> { ("BASE", 160) }, 1),  // direct: cheap
+        };
+
+        var result = await RealisticCraft.ObtainAsync("ENCH", 1, market, recipes);
+
+        Assert.Equal("craft", result.Method);
+        Assert.True(result.Enough);
+        var options = new RealisticCraft.Options();
+        var directExpected = 160 * 1 * options.CraftStepMarkup + options.CraftStepFlatCoins;
+        Assert.Equal(directExpected, result.Cost, 6);
     }
 }

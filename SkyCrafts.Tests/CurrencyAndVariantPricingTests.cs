@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Sky.Bazaar.Client.Api;
 using Coflnet.Sky.Bazaar.Client.Model;
@@ -211,5 +212,72 @@ public class CurrencyAndVariantPricingTests
 
         var npc = Assert.Single(tranches);
         Assert.Equal(30, npc.UnitPrice);
+    }
+
+    // --- Fix #4: EnumerateRecipeCandidates - the single source of truth for candidate recipes that lets
+    // the realistic cost engine compare ALL of an item's recipes instead of collapsing to one upfront. ---
+
+    private static NewRecipe CraftingRecipe(string a1, string a2, int count)
+    {
+        return new NewRecipe { type = "crafting", A1 = a1, A2 = a2, count = count };
+    }
+
+    [Fact]
+    public void EnumerateRecipeCandidates_MultipleCraftingRecipes_YieldsOnePerRecipe()
+    {
+        var (_, config, playerItemsApi) = BuildBase();
+        var service = new CalculatorService(config, playerItemsApi);
+        var item = new ItemData
+        {
+            internalname = "ENCHANTED_GOLD",
+            recipes = new List<NewRecipe>
+            {
+                CraftingRecipe("GOLD_BLOCK:5", null, 5), // pointless low-volume detour (listed first, like NEU)
+                CraftingRecipe("GOLD_INGOT:32", null, 5), // high-volume direct recipe
+            }
+        };
+
+        var candidates = service.EnumerateRecipeCandidates(item).ToList();
+
+        Assert.Equal(2, candidates.Count);
+        Assert.Contains(candidates, c => c.ingredients.Any(i => i.ItemId == "GOLD_BLOCK"));
+        Assert.Contains(candidates, c => c.ingredients.Any(i => i.ItemId == "GOLD_INGOT"));
+        Assert.All(candidates, c => Assert.Equal("crafting", c.recipeType));
+        Assert.All(candidates, c => Assert.Equal(5, c.yield));
+    }
+
+    [Fact]
+    public void EnumerateRecipeCandidates_ForgeItem_YieldsSingleCandidate_NotOnePerNothing()
+    {
+        var (_, config, playerItemsApi) = BuildBase();
+        var service = new CalculatorService(config, playerItemsApi);
+        var item = new ItemData
+        {
+            internalname = "FORGED_MAT",
+            recipes = new List<NewRecipe>
+            {
+                new NewRecipe { type = "forge", inputs = new List<string> { "RAW_ORE:4" }, count = 1 },
+            }
+        };
+
+        var candidates = service.EnumerateRecipeCandidates(item).ToList();
+
+        var candidate = Assert.Single(candidates);
+        Assert.Equal("forge", candidate.recipeType);
+        var ingredient = Assert.Single(candidate.ingredients);
+        Assert.Equal("RAW_ORE", ingredient.ItemId);
+        Assert.Equal(4, ingredient.Count);
+    }
+
+    [Fact]
+    public void EnumerateRecipeCandidates_NoRecipe_YieldsNoCandidates()
+    {
+        var (_, config, playerItemsApi) = BuildBase();
+        var service = new CalculatorService(config, playerItemsApi);
+        var item = new ItemData { internalname = "RAW_ORE" };
+
+        var candidates = service.EnumerateRecipeCandidates(item).ToList();
+
+        Assert.Empty(candidates);
     }
 }

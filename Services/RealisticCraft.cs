@@ -84,16 +84,18 @@ public interface IMarketSource
     Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag);
 }
 
+/// <summary>One candidate recipe: the ingredients needed for one batch and the batch's yield.</summary>
+public readonly record struct RecipeOption(IReadOnlyList<(string tag, long count)> Ingredients, long Yield);
+
 /// <summary>Provides crafting recipes so the realistic calculator can expand sub-crafts.</summary>
 public interface IRecipeSource
 {
     /// <summary>
-    /// Gets the recipe for <paramref name="tag"/> if it is craftable.
+    /// Gets ALL candidate recipes for <paramref name="tag"/> if it is craftable, so the caller can
+    /// evaluate each and keep the cheapest. directlyCraftable is not exposed here - it does not affect
+    /// pricing (see Options.CraftStepMarkup).
     /// </summary>
-    /// <param name="ingredients">Aggregated ingredients (tag + count) needed for one batch.</param>
-    /// <param name="yield">How many output items one batch of the recipe produces (>= 1).</param>
-    /// <param name="directlyCraftable">False for forge/npc-shop style recipes that cannot be crafted instantly.</param>
-    bool TryGetRecipe(string tag, out IReadOnlyList<(string tag, long count)> ingredients, out long yield, out bool directlyCraftable);
+    bool TryGetRecipes(string tag, out IReadOnlyList<RecipeOption> recipes);
 }
 
 /// <summary>
@@ -193,10 +195,12 @@ public static class RealisticCraft
         var exact = true;
 
         // Option 2: craft it, recursively obtaining the ingredients at the quantities actually needed.
-        // Evaluate TryGetRecipe unconditionally (independent of depth/stack) so "not craftable" stays exact.
-        // directlyCraftable no longer affects pricing (see Options.CraftStepMarkup) - kept on the
-        // interface since RecipeSource still computes it from the item's recipe type, but unused here.
-        if (recipes.TryGetRecipe(tag, out var ingredients, out var yield, out _) && ingredients.Count > 0)
+        // Evaluate TryGetRecipes unconditionally (independent of depth/stack) so "not craftable" stays exact.
+        // Some items have multiple recipes (e.g. ENCHANTED_GOLD via GOLD_INGOT or via GOLD_BLOCK) -
+        // every candidate is evaluated and the cheapest realistic one wins, order-independently.
+        // directlyCraftable no longer affects pricing (see Options.CraftStepMarkup), so it is not part
+        // of the candidate shape at all.
+        if (recipes.TryGetRecipes(tag, out var candidates) && candidates.Count > 0)
         {
             if (depth >= options.MaxDepth || stack.Contains(tag))
             {
@@ -207,76 +211,84 @@ public static class RealisticCraft
             }
             else
             {
-                yield = Math.Max(1, yield);
-                var batches = (quantity + yield - 1) / yield;
                 // Uniform per-step effort markup for every craft step, direct or indirect (forge, malik,
                 // npc_shop, carpentry, ...) - see Options.CraftStepMarkup for why there is no separate
                 // multiplier for indirect/time-gated steps.
                 var stepFactor = options.CraftStepMarkup;
-                // When buying already succeeds, crafting can only win by coming in under this ceiling.
-                // craft wins when (craftCost*stepFactor + flat) * margin < best.Cost, i.e.
-                // craftCost < (best.Cost/margin - flat) / stepFactor. The running craft cost only grows
-                // as ingredients are added, so once it passes the ceiling we can stop recursing the
-                // rest: the outcome (buy) is already decided. This is exact - it prunes doomed deep
-                // sub-craft recursion without changing any result. When buying can not supply enough
-                // there is no ceiling, so every ingredient is still explored.
-                double craftCostCeiling;
-                if (best.Enough)
-                {
-                    var marginAdjusted = best.Cost / options.CraftPreferenceMargin - options.CraftStepFlatCoins;
-                    // If even zero flat/markup overhead can't beat buying, crafting can never win here.
-                    craftCostCeiling = marginAdjusted <= 0 ? 0 : marginAdjusted / stepFactor;
-                }
-                else
-                {
-                    craftCostCeiling = double.PositiveInfinity;
-                }
-                double craftCost = 0;
-                var craftViable = true;
                 var subsExact = true;
                 stack.Add(tag);
-                // Recurse the biggest quantities first so an over-budget ingredient trips the ceiling sooner.
-                foreach (var ingredient in ingredients.OrderByDescending(i => i.count))
+                foreach (var candidate in candidates)
                 {
-                    if (craftCost >= craftCostCeiling)
+                    var ingredients = candidate.Ingredients;
+                    if (ingredients == null || ingredients.Count == 0)
+                        continue;
+                    var yield = Math.Max(1, candidate.Yield);
+                    var batches = (quantity + yield - 1) / yield;
+                    // When buying (or a cheaper candidate found earlier) already succeeds, this candidate
+                    // can only win by coming in under this ceiling. craft wins when
+                    // (craftCost*stepFactor + flat) * margin < best.Cost, i.e.
+                    // craftCost < (best.Cost/margin - flat) / stepFactor. The running craft cost only grows
+                    // as ingredients are added, so once it passes the ceiling we can stop recursing the
+                    // rest: the outcome (best-so-far) is already decided for this candidate. This is exact -
+                    // it prunes doomed deep sub-craft recursion without changing any result. Recomputed from
+                    // the CURRENT best at the start of each candidate, so a cheaper candidate found earlier
+                    // tightens the ceiling for later ones. When buying can not supply enough there is no
+                    // ceiling, so every ingredient is still explored.
+                    double craftCostCeiling;
+                    if (best.Enough)
                     {
-                        // Even ignoring the remaining ingredients, crafting can no longer beat buying.
-                        craftViable = false;
-                        break;
+                        var marginAdjusted = best.Cost / options.CraftPreferenceMargin - options.CraftStepFlatCoins;
+                        // If even zero flat/markup overhead can't beat buying, crafting can never win here.
+                        craftCostCeiling = marginAdjusted <= 0 ? 0 : marginAdjusted / stepFactor;
                     }
-                    var (sub, subExact) = await ObtainAsync(ingredient.tag, ingredient.count * batches, market, recipes, options, depth + 1, stack, memo);
-                    craftCost += sub.Cost;
-                    if (!subExact)
-                        subsExact = false;
-                    if (!sub.Enough)
+                    else
                     {
-                        // An ingredient can not be sourced in the needed amount, so this craft can not be
-                        // completed at scale; crafting is not a valid option.
-                        craftViable = false;
-                        break;
+                        craftCostCeiling = double.PositiveInfinity;
                     }
+                    double craftCost = 0;
+                    var craftViable = true;
+                    // Recurse the biggest quantities first so an over-budget ingredient trips the ceiling sooner.
+                    foreach (var ingredient in ingredients.OrderByDescending(i => i.count))
+                    {
+                        if (craftCost >= craftCostCeiling)
+                        {
+                            // Even ignoring the remaining ingredients, this candidate can no longer beat best.
+                            craftViable = false;
+                            break;
+                        }
+                        var (sub, subExact) = await ObtainAsync(ingredient.tag, ingredient.count * batches, market, recipes, options, depth + 1, stack, memo);
+                        craftCost += sub.Cost;
+                        if (!subExact)
+                            subsExact = false;
+                        if (!sub.Enough)
+                        {
+                            // An ingredient can not be sourced in the needed amount, so this candidate can
+                            // not be completed at scale; it is not a valid option.
+                            craftViable = false;
+                            break;
+                        }
+                    }
+                    if (craftViable)
+                    {
+                        var effectiveCraftCost = craftCost * stepFactor + options.CraftStepFlatCoins;
+                        // Prefer this candidate when it is meaningfully cheaper than the current best, or
+                        // when the current best can not supply enough.
+                        var craftBeatsBest = effectiveCraftCost * options.CraftPreferenceMargin < best.Cost || !best.Enough;
+                        if (craftBeatsBest)
+                        {
+                            best = new Obtainment(effectiveCraftCost, true, "craft");
+                        }
+                    }
+                    // else: candidate is not viable (ceiling prune or unmet ingredient); best is unchanged
+                    // and the next candidate is still evaluated.
                 }
                 stack.Remove(tag);
-                if (craftViable)
-                {
-                    var effectiveCraftCost = craftCost * stepFactor + options.CraftStepFlatCoins;
-                    // Prefer crafting when it is meaningfully cheaper, or when buying can not supply enough.
-                    var craftBeatsBuy = effectiveCraftCost * options.CraftPreferenceMargin < best.Cost || !best.Enough;
-                    if (craftBeatsBuy)
-                    {
-                        best = new Obtainment(effectiveCraftCost, true, "craft");
-                    }
-                    // else: best stays the (exact) buy result.
-                }
-                // else: craftViable is false because of the cost-ceiling prune or an unmet ingredient;
-                // best stays the (exact) buy result.
                 // Whenever the craft branch actually ran (i.e. we did not take the depth/stack skip
-                // above), any sub-result it consumed - whether craft ultimately won, buy won, or
-                // crafting was abandoned via the ceiling prune / an unmet ingredient - taints the
-                // outcome the same way: a shallower/unstacked evaluation could resolve differently.
-                // This is a no-op (subsExact stays true) when no sub was ever consumed, e.g. an
-                // immediate ceiling==0 prune, so genuinely exact "buy dominates by margin" results
-                // are still memoized correctly.
+                // above), any sub-result any candidate consumed - whether craft ultimately won, buy won,
+                // or a candidate was abandoned via the ceiling prune / an unmet ingredient - taints the
+                // outcome the same way: a shallower/unstacked evaluation could resolve differently. This
+                // is a no-op (subsExact stays true) when no sub was ever consumed, so genuinely exact
+                // "buy dominates by margin" results are still memoized correctly.
                 exact = exact && subsExact;
             }
         }

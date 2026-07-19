@@ -207,7 +207,7 @@ namespace Coflnet.Sky.Crafts.Services
 
         public async Task<ProfitableCraft> GetCreaftingCost(ItemData item, Dictionary<string, ProfitableCraft> crafts, Dictionary<string, ItemData> lookup, HashSet<string> bazaarItems)
         {
-            var ingredients = NeedCount(item).ToList();
+            var candidates = EnumerateRecipeCandidates(item).ToList();
             var sellPriceTask = GetPriceFor(item.internalname, 1);
             var market = new MarketSource(this, bazaarItems);
             var recipeSource = new RecipeSource(this, lookup);
@@ -218,9 +218,58 @@ namespace Coflnet.Sky.Crafts.Services
             options.CoinsPerBit = coinsPerBitTask.Result;
             options.CoinsPerCopper = coinsPerCopperTask.Result;
             var result = new ProfitableCraft();
+            result.ItemId = item.internalname;
+            result.ItemName = item.displayname;
+
+            if (candidates.Count == 0)
+            {
+                // No recipe at all: match the previous NeedCount()-empty behavior (zero-cost craft, no
+                // ingredients, recipe type resolved from the raw item data).
+                var emptyIngredients = new List<Ingredient>();
+                result.Ingredients = emptyIngredients;
+                result.CraftCost = 0;
+                result.BuyOrderCraftCost = 0;
+                var emptyPrice = await sellPriceTask;
+                result.SellPrice = bazaarItems.Contains(result.ItemId) ? emptyPrice.BuyPrice - 0.1 : emptyPrice.SellPrice;
+                result.Type = ResolveCraftType(item.recipes?.FirstOrDefault()?.type, emptyIngredients);
+                return result;
+            }
+
+            // Price every candidate recipe (there are only ever a handful per item) and keep the one
+            // with the lowest per-unit cost - this is what lets the engine prefer e.g. GOLD_INGOT over
+            // GOLD_BLOCK for ENCHANTED_GOLD instead of blindly taking the structurally-first recipe.
+            (List<Ingredient> ingredients, long yield, string recipeType) chosen = default;
+            var chosenPerUnitCost = double.PositiveInfinity;
+            foreach (var candidate in candidates)
+            {
+                var totalCost = await PriceIngredientsAsync(candidate.ingredients, market, recipeSource, options);
+                var perUnitCost = totalCost / Math.Max(1, candidate.yield);
+                if (perUnitCost < chosenPerUnitCost)
+                {
+                    chosenPerUnitCost = perUnitCost;
+                    chosen = candidate;
+                }
+            }
+
+            result.CraftCost = chosenPerUnitCost;
+            result.BuyOrderCraftCost = chosenPerUnitCost;
+            result.Ingredients = chosen.ingredients;
+            var itemPrice = await sellPriceTask;
+            result.SellPrice = bazaarItems.Contains(result.ItemId) ? itemPrice.BuyPrice - 0.1 : itemPrice.SellPrice;
+            result.Type = ResolveCraftType(chosen.recipeType, chosen.ingredients);
+            return result;
+        }
+
+        /// <summary>
+        /// Prices every ingredient in one candidate recipe via the realistic craft engine, mutating each
+        /// ingredient's Cost/BuyOrderCost/CraftCost/Type in place exactly as the top-level craft cost did
+        /// inline before candidates existed, and returns the summed ingredient cost for the batch.
+        /// </summary>
+        internal static async Task<double> PriceIngredientsAsync(List<Ingredient> ingredients, IMarketSource market, IRecipeSource recipeSource, RealisticCraft.Options options)
+        {
             // Obtain each direct ingredient realistically. This recurses into sub-crafts using the true
-            // quantities needed for one of this item, so npc stock and bazaar volume limits are respected
-            // even for base materials that are only cheap in small amounts.
+            // quantities needed for one batch of this recipe, so npc stock and bazaar volume limits are
+            // respected even for base materials that are only cheap in small amounts.
             await Task.WhenAll(ingredients.Select(async ingredient =>
             {
                 if (ingredient.ItemId == "SKYBLOCK_COIN")
@@ -235,17 +284,42 @@ namespace Coflnet.Sky.Crafts.Services
                 ingredient.CraftCost = obtainment.Method == "craft" ? obtainment.Cost : 0;
                 ingredient.Type = obtainment.Method == "buy" ? null : obtainment.Method; // "craft" / "npc" / "bits" / "copper" / "mote" / null(=bought)
             }).ToArray());
+            return ingredients.Sum(i => i.Cost);
+        }
 
-            var recipeCount = GetRecipeYield(item);
-            result.CraftCost = ingredients.Sum(i => i.Cost) / recipeCount;
-            result.BuyOrderCraftCost = result.CraftCost;
-            result.Ingredients = ingredients;
-            result.ItemId = item.internalname;
-            result.ItemName = item.displayname;
-            var itemPrice = await sellPriceTask;
-            result.SellPrice = bazaarItems.Contains(result.ItemId) ? itemPrice.BuyPrice - 0.1 : itemPrice.SellPrice;
-            result.Type = ResolveCraftType(item.recipes?.FirstOrDefault()?.type, ingredients);
-            return result;
+        /// <summary>
+        /// Mirrors <see cref="ItemData.GetIngredients"/>'s recipe-selection rules, but generalizes the
+        /// pure-crafting case to yield EVERY crafting recipe (instead of collapsing to one via
+        /// <see cref="ItemData.BestRecipe"/>), so the realistic cost engine can compare all of them and
+        /// pick the cheapest. Forge/npc_shop/carpentry/malik and legacy single-recipe items still yield
+        /// exactly one candidate, unchanged.
+        /// </summary>
+        internal IEnumerable<(List<Ingredient> ingredients, long yield, string recipeType)> EnumerateRecipeCandidates(ItemData item)
+        {
+            if (item.recipe != null)
+            {
+                var ingredients = AggregateSlots(item.recipe.GetIngredients());
+                if (ingredients.Count > 0)
+                    yield return (ingredients, (long)Math.Max(1, item.recipe.count), "crafting");
+                yield break;
+            }
+            if (item.recipes != null && item.recipes.Count > 0 &&
+                (item.recipes[0].type == "forge" || item.recipes[0].type == "npc_shop" || item.recipes[0].type == "carpentry" || item.recipes[0].type == "malik"))
+            {
+                var ingredients = AggregateSlots(item.recipes[0].inputs);
+                if (ingredients.Count > 0)
+                    yield return (ingredients, (long)Math.Max(1, item.recipes[0].count), item.recipes[0].type);
+                yield break;
+            }
+            if (item.recipes != null && item.recipes.Count > 0 && item.recipes.All(r => r.type == "crafting"))
+            {
+                foreach (var recipe in item.recipes)
+                {
+                    var ingredients = AggregateSlots(recipe.GetIngredients());
+                    if (ingredients.Count > 0)
+                        yield return (ingredients, (long)Math.Max(1, recipe.count), "crafting");
+                }
+            }
         }
 
         /// <summary>
@@ -400,11 +474,6 @@ namespace Coflnet.Sky.Crafts.Services
             });
         }
 
-        private static bool CanBeCraftedDirectly(ItemData itemData)
-        {
-            return itemData.Type == null && (itemData.recipes == null || itemData.recipes.All(r => r.type != "forge" && r.type != "npc_shop"));
-        }
-
         private async Task<PriceResponse> GetPriceFor(string itemTag, long count)
         {
             var baseUrl = config["API_BASE_URL"];
@@ -436,17 +505,30 @@ namespace Coflnet.Sky.Crafts.Services
 
         public IEnumerable<Ingredient> NeedCount(ItemData item)
         {
-            var aggregated = GetIngredientsFromSlots(item).GroupBy(i => i.ItemId).Select(i => new Ingredient()
+            return AggregateSlots(item.GetIngredients());
+        }
+        private IEnumerable<Ingredient> GetIngredientsFromSlots(ItemData item)
+        {
+            return ParseSlots(item.GetIngredients());
+        }
+
+        /// <summary>Aggregates one recipe's raw NEU slot strings (e.g. "GOLD_INGOT:5") into tag+count
+        /// ingredients (same variant/name parsing as <see cref="ParseSlots"/>, then grouped by tag).</summary>
+        private List<Ingredient> AggregateSlots(IEnumerable<string> slots)
+        {
+            return ParseSlots(slots).GroupBy(i => i.ItemId).Select(i => new Ingredient()
             {
                 ItemId = i.Key,
                 Count = i.Sum(single => single.Count),
                 Type = i.First().Type
-            });
-            return aggregated;
+            }).ToList();
         }
-        private IEnumerable<Ingredient> GetIngredientsFromSlots(ItemData item)
+
+        /// <summary>Parses raw NEU slot strings ("TAG" or "TAG:count") into individual ingredients,
+        /// converting NEU-style names via <see cref="ConvertNeuToTag"/>.</summary>
+        private IEnumerable<Ingredient> ParseSlots(IEnumerable<string> slots)
         {
-            foreach (var ingredient in item.GetIngredients())
+            foreach (var ingredient in slots ?? Enumerable.Empty<string>())
             {
                 if (string.IsNullOrEmpty(ingredient))
                     continue;
@@ -507,19 +589,17 @@ namespace Coflnet.Sky.Crafts.Services
                 this.service = service;
                 this.lookup = lookup;
             }
-            public bool TryGetRecipe(string tag, out IReadOnlyList<(string tag, long count)> ingredients, out long yield, out bool directlyCraftable)
+            public bool TryGetRecipes(string tag, out IReadOnlyList<RecipeOption> recipes)
             {
-                ingredients = null;
-                yield = 1;
-                directlyCraftable = false;
+                recipes = null;
                 if (!lookup.TryGetValue(tag, out var data))
                     return false;
-                var list = service.NeedCount(data).Select(i => (i.ItemId, i.Count)).ToList();
+                var list = service.EnumerateRecipeCandidates(data)
+                    .Select(c => new RecipeOption(c.ingredients.Select(i => (i.ItemId, i.Count)).ToList(), c.yield))
+                    .ToList();
                 if (list.Count == 0)
                     return false;
-                ingredients = list;
-                yield = (long)Math.Max(1, GetRecipeYield(data));
-                directlyCraftable = CanBeCraftedDirectly(data);
+                recipes = list;
                 return true;
             }
         }
