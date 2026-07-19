@@ -62,6 +62,7 @@ namespace Coflnet.Sky.Crafts.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 await katService.Update();
+                calculatorService.ResetPriceCaches(); // price against fresh order books each pass
                 await IterateAll(craftable, stoppingToken);
                 try
                 {

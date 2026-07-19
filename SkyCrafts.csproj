@@ -17,13 +17,17 @@
     <Compile Remove="SkyCrafts.Tests/**/*.cs" />
     <EmbeddedResource Remove="SkyCrafts.Tests/**/*.resx" />
     <None Remove="SkyCrafts.Tests/**/*" />
+    <!-- The Web SDK globs everything under the project dir as Content; without this it copies the
+         nested test project's files into output, which collides with the test app host. -->
+    <Content Remove="SkyCrafts.Tests/**/*" />
   </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.7.6" />
     <PackageReference Include="Coflnet.Sky.Bazaar.Client" Version="0.8.0" />
+    <PackageReference Include="Coflnet.Sky.Bazaar.Flipper.Client" Version="0.7.0" />
     <PackageReference Include="Coflnet.Sky.PlayerState.Client" Version="0.13.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Coflnet.Sky.Bazaar.Client.Api;
+using Coflnet.Sky.Bazaar.Client.Model;
+using Coflnet.Sky.Crafts.Services;
+using Coflnet.Sky.PlayerState.Client.Api;
+using Coflnet.Sky.PlayerState.Client.Model;
+using Microsoft.Extensions.Configuration;
+using NSubstitute;
+using Xunit;
+
+namespace SkyCrafts.Tests;
+
+/// <summary>
+/// Covers the batch bazaar pricing path: the whole order book + summary prices are pulled in two
+/// batch calls per pass and turned into supply-limited tranches. Guards the spread semantics
+/// (insta-sell price feeds the buy-order channel, standing sell offers feed the insta-buy walk) and
+/// the batching itself (one call each, reused across items until the caches are reset).
+/// </summary>
+public class BazaarBatchPricingTests
+{
+    private const string Obsidian = "OBSIDIAN";
+
+    private static OrderEntry Entry(int amount, double pricePerUnit, bool isSell, int filled = 0) =>
+        new OrderEntry(amount, pricePerUnit, "player", "uuid", isSell, DateTime.MinValue, Obsidian, false, filled, false);
+
+    private static (CalculatorService service, IBazaarApi bazaar, IOrderBookApi orderBook) BuildService()
+    {
+        var config = Substitute.For<IConfiguration>();
+        var playerItemsApi = Substitute.For<IItemsApi>();
+        playerItemsApi.ApiItemsNpccostGetAsync().Returns(new List<NpcCost>
+        {
+            // npc obsidian: 30 coins each. Stock is left at 0 so the default per-restock cap applies.
+            new NpcCost(Obsidian, "Builder", new Dictionary<string, int> { { "Coins", 30 } }, resultCount: 1),
+        });
+
+        var bazaar = Substitute.For<IBazaarApi>();
+        bazaar.GetAllPricesAsync().Returns(new List<ItemPrice>
+        {
+            // sellPrice 50 = insta-sell price (a competitive buy order sits here);
+            // dailySellVolume 240000 => ~1h of insta-sells = 10000 fill the buy order channel.
+            new ItemPrice(Obsidian, buyPrice: 70, dailyBuyVolume: 500, dailySellVolume: 240000, sellPrice: 50),
+        });
+
+        var orderBook = Substitute.For<IOrderBookApi>();
+        orderBook.GetOrderBooksAsync(Arg.Any<List<string>>()).Returns(new Dictionary<string, OrderBook>
+        {
+            [Obsidian] = new OrderBook(
+                buy: new List<OrderEntry> { Entry(1000, 48, isSell: false) },   // buy orders: must NOT feed the insta-buy walk
+                sell: new List<OrderEntry>                                       // sell offers: the insta-buy walk, cheapest first
+                {
+                    Entry(5000, 70, isSell: true),
+                    Entry(100000, 90, isSell: true),
+                }),
+        });
+
+        var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
+        return (service, bazaar, orderBook);
+    }
+
+    [Fact]
+    public async Task BuildsNpcOrderAndInstaTranches_FromBatchData()
+    {
+        var (service, _, _) = BuildService();
+
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+
+        // npc: cheapest, capped at the default per-restock stock.
+        var npc = Assert.Single(tranches.Where(t => t.Source == "npc"));
+        Assert.Equal(30, npc.UnitPrice);
+        Assert.Equal(CalculatorService.DefaultNpcStock, npc.Capacity);
+
+        // buy order channel: priced at the insta-sell price (50), NOT the insta-buy price (70),
+        // and capped at ~1h of insta-sell volume (240000 / 24 = 10000).
+        var order = Assert.Single(tranches.Where(t => t.Source == "order"));
+        Assert.Equal(50, order.UnitPrice);
+        Assert.Equal(10000, order.Capacity);
+
+        // insta-buy walk: comes from the standing sell offers, never the buy orders (48).
+        var insta = tranches.Where(t => t.Source == "insta").OrderBy(t => t.UnitPrice).ToList();
+        Assert.Equal(new double[] { 70, 90 }, insta.Select(t => t.UnitPrice).ToArray());
+        Assert.Equal(new long[] { 5000, 100000 }, insta.Select(t => t.Capacity).ToArray());
+        Assert.DoesNotContain(tranches, t => t.UnitPrice == 48);
+    }
+
+    [Fact]
+    public async Task SellOfferDepthIsReducedByAlreadyFilledAmount()
+    {
+        var config = Substitute.For<IConfiguration>();
+        var playerItemsApi = Substitute.For<IItemsApi>();
+        playerItemsApi.ApiItemsNpccostGetAsync().Returns(new List<NpcCost>());
+        var bazaar = Substitute.For<IBazaarApi>();
+        bazaar.GetAllPricesAsync().Returns(new List<ItemPrice>());
+        var orderBook = Substitute.For<IOrderBookApi>();
+        orderBook.GetOrderBooksAsync(Arg.Any<List<string>>()).Returns(new Dictionary<string, OrderBook>
+        {
+            [Obsidian] = new OrderBook(
+                buy: new List<OrderEntry>(),
+                sell: new List<OrderEntry> { Entry(1000, 90, isSell: true, filled: 600) }),
+        });
+        var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
+
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+
+        var insta = Assert.Single(tranches.Where(t => t.Source == "insta"));
+        Assert.Equal(400, insta.Capacity); // 1000 offered - 600 already filled
+    }
+
+    [Fact]
+    public async Task BatchIsFetchedOnce_AndSharedAcrossItems()
+    {
+        var (service, bazaar, orderBook) = BuildService();
+        var bazaarItems = new HashSet<string> { Obsidian, "ENCHANTED_OBSIDIAN" };
+
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
+        await service.GetBuyTranchesAsync("ENCHANTED_OBSIDIAN", bazaarItems);
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
+
+        // Despite three lookups across two items, each batch endpoint is hit exactly once.
+        await bazaar.Received(1).GetAllPricesAsync();
+        await orderBook.Received(1).GetOrderBooksAsync(Arg.Any<List<string>>());
+    }
+
+    [Fact]
+    public async Task ResetPriceCaches_RefetchesTheBatch()
+    {
+        var (service, bazaar, orderBook) = BuildService();
+        var bazaarItems = new HashSet<string> { Obsidian };
+
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
+        service.ResetPriceCaches();
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
+
+        await bazaar.Received(2).GetAllPricesAsync();
+        await orderBook.Received(2).GetOrderBooksAsync(Arg.Any<List<string>>());
+    }
+}

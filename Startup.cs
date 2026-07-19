@@ -40,7 +40,12 @@ namespace Coflnet.Sky.Crafts
             services.AddSingleton<Api.Client.Api.IItemApi>(provider => new Api.Client.Api.ItemApi(Configuration["API_BASE_URL"]));
             services.AddSingleton<Items.Client.Api.IItemsApi>(provider => new Items.Client.Api.ItemsApi(Configuration["ITEMS_BASE_URL"]));
             services.AddSingleton<Bazaar.Client.Api.IBazaarApi>(provider => new Bazaar.Client.Api.BazaarApi(Configuration["BAZAAR_BASE_URL"]));
+            services.AddSingleton<Bazaar.Client.Api.IOrderBookApi>(provider => new Bazaar.Client.Api.OrderBookApi(Configuration["BAZAAR_BASE_URL"]));
             services.AddSingleton<PlayerState.Client.Api.IItemsApi>(provider => new PlayerState.Client.Api.ItemsApi(Configuration["PLAYERSTATE_BASE_URL"]));
+            // sky-bazaar-flipper's /copper endpoint provides the cheapest live copper acquisition cost used
+            // to price SKYBLOCK_COPPER ingredients; optional (CalculatorService falls back gracefully if
+            // BAZAARFLIPPER_BASE_URL is not configured or the service is unreachable).
+            services.AddSingleton<Bazaar.Flipper.Client.Api.IBazaarFlipperApi>(provider => new Bazaar.Flipper.Client.Api.BazaarFlipperApi(Configuration["BAZAARFLIPPER_BASE_URL"]));
             services.AddSingleton<IReforgeService,ReforgeService>();
             services.AddSingleton<PriceDropService>();
             services.AddSingleton<GeorgePetOfferService>();

@@ -3,16 +3,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
+    <!-- The .NET 10 SDK removed the legacy VSTest 'dotnet test' path and ships Microsoft.Testing.Platform v2.
+         xunit.v3 4.x (mtp-v2) is the build that matches it; 3.x is mtp-v1 and fails on this SDK. The MTP
+         opt-in for 'dotnet test' lives in ../global.json. -->
+    <OutputType>Exe</OutputType>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.v3" Version="4.0.0-pre.154" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.0" />
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NSubstitute" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
