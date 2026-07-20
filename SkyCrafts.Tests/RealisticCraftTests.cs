@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Coflnet.Sky.Crafts.Models;
 using Coflnet.Sky.Crafts.Services;
 using Xunit;
 
@@ -621,6 +622,71 @@ public class RealisticCraftTests
         var rawCraftCost = quantity * 1d;
         var expected = rawCraftCost * options.BulkCraftStepMarkup + options.CraftStepFlatCoins;
         Assert.Equal(expected, result.Cost, 6);
+    }
+
+    // --- BuyCost: expose the "buy it outright" alternative alongside a chosen craft/buy result ---
+
+    [Fact]
+    public async Task CraftedResult_CarriesBuyCostAsTheViableBuyAlternative()
+    {
+        var (market, recipes) = BuildObsidianWorld();
+        var result = await RealisticCraft.ObtainAsync("ENCHANTED_OBSIDIAN", 1, market, recipes);
+
+        Assert.Equal("craft", result.Method);
+        // Buying directly is viable (100_000_000 capacity insta tranche @6000) even though crafting won.
+        Assert.Equal(6000d, result.BuyCost);
+        Assert.True(result.BuyCost > result.Cost); // the buy alternative is pricier than the chosen craft
+    }
+
+    [Fact]
+    public async Task BoughtResult_HasBuyCostEqualToCost()
+    {
+        var (market, recipes) = BuildObsidianWorld();
+        // Force buying to win (crafting is not worth it at this scale, see Subcraft_StopsBeingWorthItAtScale_WhenNpcStockRunsOut).
+        var result = await RealisticCraft.ObtainAsync("ENCHANTED_OBSIDIAN", 100, market, recipes);
+
+        Assert.Equal("buy", result.Method);
+        Assert.Equal(result.Cost, result.BuyCost);
+    }
+
+    [Fact]
+    public async Task BuyCostIsZero_WhenNoViableBuyAlternativeExists()
+    {
+        // No buy tranches at all for ENCHANTED_OBSIDIAN: crafting is the only route, and there is no
+        // buy alternative to report.
+        var (market, recipes) = BuildObsidianWorld();
+        market.Tranches["ENCHANTED_OBSIDIAN"] = new();
+
+        var result = await RealisticCraft.ObtainAsync("ENCHANTED_OBSIDIAN", 1, market, recipes);
+
+        Assert.Equal("craft", result.Method);
+        Assert.Equal(0d, result.BuyCost);
+    }
+
+    [Fact]
+    public async Task PriceIngredientsAsync_CraftedIngredient_ReportsBuyOrderCostAboveCraftCost()
+    {
+        // ENCHANTED_OBSIDIAN is cheaper to craft than to buy (see SingleSubcraft_IsCraftedWhenCheaperAtSmallScale),
+        // and PLAIN_OBSIDIAN below is only ever bought.
+        var (market, recipes) = BuildObsidianWorld();
+        var options = new RealisticCraft.Options();
+        var memo = new ConcurrentDictionary<(string, long), Obtainment>();
+        var ingredients = new List<Ingredient>
+        {
+            new() { ItemId = "ENCHANTED_OBSIDIAN", Count = 1 },
+            new() { ItemId = "OBSIDIAN", Count = 1_000_000 }, // far beyond npc stock -> bought on the market
+        };
+
+        await CalculatorService.PriceIngredientsAsync(ingredients, market, recipes, options, memo);
+
+        var crafted = ingredients.Single(i => i.ItemId == "ENCHANTED_OBSIDIAN");
+        Assert.Equal(crafted.Cost, crafted.CraftCost); // it was crafted: Cost == CraftCost
+        Assert.True(crafted.BuyOrderCost > crafted.CraftCost); // buying outright would have cost more
+        Assert.Equal(6000d, crafted.BuyOrderCost); // the genuine buy-it-outright price
+
+        var bought = ingredients.Single(i => i.ItemId == "OBSIDIAN");
+        Assert.Equal(0, bought.CraftCost); // bought, not crafted
+        Assert.Equal(bought.Cost, bought.BuyOrderCost); // no cheaper buy alternative than what was actually paid
     }
 
     [Fact]

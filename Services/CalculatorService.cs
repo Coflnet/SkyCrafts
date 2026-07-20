@@ -38,6 +38,17 @@ namespace Coflnet.Sky.Crafts.Services
         private const int AhSampleCount = 64;
         /// <summary>Hours of insta-sell volume assumed to fill a buy order in reasonable time.</summary>
         private const double BuyOrderFillHours = 0.5;
+        /// <summary>
+        /// Coins added on top of the current top buy order price to actually place a competitive order:
+        /// you must sit just above the existing top order to have any chance of it filling.
+        /// </summary>
+        private const double BuyOrderOutbidCoins = 0.2;
+        /// <summary>
+        /// Multiplier applied on top of the outbid price to account for the buy order being time-gated -
+        /// it fills over ~<see cref="BuyOrderFillHours"/> hours, tying up capital and risking the price
+        /// moving before it fills, so its effective cost carries a premium over an instant purchase.
+        /// </summary>
+        private const double BuyOrderTimeGateMarkup = 1.20;
 
         /// <summary>Fallback coinsPerBit used when the live booster-cookie bazaar lookup fails (see Options.CoinsPerBit).</summary>
         private const double DefaultCoinsPerBit = 2000;
@@ -287,7 +298,11 @@ namespace Coflnet.Sky.Crafts.Services
                 }
                 var obtainment = await RealisticCraft.ObtainAsync(ingredient.ItemId, ingredient.Count, market, recipeSource, options, memo);
                 ingredient.Cost = obtainment.Cost;
-                ingredient.BuyOrderCost = obtainment.Cost; // single blended figure (smart buyer already spreads across channels)
+                // The genuine cost of buying this ingredient outright, so downstream can show how much
+                // crafting it saved vs. the buy alternative. Falls back to Cost when there is no viable
+                // buy alternative (obtainment.BuyCost == 0), so a bought ingredient still reports
+                // BuyOrderCost == Cost and yields zero apparent savings.
+                ingredient.BuyOrderCost = obtainment.BuyCost > 0 ? obtainment.BuyCost : obtainment.Cost;
                 ingredient.CraftCost = obtainment.Method == "craft" ? obtainment.Cost : 0;
                 ingredient.Type = obtainment.Method == "buy" ? null : obtainment.Method; // "craft" / "npc" / "bits" / "copper" / "mote" / null(=bought)
             }).ToArray());
@@ -378,6 +393,9 @@ namespace Coflnet.Sky.Crafts.Services
                 batch.Books.TryGetValue(bazaarTag, out var book);
                 // Buy order channel: a competitive buy order sits at the insta-sell price and only
                 // ~30 minutes of insta-sell volume realistically fills it before the price moves on.
+                // The unit price includes outbidding the current top order by BuyOrderOutbidCoins (you
+                // must sit just above it to get filled) plus the BuyOrderTimeGateMarkup premium for the
+                // capital being tied up / at risk while the order fills over time instead of instantly.
                 if (price != null && price.SellPrice > 0)
                 {
                     var hourlyInstaSell = (long)(price.DailySellVolume / (24 / BuyOrderFillHours));
@@ -386,7 +404,7 @@ namespace Coflnet.Sky.Crafts.Services
                     // sequential orders, which is priced as extra craft-step effort, not a bigger tranche.
                     var orderCapacity = Math.Min(hourlyInstaSell, RealisticCraft.MaxSingleOrderQuantity);
                     if (orderCapacity > 0)
-                        tranches.Add(new PriceTranche(price.SellPrice, orderCapacity, "order"));
+                        tranches.Add(new PriceTranche((price.SellPrice + BuyOrderOutbidCoins) * BuyOrderTimeGateMarkup, orderCapacity, "order"));
                 }
                 // Everything beyond that is insta-bought, walking the standing sell offers (SmartBuyer
                 // sorts cheapest first). The order book depth is a hard cap: you can not buy more than

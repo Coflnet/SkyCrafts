@@ -33,7 +33,13 @@ public readonly struct PriceTranche
 /// <param name="Cost">Total realistic cost to obtain <c>Quantity</c> units.</param>
 /// <param name="Enough">True when the quantity could actually be sourced (supply was not exhausted).</param>
 /// <param name="Method">How it is obtained as a whole: "craft", "npc" or "buy".</param>
-public record Obtainment(double Cost, bool Enough, string Method);
+/// <param name="BuyCost">
+/// The cost of obtaining the item purely by BUYING it (npc/order/insta tranches), when that is
+/// actually viable (buying could supply the full quantity); 0 when there is no viable buy
+/// alternative. Lets callers show how much a chosen craft saves vs. just buying the item, even
+/// though <see cref="Cost"/>/<see cref="Method"/> may reflect the cheaper craft path instead.
+/// </param>
+public record Obtainment(double Cost, bool Enough, string Method, double BuyCost = 0);
 
 /// <summary>
 /// Fills an order from the cheapest available price tranches first, respecting each tranche's
@@ -206,14 +212,21 @@ public static class RealisticCraft
         if (quantity <= 0)
             return (new Obtainment(0, true, "buy"), true);
         if (tag == "SKYBLOCK_COIN" || tag == "SKYBLOCK_COINS")
-            return (new Obtainment(quantity, true, "buy"), true);
+            return (new Obtainment(quantity, true, "buy", quantity), true);
         // Premium currencies get a representative coin value instead of the generic unobtainable
         // count*20M fallback, and are flagged with a distinct Method so the parent craft is marked
         // non-normal (see CalculatorService.GetCreaftingCost / CraftsController's profit filters).
+        // These are acquired by "buying" (spending bits/copper), so BuyCost equals Cost.
         if (tag == "SKYBLOCK_BIT")
-            return (new Obtainment(quantity * options.CoinsPerBit, true, "bits"), true);
+        {
+            var cost = quantity * options.CoinsPerBit;
+            return (new Obtainment(cost, true, "bits", cost), true);
+        }
         if (tag == "SKYBLOCK_COPPER")
-            return (new Obtainment(quantity * options.CoinsPerCopper, true, "copper"), true);
+        {
+            var cost = quantity * options.CoinsPerCopper;
+            return (new Obtainment(cost, true, "copper", cost), true);
+        }
         if (tag == "SKYBLOCK_MOTE")
             // Motes are non-transferable and Rift-only: no representative coin value exists, so this
             // stays unobtainable (Enough=false) - same treatment as the generic fallback - but is still
@@ -227,6 +240,10 @@ public static class RealisticCraft
         var best = buy;
         // Buying alone is always exact: it has no recursion/context dependence.
         var exact = true;
+        // The genuine cost of buying this item outright, kept alongside whatever ends up cheapest
+        // (craft or buy) so callers can show how much a chosen craft saves vs. the buy alternative.
+        // 0 when buying could not supply the full quantity (no viable buy alternative).
+        var buyAlternative = buy.Enough ? buy.Cost : 0;
 
         // Option 2: craft it, recursively obtaining the ingredients at the quantities actually needed.
         // Evaluate TryGetRecipes unconditionally (independent of depth/stack) so "not craftable" stays exact.
@@ -328,6 +345,7 @@ public static class RealisticCraft
             }
         }
 
+        best = best with { BuyCost = buyAlternative };
         if (exact)
             memo[(tag, quantity)] = best;
         return (best, exact);

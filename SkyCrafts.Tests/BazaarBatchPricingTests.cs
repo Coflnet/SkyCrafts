@@ -73,10 +73,11 @@ public class BazaarBatchPricingTests
         Assert.Equal(30, npc.UnitPrice);
         Assert.Equal(CalculatorService.DefaultNpcStock, npc.Capacity);
 
-        // buy order channel: priced at the insta-sell price (50), NOT the insta-buy price (70),
-        // and capped at ~30 min of insta-sell volume (240000 / 48 = 5000).
+        // buy order channel: priced at the insta-sell price (50) outbid by BuyOrderOutbidCoins and
+        // marked up by BuyOrderTimeGateMarkup, NOT the raw insta-sell price (50) or insta-buy price
+        // (70), and capped at ~30 min of insta-sell volume (240000 / 48 = 5000).
         var order = Assert.Single(tranches.Where(t => t.Source == "order"));
-        Assert.Equal(50, order.UnitPrice);
+        Assert.Equal((50 + 0.2) * 1.20, order.UnitPrice, 6);
         Assert.Equal(5000, order.Capacity);
 
         // insta-buy walk: comes from the standing sell offers, never the buy orders (48).
@@ -163,5 +164,37 @@ public class BazaarBatchPricingTests
 
         await bazaar.Received(2).GetAllPricesAsync();
         await orderBook.Received(2).GetOrderBooksAsync(Arg.Any<List<string>>());
+    }
+
+    [Fact]
+    public async Task OrderTrancheUnitPrice_OutbidsTopOrderAndAppliesTimeGateMarkup()
+    {
+        // Regression test: the "order" tranche unit price must be the realistic cost of actually
+        // getting a competitive buy order filled - outbidding the current top order by
+        // BuyOrderOutbidCoins (0.2), then a BuyOrderTimeGateMarkup (20%) premium for the capital
+        // being tied up while the order fills over time instead of instantly. It must NOT be the
+        // raw sellPrice.
+        var config = Substitute.For<IConfiguration>();
+        var playerItemsApi = Substitute.For<IItemsApi>();
+        playerItemsApi.ApiItemsNpccostGetAsync().Returns(new List<NpcCost>());
+        var bazaar = Substitute.For<IBazaarApi>();
+        const double sellPrice = 1000;
+        bazaar.GetAllPricesAsync().Returns(new List<ItemPrice>
+        {
+            // Enough daily sell volume to yield a positive order capacity.
+            new ItemPrice(Obsidian, buyPrice: 1100, dailyBuyVolume: 500, dailySellVolume: 240000, sellPrice: sellPrice),
+        });
+        var orderBook = Substitute.For<IOrderBookApi>();
+        orderBook.GetOrderBooksAsync(Arg.Any<List<string>>()).Returns(new Dictionary<string, OrderBook>
+        {
+            [Obsidian] = new OrderBook(buy: new List<OrderEntry>(), sell: new List<OrderEntry>()),
+        });
+        var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
+
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+
+        var order = Assert.Single(tranches.Where(t => t.Source == "order"));
+        Assert.True(order.Capacity > 0);
+        Assert.Equal((sellPrice + 0.2) * 1.20, order.UnitPrice, 6);
     }
 }
