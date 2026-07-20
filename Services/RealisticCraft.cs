@@ -14,7 +14,7 @@ public readonly struct PriceTranche
 {
     /// <summary>Price per single unit sourced from this tranche.</summary>
     public double UnitPrice { get; }
-    /// <summary>How many units can realistically be sourced here (npc stock, ~1h of insta-sell volume, order book depth).</summary>
+    /// <summary>How many units can realistically be sourced here (npc stock, ~30 min of insta-sell volume, order book depth).</summary>
     public long Capacity { get; }
     /// <summary>Where these units come from: "npc", "order" (buy order fills) or "insta" (walking the sell offer book).</summary>
     public string Source { get; }
@@ -106,6 +106,13 @@ public interface IRecipeSource
 /// </summary>
 public static class RealisticCraft
 {
+    /// <summary>
+    /// Maximum units of one item that can be put into a single bazaar buy order (Hypixel's cap on one
+    /// order). Lives here, next to the pricing logic that reasons about it, and is reused by
+    /// CalculatorService to cap the "order" price tranche capacity so the two never drift apart.
+    /// </summary>
+    public const long MaxSingleOrderQuantity = 71_000;
+
     public class Options
     {
         /// <summary>Maximum recursion depth into sub-crafts.</summary>
@@ -127,6 +134,19 @@ public static class RealisticCraft
         public double CraftStepMarkup { get; set; } = 1.01;
         /// <summary>Flat coin cost added per craft step on top of the markup.</summary>
         public double CraftStepFlatCoins { get; set; } = 1;
+        /// <summary>
+        /// Maximum units of one item that can be put into a single bazaar buy order. Larger amounts need
+        /// multiple sequential orders, which is what <see cref="BulkCraftStepMarkup"/> prices in. Overridable
+        /// per pricing run; defaults to the shared <see cref="RealisticCraft.MaxSingleOrderQuantity"/> that
+        /// CalculatorService also caps the "order" price tranche with.
+        /// </summary>
+        public long MaxSingleOrderQuantity { get; set; } = RealisticCraft.MaxSingleOrderQuantity;
+        /// <summary>
+        /// Craft-step markup used instead of CraftStepMarkup when a craft step needs more of an ingredient
+        /// than fits in one bazaar order (MaxSingleOrderQuantity), since it takes multiple sequential orders
+        /// and moves the price.
+        /// </summary>
+        public double BulkCraftStepMarkup { get; set; } = 1.20;
         /// <summary>Unit price multiplier applied to units that could not be sourced, so unobtainable-at-scale crafts stay expensive but finite.</summary>
         public double UnmetPenaltyFactor { get; set; } = 5;
         /// <summary>Fallback unit price for unmet demand when no tranche price is known.</summary>
@@ -160,6 +180,20 @@ public static class RealisticCraft
     }
 
     /// <summary>
+    /// Same as the public overload, but accepts an externally-supplied memo so a single pricing pass
+    /// can share sub-craft results (e.g. ENCHANTED_GOLD, ENCHANTED_IRON) across many parent items
+    /// instead of recomputing them from scratch per item. Only safe to share within a single pass
+    /// where every priced item sees the same frozen market data (bazaar batch, CoinsPerBit,
+    /// CoinsPerCopper) - the memo must be cleared/replaced at the start of each new pass.
+    /// </summary>
+    public static async Task<Obtainment> ObtainAsync(string tag, long quantity, IMarketSource market, IRecipeSource recipes, Options options, IDictionary<(string, long), Obtainment> memo)
+    {
+        options ??= new Options();
+        var (result, _) = await ObtainAsync(tag, quantity, market, recipes, options, 0, new HashSet<string>(), memo);
+        return result;
+    }
+
+    /// <summary>
     /// Same as the public overload, but additionally reports whether the result is "exact": context
     /// independent, and therefore safe to memoize/reuse at any depth/stack. A result computed while
     /// crafting was skipped due to the cycle guard (<paramref name="stack"/>) or <see cref="Options.MaxDepth"/>
@@ -167,7 +201,7 @@ public static class RealisticCraft
     /// never be memoized or trusted from the memo.
     /// </summary>
     private static async Task<(Obtainment result, bool exact)> ObtainAsync(string tag, long quantity, IMarketSource market, IRecipeSource recipes,
-        Options options, int depth, HashSet<string> stack, Dictionary<(string, long), Obtainment> memo)
+        Options options, int depth, HashSet<string> stack, IDictionary<(string, long), Obtainment> memo)
     {
         if (quantity <= 0)
             return (new Obtainment(0, true, "buy"), true);
@@ -211,10 +245,6 @@ public static class RealisticCraft
             }
             else
             {
-                // Uniform per-step effort markup for every craft step, direct or indirect (forge, malik,
-                // npc_shop, carpentry, ...) - see Options.CraftStepMarkup for why there is no separate
-                // multiplier for indirect/time-gated steps.
-                var stepFactor = options.CraftStepMarkup;
                 var subsExact = true;
                 stack.Add(tag);
                 foreach (var candidate in candidates)
@@ -224,6 +254,11 @@ public static class RealisticCraft
                         continue;
                     var yield = Math.Max(1, candidate.Yield);
                     var batches = (quantity + yield - 1) / yield;
+                    // A single bazaar order tops out at MaxSingleOrderQuantity units, so a step needing more of any
+                    // one ingredient takes several sequential orders (and moves the price) - price that extra effort
+                    // with the higher bulk markup.
+                    var needsBulkOrdering = ingredients.Any(i => i.count * batches > options.MaxSingleOrderQuantity);
+                    var stepFactor = needsBulkOrdering ? options.BulkCraftStepMarkup : options.CraftStepMarkup;
                     // When buying (or a cheaper candidate found earlier) already succeeds, this candidate
                     // can only win by coming in under this ceiling. craft wins when
                     // (craftCost*stepFactor + flat) * margin < best.Cost, i.e.

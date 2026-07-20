@@ -37,7 +37,7 @@ namespace Coflnet.Sky.Crafts.Services
         /// <summary>Number of lowest bins sampled to estimate the per-unit price and depth of auction house items.</summary>
         private const int AhSampleCount = 64;
         /// <summary>Hours of insta-sell volume assumed to fill a buy order in reasonable time.</summary>
-        private const double BuyOrderFillHours = 1;
+        private const double BuyOrderFillHours = 0.5;
 
         /// <summary>Fallback coinsPerBit used when the live booster-cookie bazaar lookup fails (see Options.CoinsPerBit).</summary>
         private const double DefaultCoinsPerBit = 2000;
@@ -64,6 +64,12 @@ namespace Coflnet.Sky.Crafts.Services
         private readonly object bazaarBatchLock = new();
         private Task<BazaarBatch> bazaarBatchTask;
         private readonly ConcurrentDictionary<string, Task<PriceResponse>> ahPriceCache = new();
+        // Shared realistic-craft memo for the current pricing pass: every item in one pass prices
+        // against the same frozen bazaar batch / CoinsPerBit / CoinsPerCopper, so a given (tag,
+        // quantity) has an identical cost for every item - safe to reuse across items, not across
+        // passes (cleared in ResetPriceCaches). ConcurrentDictionary because both the pass itself
+        // (Parallel.ForEachAsync) and PriceIngredientsAsync (Task.WhenAll) recompute concurrently.
+        private readonly ConcurrentDictionary<(string, long), Obtainment> craftCostMemo = new();
         // The bit/copper live rates are fetched once per pricing pass (like the bazaar batch) and shared.
         private readonly object coinsPerBitLock = new();
         private Task<double> coinsPerBitTask;
@@ -95,6 +101,7 @@ namespace Coflnet.Sky.Crafts.Services
             lock (coinsPerCopperLock)
                 coinsPerCopperTask = null;
             ahPriceCache.Clear();
+            craftCostMemo.Clear();
         }
 
         /// <summary>Returns the shared coinsPerBit rate for this pass, fetching it once on first use.</summary>
@@ -242,7 +249,7 @@ namespace Coflnet.Sky.Crafts.Services
             var chosenPerUnitCost = double.PositiveInfinity;
             foreach (var candidate in candidates)
             {
-                var totalCost = await PriceIngredientsAsync(candidate.ingredients, market, recipeSource, options);
+                var totalCost = await PriceIngredientsAsync(candidate.ingredients, market, recipeSource, options, craftCostMemo);
                 var perUnitCost = totalCost / Math.Max(1, candidate.yield);
                 if (perUnitCost < chosenPerUnitCost)
                 {
@@ -265,7 +272,7 @@ namespace Coflnet.Sky.Crafts.Services
         /// ingredient's Cost/BuyOrderCost/CraftCost/Type in place exactly as the top-level craft cost did
         /// inline before candidates existed, and returns the summed ingredient cost for the batch.
         /// </summary>
-        internal static async Task<double> PriceIngredientsAsync(List<Ingredient> ingredients, IMarketSource market, IRecipeSource recipeSource, RealisticCraft.Options options)
+        internal static async Task<double> PriceIngredientsAsync(List<Ingredient> ingredients, IMarketSource market, IRecipeSource recipeSource, RealisticCraft.Options options, IDictionary<(string, long), Obtainment> memo)
         {
             // Obtain each direct ingredient realistically. This recurses into sub-crafts using the true
             // quantities needed for one batch of this recipe, so npc stock and bazaar volume limits are
@@ -278,7 +285,7 @@ namespace Coflnet.Sky.Crafts.Services
                     ingredient.BuyOrderCost = ingredient.Count;
                     return;
                 }
-                var obtainment = await RealisticCraft.ObtainAsync(ingredient.ItemId, ingredient.Count, market, recipeSource, options);
+                var obtainment = await RealisticCraft.ObtainAsync(ingredient.ItemId, ingredient.Count, market, recipeSource, options, memo);
                 ingredient.Cost = obtainment.Cost;
                 ingredient.BuyOrderCost = obtainment.Cost; // single blended figure (smart buyer already spreads across channels)
                 ingredient.CraftCost = obtainment.Method == "craft" ? obtainment.Cost : 0;
@@ -345,7 +352,7 @@ namespace Coflnet.Sky.Crafts.Services
 
         /// <summary>
         /// Builds the price tranches an item can realistically be bought from: npc stock, buy orders
-        /// filled by ~an hour of insta-sell volume, then the insta-buy order book (or auction bins).
+        /// filled by ~30 minutes of insta-sell volume, then the insta-buy order book (or auction bins).
         /// </summary>
         internal async Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, HashSet<string> bazaarItems)
         {
@@ -370,12 +377,16 @@ namespace Coflnet.Sky.Crafts.Services
                 batch.Prices.TryGetValue(bazaarTag, out var price);
                 batch.Books.TryGetValue(bazaarTag, out var book);
                 // Buy order channel: a competitive buy order sits at the insta-sell price and only
-                // ~1h of insta-sell volume realistically fills it before the price moves on.
+                // ~30 minutes of insta-sell volume realistically fills it before the price moves on.
                 if (price != null && price.SellPrice > 0)
                 {
                     var hourlyInstaSell = (long)(price.DailySellVolume / (24 / BuyOrderFillHours));
-                    if (hourlyInstaSell > 0)
-                        tranches.Add(new PriceTranche(price.SellPrice, hourlyInstaSell, "order"));
+                    // A single buy order can not hold more than MaxSingleOrderQuantity units regardless of
+                    // how much insta-sell volume would otherwise fill it - larger amounts need multiple
+                    // sequential orders, which is priced as extra craft-step effort, not a bigger tranche.
+                    var orderCapacity = Math.Min(hourlyInstaSell, RealisticCraft.MaxSingleOrderQuantity);
+                    if (orderCapacity > 0)
+                        tranches.Add(new PriceTranche(price.SellPrice, orderCapacity, "order"));
                 }
                 // Everything beyond that is insta-bought, walking the standing sell offers (SmartBuyer
                 // sorts cheapest first). The order book depth is a hard cap: you can not buy more than

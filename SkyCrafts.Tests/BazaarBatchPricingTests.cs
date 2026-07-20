@@ -41,7 +41,7 @@ public class BazaarBatchPricingTests
         bazaar.GetAllPricesAsync().Returns(new List<ItemPrice>
         {
             // sellPrice 50 = insta-sell price (a competitive buy order sits here);
-            // dailySellVolume 240000 => ~1h of insta-sells = 10000 fill the buy order channel.
+            // dailySellVolume 240000 => ~30 min of insta-sells = 5000 fill the buy order channel.
             new ItemPrice(Obsidian, buyPrice: 70, dailyBuyVolume: 500, dailySellVolume: 240000, sellPrice: 50),
         });
 
@@ -74,10 +74,10 @@ public class BazaarBatchPricingTests
         Assert.Equal(CalculatorService.DefaultNpcStock, npc.Capacity);
 
         // buy order channel: priced at the insta-sell price (50), NOT the insta-buy price (70),
-        // and capped at ~1h of insta-sell volume (240000 / 24 = 10000).
+        // and capped at ~30 min of insta-sell volume (240000 / 48 = 5000).
         var order = Assert.Single(tranches.Where(t => t.Source == "order"));
         Assert.Equal(50, order.UnitPrice);
-        Assert.Equal(10000, order.Capacity);
+        Assert.Equal(5000, order.Capacity);
 
         // insta-buy walk: comes from the standing sell offers, never the buy orders (48).
         var insta = tranches.Where(t => t.Source == "insta").OrderBy(t => t.UnitPrice).ToList();
@@ -122,6 +122,33 @@ public class BazaarBatchPricingTests
         // Despite three lookups across two items, each batch endpoint is hit exactly once.
         await bazaar.Received(1).GetAllPricesAsync();
         await orderBook.Received(1).GetOrderBooksAsync(Arg.Any<List<string>>());
+    }
+
+    [Fact]
+    public async Task OrderTrancheCapacity_IsCappedAtSingleOrderMax_EvenWithEnormousDailyVolume()
+    {
+        // An enormous daily sell volume would otherwise imply a huge "order" tranche, but a single
+        // bazaar buy order can never hold more than RealisticCraft.MaxSingleOrderQuantity units, so
+        // the tranche capacity must be capped there regardless of how much insta-sell volume exists.
+        var config = Substitute.For<IConfiguration>();
+        var playerItemsApi = Substitute.For<IItemsApi>();
+        playerItemsApi.ApiItemsNpccostGetAsync().Returns(new List<NpcCost>());
+        var bazaar = Substitute.For<IBazaarApi>();
+        bazaar.GetAllPricesAsync().Returns(new List<ItemPrice>
+        {
+            new ItemPrice(Obsidian, buyPrice: 70, dailyBuyVolume: 500, dailySellVolume: 100_000_000, sellPrice: 50),
+        });
+        var orderBook = Substitute.For<IOrderBookApi>();
+        orderBook.GetOrderBooksAsync(Arg.Any<List<string>>()).Returns(new Dictionary<string, OrderBook>
+        {
+            [Obsidian] = new OrderBook(buy: new List<OrderEntry>(), sell: new List<OrderEntry>()),
+        });
+        var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
+
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+
+        var order = Assert.Single(tranches.Where(t => t.Source == "order"));
+        Assert.Equal(RealisticCraft.MaxSingleOrderQuantity, order.Capacity);
     }
 
     [Fact]

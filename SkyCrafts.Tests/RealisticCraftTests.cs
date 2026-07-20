@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Coflnet.Sky.Crafts.Services;
 using Xunit;
@@ -450,5 +452,203 @@ public class RealisticCraftTests
         var options = new RealisticCraft.Options();
         var directExpected = 160 * 1 * options.CraftStepMarkup + options.CraftStepFlatCoins;
         Assert.Equal(directExpected, result.Cost, 6);
+    }
+
+    // --- Shared per-pass memo (CalculatorService threads one memo across every item in a pass) ---
+
+    /// <summary>Wraps a market and counts how many times GetBuyTranchesAsync was called per tag.</summary>
+    private class CountingMarket : IMarketSource
+    {
+        private readonly IMarketSource inner;
+        private readonly ConcurrentDictionary<string, int> counts = new();
+        public CountingMarket(IMarketSource inner) => this.inner = inner;
+        public int CallsFor(string tag) => counts.TryGetValue(tag, out var c) ? c : 0;
+        public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag)
+        {
+            counts.AddOrUpdate(tag, 1, (_, existing) => existing + 1);
+            return inner.GetBuyTranchesAsync(tag);
+        }
+    }
+
+    // BASE: cheap, effectively unlimited npc supply.
+    // SHARED: craftable from 10 BASE, no buy option (crafting forced) - shared sub-craft between two parents.
+    // PARENT_A / PARENT_B: each craftable from 5 SHARED (same quantity!), no buy option, so both parents
+    // hit the exact same (SHARED, 5) memo key.
+    private static (FakeMarket market, FakeRecipes recipes) BuildSharedSubcraftWorld()
+    {
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new() { new PriceTranche(1, 100_000_000, "npc") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["SHARED"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 10) }, 1) };
+        recipes.Recipes["PARENT_A"] = new() { new RecipeOption(new List<(string tag, long count)> { ("SHARED", 5) }, 1) };
+        recipes.Recipes["PARENT_B"] = new() { new RecipeOption(new List<(string tag, long count)> { ("SHARED", 5) }, 1) };
+        return (market, recipes);
+    }
+
+    [Fact]
+    public async Task SharedMemo_ProducesIdenticalResults_ToIndependentFreshMemos()
+    {
+        var (market, recipes) = BuildSharedSubcraftWorld();
+        var options = new RealisticCraft.Options();
+
+        // Independent evaluation: each parent uses the public overload, which allocates its own fresh memo.
+        var independentA = await RealisticCraft.ObtainAsync("PARENT_A", 1, market, recipes, options);
+        var independentB = await RealisticCraft.ObtainAsync("PARENT_B", 1, market, recipes, options);
+
+        // Shared evaluation: both parents obtained against one shared memo (as CalculatorService now does
+        // for a whole pricing pass).
+        var sharedMemo = new ConcurrentDictionary<(string, long), Obtainment>();
+        var sharedA = await RealisticCraft.ObtainAsync("PARENT_A", 1, market, recipes, options, sharedMemo);
+        var sharedB = await RealisticCraft.ObtainAsync("PARENT_B", 1, market, recipes, options, sharedMemo);
+
+        Assert.Equal(independentA.Cost, sharedA.Cost);
+        Assert.Equal(independentA.Method, sharedA.Method);
+        Assert.Equal(independentA.Enough, sharedA.Enough);
+        Assert.Equal(independentB.Cost, sharedB.Cost);
+        Assert.Equal(independentB.Method, sharedB.Method);
+        Assert.Equal(independentB.Enough, sharedB.Enough);
+    }
+
+    [Fact]
+    public async Task SharedMemo_AvoidsRecomputingSharedSubcraft_AcrossParents()
+    {
+        var (rawMarket, recipes) = BuildSharedSubcraftWorld();
+        var options = new RealisticCraft.Options();
+
+        // Fresh-memo-per-parent baseline: the shared sub-craft (and its BASE ingredient) is recomputed
+        // from scratch for the second parent.
+        var freshCountingMarket = new CountingMarket(rawMarket);
+        await RealisticCraft.ObtainAsync("PARENT_A", 1, freshCountingMarket, recipes, options);
+        await RealisticCraft.ObtainAsync("PARENT_B", 1, freshCountingMarket, recipes, options);
+        var freshSharedCalls = freshCountingMarket.CallsFor("SHARED");
+
+        // Shared-memo pass: the second parent's identical (SHARED, 5) need is served straight from the memo.
+        var sharedCountingMarket = new CountingMarket(rawMarket);
+        var sharedMemo = new ConcurrentDictionary<(string, long), Obtainment>();
+        await RealisticCraft.ObtainAsync("PARENT_A", 1, sharedCountingMarket, recipes, options, sharedMemo);
+        await RealisticCraft.ObtainAsync("PARENT_B", 1, sharedCountingMarket, recipes, options, sharedMemo);
+        var sharedSharedCalls = sharedCountingMarket.CallsFor("SHARED");
+
+        Assert.True(sharedSharedCalls < freshSharedCalls, $"expected shared-memo calls ({sharedSharedCalls}) to be strictly fewer than fresh-memo calls ({freshSharedCalls})");
+        Assert.Equal(1, sharedSharedCalls); // computed exactly once, then served from the memo
+        Assert.Equal(2, freshSharedCalls); // recomputed once per parent without a shared memo
+    }
+
+    [Fact]
+    public async Task SharedMemo_KeysByQuantity_DoesNotCollideAcrossDifferentQuantities()
+    {
+        // ITEM: 5 units cheap via npc @10, everything beyond that insta bought @100. Quantity 3 stays
+        // entirely within the cheap npc tranche; quantity 10 spills into the expensive insta tranche, so
+        // the two quantities must yield genuinely different per-unit costs.
+        var market = new FakeMarket();
+        market.Tranches["ITEM"] = new()
+        {
+            new PriceTranche(10, 5, "npc"),
+            new PriceTranche(100, 100_000_000, "insta"),
+        };
+        var recipes = new FakeRecipes();
+        var sharedMemo = new ConcurrentDictionary<(string, long), Obtainment>();
+
+        var small = await RealisticCraft.ObtainAsync("ITEM", 3, market, recipes, new RealisticCraft.Options(), sharedMemo);
+        var large = await RealisticCraft.ObtainAsync("ITEM", 10, market, recipes, new RealisticCraft.Options(), sharedMemo);
+
+        Assert.Equal(3 * 10d, small.Cost);
+        Assert.Equal(5 * 10d + 5 * 100d, large.Cost);
+        Assert.NotEqual(small.Cost / 3, large.Cost / 10); // no cross-quantity collision in the shared memo
+    }
+
+    [Fact]
+    public async Task SharedMemo_IsSafeUnderConcurrentAccess()
+    {
+        var (market, recipes) = BuildSharedSubcraftWorld();
+        var options = new RealisticCraft.Options();
+        var sharedMemo = new ConcurrentDictionary<(string, long), Obtainment>();
+        var expected = await RealisticCraft.ObtainAsync("PARENT_A", 1, market, recipes, options);
+
+        var tasks = Enumerable.Range(0, 50)
+            .Select(i => RealisticCraft.ObtainAsync(i % 2 == 0 ? "PARENT_A" : "PARENT_B", 1, market, recipes, options, sharedMemo))
+            .ToArray();
+        var results = await Task.WhenAll(tasks);
+
+        Assert.All(results, r =>
+        {
+            Assert.Equal("craft", r.Method);
+            Assert.Equal(expected.Cost, r.Cost);
+            Assert.True(r.Enough);
+        });
+    }
+
+    // --- Bulk-order craft-step penalty (Options.MaxSingleOrderQuantity / BulkCraftStepMarkup) ---
+    // A single bazaar buy order can not hold more than MaxSingleOrderQuantity units of one item, so a
+    // craft step that needs more of an ingredient than that takes several sequential orders (moving the
+    // price) and should be priced with the higher BulkCraftStepMarkup instead of the normal CraftStepMarkup.
+
+    [Fact]
+    public async Task BulkOrdering_NotTriggered_WhenIngredientStaysAtOrBelowCap()
+    {
+        // ITEM has no buy tranche (forces crafting) and is craftable 1:1 from BASE. Requesting exactly
+        // MaxSingleOrderQuantity units means the ingredient need equals the cap - not over it - so the
+        // normal per-step markup applies.
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new() { new PriceTranche(1, 1_000_000_000, "npc") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ITEM"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 1) }, 1) };
+        var options = new RealisticCraft.Options();
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", options.MaxSingleOrderQuantity, market, recipes, options);
+
+        Assert.Equal("craft", result.Method);
+        var rawCraftCost = options.MaxSingleOrderQuantity * 1d;
+        var expected = rawCraftCost * options.CraftStepMarkup + options.CraftStepFlatCoins;
+        Assert.Equal(expected, result.Cost, 6);
+    }
+
+    [Fact]
+    public async Task BulkOrdering_Triggered_WhenIngredientExceedsCap()
+    {
+        // Same shape as above, but one unit past the cap: the ingredient need (MaxSingleOrderQuantity + 1)
+        // now exceeds a single bazaar order, so the higher BulkCraftStepMarkup must apply instead.
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new() { new PriceTranche(1, 1_000_000_000, "npc") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ITEM"] = new() { new RecipeOption(new List<(string tag, long count)> { ("BASE", 1) }, 1) };
+        var options = new RealisticCraft.Options();
+        var quantity = options.MaxSingleOrderQuantity + 1;
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", quantity, market, recipes, options);
+
+        Assert.Equal("craft", result.Method);
+        var rawCraftCost = quantity * 1d;
+        var expected = rawCraftCost * options.BulkCraftStepMarkup + options.CraftStepFlatCoins;
+        Assert.Equal(expected, result.Cost, 6);
+    }
+
+    [Fact]
+    public async Task BulkOrdering_IsPerCandidate_NotGlobalAcrossRecipes()
+    {
+        // ITEM has two recipes: a cheap direct one that stays well under the single-order cap, and a
+        // pricier one that needs a huge amount of a different ingredient (over the cap). The bulk markup
+        // decision must be scoped to each candidate individually - the winning (cheap, under-cap)
+        // candidate must keep the normal markup even though the losing candidate would have needed bulk
+        // ordering. A buggy "global" implementation (bulk if ANY candidate needs it) would instead apply
+        // BulkCraftStepMarkup to the winner too, producing a different (higher) cost than asserted here.
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new() { new PriceTranche(1, 1_000_000_000, "npc") };
+        market.Tranches["OTHER"] = new() { new PriceTranche(10, 1_000_000_000, "insta") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ITEM"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("BASE", 1) }, 1),     // cheap, stays under cap
+            new RecipeOption(new List<(string tag, long count)> { ("OTHER", 1000) }, 1), // pricier, goes over cap
+        };
+        var options = new RealisticCraft.Options();
+        var quantity = 100; // BASE need: 1*100=100 (well under cap); OTHER need: 1000*100=100000 (over cap)
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", quantity, market, recipes, options);
+
+        Assert.Equal("craft", result.Method);
+        var rawCraftCost = quantity * 1d; // via BASE - the cheap, under-cap candidate wins
+        var expected = rawCraftCost * options.CraftStepMarkup + options.CraftStepFlatCoins; // normal, not bulk, markup
+        Assert.Equal(expected, result.Cost, 6);
     }
 }
