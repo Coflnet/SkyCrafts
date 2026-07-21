@@ -305,6 +305,17 @@ namespace Coflnet.Sky.Crafts.Services
                 ingredient.BuyOrderCost = obtainment.BuyCost > 0 ? obtainment.BuyCost : obtainment.Cost;
                 ingredient.CraftCost = obtainment.Method == "craft" ? obtainment.Cost : 0;
                 ingredient.Type = obtainment.Method == "buy" ? null : obtainment.Method; // "craft" / "npc" / "bits" / "copper" / "mote" / null(=bought)
+
+                // Quantity independent buy-order/insta-buy split for frontend tooltips ("place a buy
+                // order for X units, insta-buy the remaining Z units"). Fetched directly rather than
+                // threaded through Obtainment/SmartBuyer.Cost so those stay unchanged for existing
+                // callers; GetBuyTranchesAsync is cheap to call repeatedly (its underlying bazaar batch
+                // is cached per pricing pass, see IMarketSource.GetBuyTranchesAsync's doc comment).
+                var tranches = await market.GetBuyTranchesAsync(ingredient.ItemId);
+                var (capacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches ?? Array.Empty<PriceTranche>());
+                ingredient.BuyOrderCapacity = capacity;
+                ingredient.BuyOrderUnitPrice = orderUnitPrice;
+                ingredient.InstaBuyUnitPrice = instaUnitPrice;
             }).ToArray());
             return ingredients.Sum(i => i.Cost);
         }

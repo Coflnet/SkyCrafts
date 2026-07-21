@@ -76,6 +76,43 @@ public static class SmartBuyer
         var dominant = perSource.Count == 0 ? "buy" : perSource.OrderByDescending(p => p.Value).First().Key;
         return (cost, Math.Max(0, remaining), dominant);
     }
+
+    /// <summary>
+    /// Summarizes <paramref name="tranches"/> into the quantity-independent numbers a frontend tooltip
+    /// needs: how much can be sourced cheaply (npc + "order" tranches) and at what representative unit
+    /// price, plus the marginal per-unit cost of insta-buying beyond that. Mirrors the same tranche
+    /// filter <see cref="Cost"/> uses (Capacity > 0 and UnitPrice >= 0) so the two stay consistent.
+    /// </summary>
+    /// <returns>
+    /// capacity: total units obtainable via npc + "order" tranches;
+    /// orderUnitPrice: capacity-weighted average unit price over that cheap bucket, or 0 if capacity is 0;
+    /// instaUnitPrice: cheapest "insta" tranche unit price, or 0 if there are none.
+    /// </returns>
+    public static (long capacity, double orderUnitPrice, double instaUnitPrice) SummarizeTranches(IEnumerable<PriceTranche> tranches)
+    {
+        long capacity = 0;
+        double weightedCost = 0;
+        double instaUnitPrice = 0;
+        var hasInsta = false;
+        foreach (var tranche in tranches.Where(t => t.Capacity > 0 && t.UnitPrice >= 0))
+        {
+            if (tranche.Source == "npc" || tranche.Source == "order")
+            {
+                capacity += tranche.Capacity;
+                weightedCost += tranche.UnitPrice * tranche.Capacity;
+            }
+            else if (tranche.Source == "insta")
+            {
+                if (!hasInsta || tranche.UnitPrice < instaUnitPrice)
+                {
+                    instaUnitPrice = tranche.UnitPrice;
+                    hasInsta = true;
+                }
+            }
+        }
+        var orderUnitPrice = capacity > 0 ? weightedCost / capacity : 0;
+        return (capacity, orderUnitPrice, hasInsta ? instaUnitPrice : 0);
+    }
 }
 
 /// <summary>Provides the price tranches an item can be bought from (npc + market).</summary>
