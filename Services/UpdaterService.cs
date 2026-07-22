@@ -67,7 +67,7 @@ namespace Coflnet.Sky.Crafts.Services
                 try
                 {
                     await forgeCraftService.Update(Crafts, craftable);
-                    if (i % 20 == 0)
+                    if (i++ % 20 == 0)
                     {
                         await priceDropService.UpdateAll(Crafts);
                         logger.LogInformation("Updated price drops");
