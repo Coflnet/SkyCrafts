@@ -59,25 +59,28 @@ public class SmartBuyerTests
     }
 
     [Fact]
-    public void SummarizeTranches_NpcOrderAndInsta_CombinesCheapBucketAndTakesCheapestInsta()
+    public void SummarizeTranches_NpcOrderAndInsta_SeparatesNpcFromOrderAndTakesCheapestInsta()
     {
         var tranches = new[]
         {
             new PriceTranche(30, 640, "npc"),
+            new PriceTranche(35, 60, "npc"),    // second npc tranche, weighted into the npc bucket
             new PriceTranche(40, 100, "order"),
             new PriceTranche(60, 500, "insta"),
             new PriceTranche(70, 500, "insta"), // pricier insta tranche, must not win
         };
 
-        var (capacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
-        Assert.Equal(640 + 100, capacity);
-        Assert.Equal((30d * 640 + 40d * 100) / (640 + 100), orderUnitPrice, 6);
+        Assert.Equal(640 + 60, npcCapacity);
+        Assert.Equal((30d * 640 + 35d * 60) / (640 + 60), npcUnitPrice, 6);
+        Assert.Equal(100, orderCapacity);
+        Assert.Equal(40d, orderUnitPrice, 6);
         Assert.Equal(60d, instaUnitPrice);
     }
 
     [Fact]
-    public void SummarizeTranches_OnlyInsta_ReportsZeroCapacityAndCheapestInsta()
+    public void SummarizeTranches_OnlyInsta_ReportsZeroCapacitiesAndCheapestInsta()
     {
         var tranches = new[]
         {
@@ -85,9 +88,11 @@ public class SmartBuyerTests
             new PriceTranche(60, 500, "insta"),
         };
 
-        var (capacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
-        Assert.Equal(0, capacity);
+        Assert.Equal(0, npcCapacity);
+        Assert.Equal(0d, npcUnitPrice);
+        Assert.Equal(0, orderCapacity);
         Assert.Equal(0d, orderUnitPrice);
         Assert.Equal(60d, instaUnitPrice);
     }
@@ -101,10 +106,12 @@ public class SmartBuyerTests
             new PriceTranche(40, 100, "order"),
         };
 
-        var (capacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
-        Assert.Equal(640 + 100, capacity);
-        Assert.Equal((30d * 640 + 40d * 100) / (640 + 100), orderUnitPrice, 6);
+        Assert.Equal(640, npcCapacity);
+        Assert.Equal(30d, npcUnitPrice, 6);
+        Assert.Equal(100, orderCapacity);
+        Assert.Equal(40d, orderUnitPrice, 6);
         Assert.Equal(0d, instaUnitPrice);
     }
 
@@ -118,9 +125,11 @@ public class SmartBuyerTests
             new PriceTranche(40, 100, "order"),
         };
 
-        var (capacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
-        Assert.Equal(100, capacity);
+        Assert.Equal(0, npcCapacity);
+        Assert.Equal(0d, npcUnitPrice);
+        Assert.Equal(100, orderCapacity);
         Assert.Equal(40d, orderUnitPrice);
         Assert.Equal(0d, instaUnitPrice);
     }
@@ -757,10 +766,10 @@ public class RealisticCraftTests
     }
 
     [Fact]
-    public async Task PriceIngredientsAsync_PopulatesBuyOrderCapacityAndUnitPrices()
+    public async Task PriceIngredientsAsync_PopulatesNpcOrderAndInstaAcquisitionFields()
     {
         // OBSIDIAN has npc + insta tranches (see BuildObsidianWorld); add an "order" tranche too so the
-        // cheap bucket combines npc+order and the insta bucket stays separate.
+        // npc, buy-order and insta buckets are each populated separately.
         var (market, recipes) = BuildObsidianWorld();
         market.Tranches["OBSIDIAN"].Add(new PriceTranche(40, 100, "order"));
         var options = new RealisticCraft.Options();
@@ -770,8 +779,10 @@ public class RealisticCraftTests
         await CalculatorService.PriceIngredientsAsync(ingredients, market, recipes, options, memo);
 
         var obsidian = ingredients.Single();
-        Assert.Equal(640 + 100, obsidian.BuyOrderCapacity);
-        Assert.Equal((30d * 640 + 40d * 100) / (640 + 100), obsidian.BuyOrderUnitPrice, 6);
+        Assert.Equal(640, obsidian.NpcCapacity);
+        Assert.Equal(30d, obsidian.NpcUnitPrice, 6);
+        Assert.Equal(100, obsidian.BuyOrderCapacity);
+        Assert.Equal(40d, obsidian.BuyOrderUnitPrice, 6);
         Assert.Equal(50d, obsidian.InstaBuyUnitPrice);
     }
 

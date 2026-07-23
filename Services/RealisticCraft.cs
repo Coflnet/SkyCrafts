@@ -78,28 +78,38 @@ public static class SmartBuyer
     }
 
     /// <summary>
-    /// Summarizes <paramref name="tranches"/> into the quantity-independent numbers a frontend tooltip
-    /// needs: how much can be sourced cheaply (npc + "order" tranches) and at what representative unit
-    /// price, plus the marginal per-unit cost of insta-buying beyond that. Mirrors the same tranche
-    /// filter <see cref="Cost"/> uses (Capacity > 0 and UnitPrice >= 0) so the two stay consistent.
+    /// Summarizes <paramref name="tranches"/> into the quantity-independent numbers a frontend acquisition
+    /// breakdown needs: how many units come from npc stock and at what price, how many from a competitive
+    /// bazaar buy order and at what price, and the marginal per-unit cost of insta-buying beyond that. The
+    /// npc and "order" buckets are kept SEPARATE (they were merged in an earlier version) so the frontend can
+    /// show a per-channel breakdown ("640 from npc, 27 119 buy-ordered, the rest insta-bought"). Mirrors the
+    /// same tranche filter <see cref="Cost"/> uses (Capacity > 0 and UnitPrice >= 0) so the two stay consistent.
     /// </summary>
     /// <returns>
-    /// capacity: total units obtainable via npc + "order" tranches;
-    /// orderUnitPrice: capacity-weighted average unit price over that cheap bucket, or 0 if capacity is 0;
-    /// instaUnitPrice: cheapest "insta" tranche unit price, or 0 if there are none.
+    /// npcCapacity: units obtainable from npc stock; npcUnitPrice: capacity-weighted avg npc unit price (0 if none);
+    /// orderCapacity: units obtainable via competitive buy orders; orderUnitPrice: capacity-weighted avg buy-order
+    /// unit price (0 if none); instaUnitPrice: cheapest "insta" tranche unit price, i.e. the marginal price once
+    /// npc + orders are exhausted (0 if there are no insta tranches).
     /// </returns>
-    public static (long capacity, double orderUnitPrice, double instaUnitPrice) SummarizeTranches(IEnumerable<PriceTranche> tranches)
+    public static (long npcCapacity, double npcUnitPrice, long orderCapacity, double orderUnitPrice, double instaUnitPrice) SummarizeTranches(IEnumerable<PriceTranche> tranches)
     {
-        long capacity = 0;
-        double weightedCost = 0;
+        long npcCapacity = 0;
+        double npcWeightedCost = 0;
+        long orderCapacity = 0;
+        double orderWeightedCost = 0;
         double instaUnitPrice = 0;
         var hasInsta = false;
         foreach (var tranche in tranches.Where(t => t.Capacity > 0 && t.UnitPrice >= 0))
         {
-            if (tranche.Source == "npc" || tranche.Source == "order")
+            if (tranche.Source == "npc")
             {
-                capacity += tranche.Capacity;
-                weightedCost += tranche.UnitPrice * tranche.Capacity;
+                npcCapacity += tranche.Capacity;
+                npcWeightedCost += tranche.UnitPrice * tranche.Capacity;
+            }
+            else if (tranche.Source == "order")
+            {
+                orderCapacity += tranche.Capacity;
+                orderWeightedCost += tranche.UnitPrice * tranche.Capacity;
             }
             else if (tranche.Source == "insta")
             {
@@ -110,8 +120,9 @@ public static class SmartBuyer
                 }
             }
         }
-        var orderUnitPrice = capacity > 0 ? weightedCost / capacity : 0;
-        return (capacity, orderUnitPrice, hasInsta ? instaUnitPrice : 0);
+        var npcUnitPrice = npcCapacity > 0 ? npcWeightedCost / npcCapacity : 0;
+        var orderUnitPrice = orderCapacity > 0 ? orderWeightedCost / orderCapacity : 0;
+        return (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, hasInsta ? instaUnitPrice : 0);
     }
 }
 
