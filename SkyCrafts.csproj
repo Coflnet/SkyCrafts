@@ -23,7 +23,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.7.6" />
+    <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.7.7" />
     <PackageReference Include="Coflnet.Sky.Bazaar.Client" Version="0.10.0" />
     <PackageReference Include="Coflnet.Sky.Bazaar.Flipper.Client" Version="0.7.0" />
     <PackageReference Include="Coflnet.Sky.PlayerState.Client" Version="0.17.0" />

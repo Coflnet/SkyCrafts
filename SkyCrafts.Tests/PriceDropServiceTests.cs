@@ -21,7 +21,6 @@ public class PriceDropServiceTests
         [
             new ItemMetadataElement(tag, tag, (ItemFlags)17)
         ]));
-        itemsApi.ApiItemsBazaarTagsGetAsync().Returns(Task.FromResult<List<string>>([tag]));
         pricesApi.ApiItemPriceItemTagHistoryMonthGetAsync(tag, Arg.Any<Dictionary<string, string>>())
             .Returns(Task.FromResult<List<AveragePrice>>(
             [
@@ -43,5 +42,6 @@ public class PriceDropServiceTests
         Assert.Equal(12_000_000, statistic.Monthly);
         Assert.Equal(12_500_000, statistic.Recent);
         Assert.Equal(13_000_000, statistic.Now);
+        await itemsApi.DidNotReceive().ApiItemsBazaarTagsGetAsync();
     }
 }
