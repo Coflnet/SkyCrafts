@@ -25,8 +25,9 @@ public class PriceDropService
     public async Task UpdateAll(Dictionary<string, ProfitableCraft> crafts)
     {
         var all = await itemsApi.ApiItemsGetAsync();
+        var bazaarTags = (await itemsApi.ApiItemsBazaarTagsGetAsync()).ToHashSet();
         logger.LogInformation($"Updating prices-drops for {all.Count} items");
-        foreach (var item in all.Where(i => i.Flags.HasFlag(Api.Client.Model.ItemFlags.BAZAAR) ||
+        foreach (var item in all.Where(i => bazaarTags.Contains(i.Tag) ||
             i.Flags.HasFlag(Api.Client.Model.ItemFlags.AUCTION)))
         {
             try
