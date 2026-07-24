@@ -7,11 +7,21 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Xunit;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 namespace SkyCrafts.Tests;
 
 public class KatUpgradeServiceTests
 {
+    [Fact]
+    public void NbtData_DeserializesArbitraryValues()
+    {
+        var nbt = JsonConvert.DeserializeObject<NbtData>(
+            """{"data":{"petInfo":"{\"type\":\"HORSE\"}","exp":123.4}}""");
+
+        Assert.Equal("""{"type":"HORSE"}""", nbt!.Data["petInfo"]);
+    }
+
     [Theory]
     [InlineData(11, 19, false)] // Nov 19 - should be inactive
     [InlineData(11, 20, true)]  // Nov 20 - should be active
