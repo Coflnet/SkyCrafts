@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Coflnet.Sky.Crafts.Models;
 
 namespace Coflnet.Sky.Crafts.Services;
 
@@ -39,7 +40,12 @@ public readonly struct PriceTranche
 /// alternative. Lets callers show how much a chosen craft saves vs. just buying the item, even
 /// though <see cref="Cost"/>/<see cref="Method"/> may reflect the cheaper craft path instead.
 /// </param>
-public record Obtainment(double Cost, bool Enough, string Method, double BuyCost = 0);
+public record Obtainment(double Cost, bool Enough, string Method, double BuyCost = 0)
+{
+    public CraftAcquisitionPlan Plan { get; init; }
+}
+
+public record PurchaseFillResult(double Cost, long Unmet, string DominantSource, IReadOnlyList<AcquisitionFill> Fills);
 
 /// <summary>
 /// Fills an order from the cheapest available price tranches first, respecting each tranche's
@@ -58,23 +64,31 @@ public static class SmartBuyer
     /// </returns>
     public static (double filled, long unmet, string dominantSource) Cost(IEnumerable<PriceTranche> tranches, long quantity)
     {
+        var result = Fill(tranches, quantity);
+        return (result.Cost, result.Unmet, result.DominantSource);
+    }
+
+    public static PurchaseFillResult Fill(IEnumerable<PriceTranche> tranches, long quantity, double maxUnitPrice = double.PositiveInfinity)
+    {
         if (quantity <= 0)
-            return (0, 0, "buy");
+            return new PurchaseFillResult(0, 0, "buy", Array.Empty<AcquisitionFill>());
         double cost = 0;
         long remaining = quantity;
         var perSource = new Dictionary<string, long>();
-        foreach (var tranche in tranches.Where(t => t.Capacity > 0 && t.UnitPrice >= 0).OrderBy(t => t.UnitPrice))
+        var fills = new List<AcquisitionFill>();
+        foreach (var tranche in tranches.Where(t => t.Capacity > 0 && t.UnitPrice >= 0 && t.UnitPrice < maxUnitPrice).OrderBy(t => t.UnitPrice))
         {
             if (remaining <= 0)
                 break;
             var take = Math.Min(remaining, tranche.Capacity);
             cost += take * tranche.UnitPrice;
             remaining -= take;
+            fills.Add(new AcquisitionFill { Source = tranche.Source, Quantity = take, UnitPrice = tranche.UnitPrice, Cost = take * tranche.UnitPrice });
             perSource.TryGetValue(tranche.Source, out var existing);
             perSource[tranche.Source] = existing + take;
         }
         var dominant = perSource.Count == 0 ? "buy" : perSource.OrderByDescending(p => p.Value).First().Key;
-        return (cost, Math.Max(0, remaining), dominant);
+        return new PurchaseFillResult(cost, Math.Max(0, remaining), dominant, fills);
     }
 
     /// <summary>
@@ -219,6 +233,8 @@ public static class RealisticCraft
         /// every SkyBazaarFlipper.Constants.CopperConstants entry, ignoring the (always >= 0) item buy price.
         /// </summary>
         public double CoinsPerCopper { get; set; } = 2000;
+        /// <summary>Include the selected quantity-specific acquisition tree in the result.</summary>
+        public bool BuildPlan { get; set; }
     }
 
     /// <summary>
@@ -227,7 +243,7 @@ public static class RealisticCraft
     public static async Task<Obtainment> ObtainAsync(string tag, long quantity, IMarketSource market, IRecipeSource recipes, Options options = null)
     {
         options ??= new Options();
-        var (result, _) = await ObtainAsync(tag, quantity, market, recipes, options, 0, new HashSet<string>(), new Dictionary<(string, long), Obtainment>());
+        var (result, _) = await ObtainAsync(tag, quantity, market, recipes, options, 0, new HashSet<string>(), new Dictionary<(string, long), Obtainment>(), false, true);
         return result;
     }
 
@@ -241,7 +257,15 @@ public static class RealisticCraft
     public static async Task<Obtainment> ObtainAsync(string tag, long quantity, IMarketSource market, IRecipeSource recipes, Options options, IDictionary<(string, long), Obtainment> memo)
     {
         options ??= new Options();
-        var (result, _) = await ObtainAsync(tag, quantity, market, recipes, options, 0, new HashSet<string>(), memo);
+        var (result, _) = await ObtainAsync(tag, quantity, market, recipes, options, 0, new HashSet<string>(), memo, false, true);
+        return result;
+    }
+
+    public static async Task<Obtainment> ObtainCraftAsync(string tag, long quantity, IMarketSource market, IRecipeSource recipes, Options options = null)
+    {
+        options ??= new Options();
+        options.BuildPlan = true;
+        var (result, _) = await ObtainAsync(tag, quantity, market, recipes, options, 0, new HashSet<string>(), new Dictionary<(string, long), Obtainment>(), true, false);
         return result;
     }
 
@@ -253,7 +277,7 @@ public static class RealisticCraft
     /// never be memoized or trusted from the memo.
     /// </summary>
     private static async Task<(Obtainment result, bool exact)> ObtainAsync(string tag, long quantity, IMarketSource market, IRecipeSource recipes,
-        Options options, int depth, HashSet<string> stack, IDictionary<(string, long), Obtainment> memo)
+        Options options, int depth, HashSet<string> stack, IDictionary<(string, long), Obtainment> memo, bool forceCraft, bool allowHybrid)
     {
         if (quantity <= 0)
             return (new Obtainment(0, true, "buy"), true);
@@ -278,12 +302,14 @@ public static class RealisticCraft
             // stays unobtainable (Enough=false) - same treatment as the generic fallback - but is still
             // tagged distinctly so the parent craft is excluded from the normal profit lists.
             return (new Obtainment(quantity * options.UnmetFallbackUnitPrice, false, "mote"), true);
-        if (memo.TryGetValue((tag, quantity), out var cached))
+        if (!forceCraft && memo.TryGetValue((tag, quantity), out var cached))
             return (cached, true);
 
         // Option 1: buy the item on the market (npc + buy orders + insta buy), supply limited.
-        var buy = await BuyAsync(tag, quantity, market, options);
+        var tranches = await market.GetBuyTranchesAsync(tag) ?? Array.Empty<PriceTranche>();
+        var buy = Buy(tag, quantity, tranches, options);
         var best = buy;
+        Obtainment bestCraft = null;
         // Buying alone is always exact: it has no recursion/context dependence.
         var exact = true;
         // The genuine cost of buying this item outright, kept alongside whatever ends up cheapest
@@ -333,7 +359,7 @@ public static class RealisticCraft
                     // tightens the ceiling for later ones. When buying can not supply enough there is no
                     // ceiling, so every ingredient is still explored.
                     double craftCostCeiling;
-                    if (best.Enough)
+                    if (best.Enough && !options.BuildPlan)
                     {
                         var marginAdjusted = best.Cost / options.CraftPreferenceMargin - options.CraftStepFlatCoins;
                         // If even zero flat/markup overhead can't beat buying, crafting can never win here.
@@ -345,6 +371,7 @@ public static class RealisticCraft
                     }
                     double craftCost = 0;
                     var craftViable = true;
+                    var childPlans = options.BuildPlan ? new List<CraftAcquisitionPlan>() : null;
                     // Recurse the biggest quantities first so an over-budget ingredient trips the ceiling sooner.
                     foreach (var ingredient in ingredients.OrderByDescending(i => i.count))
                     {
@@ -354,8 +381,10 @@ public static class RealisticCraft
                             craftViable = false;
                             break;
                         }
-                        var (sub, subExact) = await ObtainAsync(ingredient.tag, ingredient.count * batches, market, recipes, options, depth + 1, stack, memo);
+                        var (sub, subExact) = await ObtainAsync(ingredient.tag, ingredient.count * batches, market, recipes, options, depth + 1, stack, memo, false, true);
                         craftCost += sub.Cost;
+                        if (sub.Plan != null)
+                            childPlans?.Add(sub.Plan);
                         if (!subExact)
                             subsExact = false;
                         if (!sub.Enough)
@@ -369,12 +398,27 @@ public static class RealisticCraft
                     if (craftViable)
                     {
                         var effectiveCraftCost = craftCost * stepFactor + options.CraftStepFlatCoins;
+                        var craftResult = new Obtainment(effectiveCraftCost, true, "craft")
+                        {
+                            Plan = options.BuildPlan ? new CraftAcquisitionPlan
+                            {
+                                ItemId = tag,
+                                Quantity = quantity,
+                                Cost = craftCost,
+                                Enough = true,
+                                Method = "craft",
+                                CraftedQuantity = quantity,
+                                Ingredients = childPlans
+                            } : null
+                        };
+                        if (bestCraft == null || craftResult.Cost < bestCraft.Cost)
+                            bestCraft = craftResult;
                         // Prefer this candidate when it is meaningfully cheaper than the current best, or
                         // when the current best can not supply enough.
                         var craftBeatsBest = effectiveCraftCost * options.CraftPreferenceMargin < best.Cost || !best.Enough;
                         if (craftBeatsBest)
                         {
-                            best = new Obtainment(effectiveCraftCost, true, "craft");
+                            best = craftResult;
                         }
                     }
                     // else: candidate is not viable (ceiling prune or unmet ingredient); best is unchanged
@@ -391,27 +435,108 @@ public static class RealisticCraft
             }
         }
 
+        if (options.BuildPlan)
+        {
+            if (forceCraft)
+            {
+                best = bestCraft ?? buy;
+            }
+            else
+            {
+                best = buy;
+                var bestScore = buy.Enough ? buy.Cost : double.PositiveInfinity;
+                if (bestCraft?.Enough == true && bestCraft.Cost * options.CraftPreferenceMargin < bestScore)
+                {
+                    best = bestCraft;
+                    bestScore = bestCraft.Cost * options.CraftPreferenceMargin;
+                }
+
+                if (allowHybrid && bestCraft?.Enough == true)
+                {
+                    var cheapPurchases = SmartBuyer.Fill(tranches, quantity, bestCraft.Cost / quantity);
+                    if (cheapPurchases.Unmet > 0 && cheapPurchases.Unmet < quantity)
+                    {
+                        var (remainderCraft, remainderExact) = await ObtainAsync(tag, cheapPurchases.Unmet, market, recipes, options,
+                            depth, stack, memo, true, false);
+                        exact &= remainderExact;
+                        var hybridScore = cheapPurchases.Cost + remainderCraft.Cost * options.CraftPreferenceMargin;
+                        if (remainderCraft.Enough && hybridScore < bestScore)
+                        {
+                            var hybridCost = cheapPurchases.Cost + remainderCraft.Cost;
+                            var planCost = cheapPurchases.Cost + (remainderCraft.Plan?.Cost ?? remainderCraft.Cost);
+                            best = new Obtainment(hybridCost, true, "craft")
+                            {
+                                Plan = new CraftAcquisitionPlan
+                                {
+                                    ItemId = tag,
+                                    Quantity = quantity,
+                                    Cost = planCost,
+                                    Enough = true,
+                                    Method = "craft",
+                                    CraftedQuantity = cheapPurchases.Unmet,
+                                    Purchases = cheapPurchases.Fills,
+                                    Ingredients = remainderCraft.Plan?.Ingredients ?? Array.Empty<CraftAcquisitionPlan>()
+                                }
+                            };
+                        }
+                    }
+                }
+            }
+
+            if (best.Plan != null)
+            {
+                best.Plan.DirectBuyCost = buy.Cost;
+                best.Plan.DirectBuyEnough = buy.Enough;
+                best.Plan.CraftCost = bestCraft?.Plan?.Cost ?? bestCraft?.Cost ?? 0;
+                best.Plan.CraftEnough = bestCraft?.Enough == true;
+            }
+        }
+
         best = best with { BuyCost = buyAlternative };
-        if (exact)
+        if (exact && !forceCraft)
             memo[(tag, quantity)] = best;
         return (best, exact);
     }
 
-    private static async Task<Obtainment> BuyAsync(string tag, long quantity, IMarketSource market, Options options)
+    private static Obtainment Buy(string tag, long quantity, IReadOnlyList<PriceTranche> tranches, Options options)
     {
-        var tranches = await market.GetBuyTranchesAsync(tag);
         if (tranches == null || tranches.Count == 0)
             return new Obtainment(quantity * options.UnmetFallbackUnitPrice, false, "buy");
-        var (filled, unmet, source) = SmartBuyer.Cost(tranches, quantity);
+        var purchase = SmartBuyer.Fill(tranches, quantity);
+        var filled = purchase.Cost;
+        var unmet = purchase.Unmet;
+        var source = purchase.DominantSource;
         if (unmet <= 0)
-            return new Obtainment(filled, true, MethodFor(source));
+            return new Obtainment(filled, true, MethodFor(source))
+            {
+                Plan = options.BuildPlan ? new CraftAcquisitionPlan
+                {
+                    ItemId = tag,
+                    Quantity = quantity,
+                    Cost = filled,
+                    Enough = true,
+                    Method = MethodFor(source),
+                    Purchases = purchase.Fills
+                } : null
+            };
         // Could not source everything: price the remainder at a penalty so it does not look cheap.
         var worstPrice = tranches.Where(t => t.Capacity > 0 && t.UnitPrice >= 0)
             .Select(t => t.UnitPrice).DefaultIfEmpty(options.UnmetFallbackUnitPrice).Max();
         if (worstPrice <= 0)
             worstPrice = options.UnmetFallbackUnitPrice;
         var penalized = filled + unmet * worstPrice * options.UnmetPenaltyFactor;
-        return new Obtainment(penalized, false, MethodFor(source));
+        return new Obtainment(penalized, false, MethodFor(source))
+        {
+            Plan = options.BuildPlan ? new CraftAcquisitionPlan
+            {
+                ItemId = tag,
+                Quantity = quantity,
+                Cost = penalized,
+                Enough = false,
+                Method = MethodFor(source),
+                Purchases = purchase.Fills
+            } : null
+        };
     }
 
     private static string MethodFor(string source) => source == "npc" ? "npc" : "buy";

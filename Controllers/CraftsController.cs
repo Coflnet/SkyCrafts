@@ -16,12 +16,14 @@ namespace Coflnet.Sky.Crafts.Controllers
         private readonly ILogger<CraftsController> _logger;
         private UpdaterService updaterService;
         private CraftingRecipeService craftingRecipeService;
+        private CalculatorService calculatorService;
 
-        public CraftsController(ILogger<CraftsController> logger, UpdaterService updaterService, CraftingRecipeService craftingRecipeService)
+        public CraftsController(ILogger<CraftsController> logger, UpdaterService updaterService, CraftingRecipeService craftingRecipeService, CalculatorService calculatorService)
         {
             _logger = logger;
             this.updaterService = updaterService;
             this.craftingRecipeService = craftingRecipeService;
+            this.calculatorService = calculatorService;
         }
 
         [HttpGet]
@@ -87,6 +89,17 @@ namespace Coflnet.Sky.Crafts.Controllers
         public IEnumerable<ProfitableCraft> GetAll()
         {
             return updaterService.Crafts.Where(e => e.Value != null).Select(e => e.Value).OrderByDescending(c => c.SellPrice - c.CraftCost);
+        }
+
+        [HttpGet]
+        [Route("acquisition/{itemTag}")]
+        [ResponseCache(Duration = 5, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "quantity", "forceCraft" })]
+        public async Task<ActionResult<CraftAcquisitionPlan>> GetAcquisition(string itemTag, long quantity = 1, bool forceCraft = false)
+        {
+            if (quantity < 1)
+                return BadRequest("quantity must be positive");
+            var plan = await calculatorService.GetAcquisitionPlanAsync(itemTag, quantity, updaterService.Recipes, updaterService.BazaarItems, forceCraft);
+            return plan == null ? NotFound() : plan;
         }
         /// <summary>
         /// Get the recipe for a specific item

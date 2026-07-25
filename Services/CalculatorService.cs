@@ -278,6 +278,23 @@ namespace Coflnet.Sky.Crafts.Services
             return result;
         }
 
+        public async Task<CraftAcquisitionPlan> GetAcquisitionPlanAsync(string itemTag, long quantity,
+            Dictionary<string, ItemData> lookup, HashSet<string> bazaarItems, bool forceCraft)
+        {
+            var market = new MarketSource(this, bazaarItems);
+            var recipes = new RecipeSource(this, lookup);
+            var options = new RealisticCraft.Options { BuildPlan = true };
+            var coinsPerBitTask = GetCoinsPerBitAsync(bazaarItems);
+            var coinsPerCopperTask = GetCoinsPerCopperAsync();
+            await Task.WhenAll(coinsPerBitTask, coinsPerCopperTask);
+            options.CoinsPerBit = coinsPerBitTask.Result;
+            options.CoinsPerCopper = coinsPerCopperTask.Result;
+            var result = forceCraft
+                ? await RealisticCraft.ObtainCraftAsync(itemTag, quantity, market, recipes, options)
+                : await RealisticCraft.ObtainAsync(itemTag, quantity, market, recipes, options);
+            return result.Plan;
+        }
+
         /// <summary>
         /// Prices every ingredient in one candidate recipe via the realistic craft engine, mutating each
         /// ingredient's Cost/BuyOrderCost/CraftCost/Type in place exactly as the top-level craft cost did

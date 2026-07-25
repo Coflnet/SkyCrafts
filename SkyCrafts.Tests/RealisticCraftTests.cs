@@ -235,6 +235,86 @@ public class RealisticCraftTests
     }
 
     [Fact]
+    public async Task PlanWalksEveryOfferAndUsesTheWeightedCostForTheRequestedQuantity()
+    {
+        var market = new FakeMarket();
+        market.Tranches["ENDER_PEARL"] = new()
+        {
+            new PriceTranche(2.5, 71_000, "order"),
+            new PriceTranche(9.8, 95_928, "insta"),
+            new PriceTranche(9.9, 46_996, "insta"),
+            new PriceTranche(10.9, 24, "insta"),
+            new PriceTranche(11.0, 240, "insta"),
+            new PriceTranche(11.1, 3_618, "insta"),
+            new PriceTranche(11.2, 16_645, "insta"),
+            new PriceTranche(11.3, 65_796, "insta"),
+            new PriceTranche(20, 723_753, "insta")
+        };
+
+        var result = await RealisticCraft.ObtainAsync("ENDER_PEARL", 1_024_000, market, new FakeRecipes(),
+            new RealisticCraft.Options { BuildPlan = true });
+
+        Assert.Equal(17_030_895, result.Cost);
+        Assert.Equal(71_000, result.Plan.Purchases.Where(p => p.Source == "order").Sum(p => p.Quantity));
+        Assert.Equal(953_000, result.Plan.Purchases.Where(p => p.Source == "insta").Sum(p => p.Quantity));
+        Assert.Equal(16_853_395, result.Plan.Purchases.Where(p => p.Source == "insta").Sum(p => p.Cost));
+    }
+
+    [Fact]
+    public async Task PlanBuysOnlyCheapSupplyAndRepricesTheCraftedRemainder()
+    {
+        var market = new FakeMarket();
+        market.Tranches["ENCHANTED_OBSIDIAN"] = new()
+        {
+            new PriceTranche(100, 3, "npc"),
+            new PriceTranche(1000, 100, "insta")
+        };
+        market.Tranches["OBSIDIAN"] = new() { new PriceTranche(500, 100, "insta") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ENCHANTED_OBSIDIAN"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("OBSIDIAN", 1) }, 1)
+        };
+
+        var result = await RealisticCraft.ObtainAsync("ENCHANTED_OBSIDIAN", 10, market, recipes,
+            new RealisticCraft.Options { BuildPlan = true });
+
+        Assert.Equal("craft", result.Method);
+        Assert.Equal(3, result.Plan.Purchases.Sum(p => p.Quantity));
+        Assert.Equal(7, result.Plan.CraftedQuantity);
+        Assert.Equal(300 + (7 * 500 * 1.01 + 1), result.Cost);
+        Assert.Equal(300 + 7 * 500, result.Plan.Cost);
+        Assert.Equal(result.Plan.Cost, result.Plan.Purchases.Sum(p => p.Cost) + result.Plan.Ingredients.Sum(i => i.Cost));
+    }
+
+    [Fact]
+    public async Task PlanRejectsSubcraftWhenItsFullQuantityCostExceedsDirectBuy()
+    {
+        var market = new FakeMarket();
+        market.Tranches["ENCHANTED_OBSIDIAN"] = new() { new PriceTranche(3200, 6_144, "order") };
+        market.Tranches["OBSIDIAN"] = new()
+        {
+            new PriceTranche(14, 640, "npc"),
+            new PriceTranche(17.5, 71_000, "order"),
+            new PriceTranche(26.3, 2_000_000, "insta")
+        };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ENCHANTED_OBSIDIAN"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("OBSIDIAN", 160) }, 1)
+        };
+
+        var result = await RealisticCraft.ObtainAsync("ENCHANTED_OBSIDIAN", 6_144, market, recipes,
+            new RealisticCraft.Options { BuildPlan = true });
+
+        Assert.Equal("buy", result.Method);
+        Assert.Equal(19_660_800, result.Cost);
+        Assert.Equal(25_221_280, result.Plan.CraftCost);
+        Assert.True(result.Plan.CraftCost > result.Plan.DirectBuyCost);
+        Assert.Equal(0, result.Plan.CraftedQuantity);
+    }
+
+    [Fact]
     public async Task DeepChain_PrefersBuyingWhenCheaperThanCraftingAtScale()
     {
         // NULL_SPHERE <- 4 ENCHANTED_OBSIDIAN <- 160 OBSIDIAN each. Buying spheres @20k is cheapest.
