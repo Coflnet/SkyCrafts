@@ -141,6 +141,14 @@ public class SmartBuyerTests
 
 public class RealisticCraftTests
 {
+    [Fact]
+    public void NpcShopPurchasesAreNotRecursiveCraftCandidates()
+    {
+        Assert.False(CalculatorService.IsRecursiveCraftCandidate("npc_shop"));
+        Assert.True(CalculatorService.IsRecursiveCraftCandidate("crafting"));
+        Assert.True(CalculatorService.IsRecursiveCraftCandidate("forge"));
+    }
+
     private class FakeMarket : IMarketSource
     {
         public Dictionary<string, List<PriceTranche>> Tranches { get; } = new();

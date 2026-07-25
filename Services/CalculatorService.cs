@@ -378,6 +378,8 @@ namespace Coflnet.Sky.Crafts.Services
             }
         }
 
+        internal static bool IsRecursiveCraftCandidate(string recipeType) => recipeType != "npc_shop";
+
         /// <summary>
         /// A bit/copper/mote priced ingredient makes the whole craft non-normal (pseudo-currency priced at a
         /// representative rate, or genuinely unobtainable for motes): the parent craft is tagged with that
@@ -658,6 +660,7 @@ namespace Coflnet.Sky.Crafts.Services
                 if (!lookup.TryGetValue(tag, out var data))
                     return false;
                 var list = service.EnumerateRecipeCandidates(data)
+                    .Where(c => IsRecursiveCraftCandidate(c.recipeType))
                     .Select(c => new RecipeOption(c.ingredients.Select(i => (i.ItemId, i.Count)).ToList(), c.yield))
                     .ToList();
                 if (list.Count == 0)
