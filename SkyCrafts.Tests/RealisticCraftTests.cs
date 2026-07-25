@@ -315,6 +315,58 @@ public class RealisticCraftTests
     }
 
     [Fact]
+    public async Task SiblingSubcraftsShareTheSameRemainingMarketOffers()
+    {
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new()
+        {
+            new PriceTranche(1, 5, "insta"),
+            new PriceTranche(100, 5, "insta")
+        };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["FIRST"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("BASE", 5) }, 1)
+        };
+        recipes.Recipes["SECOND"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("BASE", 5) }, 1)
+        };
+        recipes.Recipes["ROOT"] = new()
+        {
+            new RecipeOption(new List<(string tag, long count)> { ("FIRST", 1), ("SECOND", 1) }, 1)
+        };
+
+        var result = await RealisticCraft.ObtainCraftAsync("ROOT", 1, market, recipes,
+            new RealisticCraft.Options { BuildPlan = true });
+
+        var basePurchases = result.Plan.Ingredients
+            .SelectMany(intermediate => intermediate.Ingredients)
+            .SelectMany(baseItem => baseItem.Purchases)
+            .ToList();
+        Assert.Equal(5, basePurchases.Where(fill => fill.UnitPrice == 1).Sum(fill => fill.Quantity));
+        Assert.Equal(5, basePurchases.Where(fill => fill.UnitPrice == 100).Sum(fill => fill.Quantity));
+        Assert.Equal(result.Plan.Cost, result.Plan.Ingredients.Sum(ingredient => ingredient.Cost));
+    }
+
+    [Fact]
+    public async Task BatchedTopLevelIngredientsShareTheSameRemainingMarketOffers()
+    {
+        var market = new FakeMarket();
+        market.Tranches["BASE"] = new()
+        {
+            new PriceTranche(1, 5, "insta"),
+            new PriceTranche(100, 5, "insta")
+        };
+
+        var results = await RealisticCraft.ObtainAllAsync(
+            new List<(string tag, long quantity)> { ("BASE", 5), ("BASE", 5) }, market, new FakeRecipes());
+
+        Assert.Equal(5, results[0].Cost);
+        Assert.Equal(500, results[1].Cost);
+    }
+
+    [Fact]
     public async Task DeepChain_PrefersBuyingWhenCheaperThanCraftingAtScale()
     {
         // NULL_SPHERE <- 4 ENCHANTED_OBSIDIAN <- 160 OBSIDIAN each. Buying spheres @20k is cheapest.

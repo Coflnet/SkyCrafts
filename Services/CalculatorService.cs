@@ -305,15 +305,18 @@ namespace Coflnet.Sky.Crafts.Services
             // Obtain each direct ingredient realistically. This recurses into sub-crafts using the true
             // quantities needed for one batch of this recipe, so npc stock and bazaar volume limits are
             // respected even for base materials that are only cheap in small amounts.
-            await Task.WhenAll(ingredients.Select(async ingredient =>
+            var obtainments = await RealisticCraft.ObtainAllAsync(
+                ingredients.Select(ingredient => (ingredient.ItemId, ingredient.Count)).ToList(), market, recipeSource, options);
+            for (var index = 0; index < ingredients.Count; index++)
             {
+                var ingredient = ingredients[index];
                 if (ingredient.ItemId == "SKYBLOCK_COIN")
                 {
                     ingredient.Cost = ingredient.Count;
                     ingredient.BuyOrderCost = ingredient.Count;
-                    return;
+                    continue;
                 }
-                var obtainment = await RealisticCraft.ObtainAsync(ingredient.ItemId, ingredient.Count, market, recipeSource, options, memo);
+                var obtainment = obtainments[index];
                 ingredient.Cost = obtainment.Cost;
                 // The genuine cost of buying this ingredient outright, so downstream can show how much
                 // crafting it saved vs. the buy alternative. Falls back to Cost when there is no viable
@@ -336,7 +339,7 @@ namespace Coflnet.Sky.Crafts.Services
                 ingredient.BuyOrderUnitPrice = orderUnitPrice;
                 ingredient.InstaBuyCapacity = instaCapacity;
                 ingredient.InstaBuyUnitPrice = instaUnitPrice;
-            }).ToArray());
+            }
             return ingredients.Sum(i => i.Cost);
         }
 

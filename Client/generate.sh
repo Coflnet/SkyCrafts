@@ -1,4 +1,4 @@
-VERSION=0.13.2
+VERSION=0.14.0
 PACKAGE_NAME=Coflnet.Sky.Crafts.Client
 
 docker run --rm -v "${PWD}:/local" --network host -u $(id -u ${USER}):$(id -g ${USER})  openapitools/openapi-generator-cli generate \
