@@ -312,11 +312,12 @@ namespace Coflnet.Sky.Crafts.Services
                 // callers; GetBuyTranchesAsync is cheap to call repeatedly (its underlying bazaar batch
                 // is cached per pricing pass, see IMarketSource.GetBuyTranchesAsync's doc comment).
                 var tranches = await market.GetBuyTranchesAsync(ingredient.ItemId);
-                var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches ?? Array.Empty<PriceTranche>());
+                var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaCapacity, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches ?? Array.Empty<PriceTranche>());
                 ingredient.NpcCapacity = npcCapacity;
                 ingredient.NpcUnitPrice = npcUnitPrice;
                 ingredient.BuyOrderCapacity = orderCapacity;
                 ingredient.BuyOrderUnitPrice = orderUnitPrice;
+                ingredient.InstaBuyCapacity = instaCapacity;
                 ingredient.InstaBuyUnitPrice = instaUnitPrice;
             }).ToArray());
             return ingredients.Sum(i => i.Cost);

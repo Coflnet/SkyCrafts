@@ -59,7 +59,7 @@ public class SmartBuyerTests
     }
 
     [Fact]
-    public void SummarizeTranches_NpcOrderAndInsta_SeparatesNpcFromOrderAndTakesCheapestInsta()
+    public void SummarizeTranches_NpcOrderAndInsta_ReportsBoundedWeightedBuckets()
     {
         var tranches = new[]
         {
@@ -67,20 +67,21 @@ public class SmartBuyerTests
             new PriceTranche(35, 60, "npc"),    // second npc tranche, weighted into the npc bucket
             new PriceTranche(40, 100, "order"),
             new PriceTranche(60, 500, "insta"),
-            new PriceTranche(70, 500, "insta"), // pricier insta tranche, must not win
+            new PriceTranche(70, 500, "insta"), // included in the capacity-weighted average
         };
 
-        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaCapacity, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
         Assert.Equal(640 + 60, npcCapacity);
         Assert.Equal((30d * 640 + 35d * 60) / (640 + 60), npcUnitPrice, 6);
         Assert.Equal(100, orderCapacity);
         Assert.Equal(40d, orderUnitPrice, 6);
-        Assert.Equal(60d, instaUnitPrice);
+        Assert.Equal(1000, instaCapacity);
+        Assert.Equal(65d, instaUnitPrice);
     }
 
     [Fact]
-    public void SummarizeTranches_OnlyInsta_ReportsZeroCapacitiesAndCheapestInsta()
+    public void SummarizeTranches_OnlyInsta_ReportsBoundedWeightedInsta()
     {
         var tranches = new[]
         {
@@ -88,13 +89,14 @@ public class SmartBuyerTests
             new PriceTranche(60, 500, "insta"),
         };
 
-        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaCapacity, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
         Assert.Equal(0, npcCapacity);
         Assert.Equal(0d, npcUnitPrice);
         Assert.Equal(0, orderCapacity);
         Assert.Equal(0d, orderUnitPrice);
-        Assert.Equal(60d, instaUnitPrice);
+        Assert.Equal(1000, instaCapacity);
+        Assert.Equal(70d, instaUnitPrice);
     }
 
     [Fact]
@@ -106,12 +108,13 @@ public class SmartBuyerTests
             new PriceTranche(40, 100, "order"),
         };
 
-        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaCapacity, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
         Assert.Equal(640, npcCapacity);
         Assert.Equal(30d, npcUnitPrice, 6);
         Assert.Equal(100, orderCapacity);
         Assert.Equal(40d, orderUnitPrice, 6);
+        Assert.Equal(0, instaCapacity);
         Assert.Equal(0d, instaUnitPrice);
     }
 
@@ -125,12 +128,13 @@ public class SmartBuyerTests
             new PriceTranche(40, 100, "order"),
         };
 
-        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
+        var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaCapacity, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches);
 
         Assert.Equal(0, npcCapacity);
         Assert.Equal(0d, npcUnitPrice);
         Assert.Equal(100, orderCapacity);
         Assert.Equal(40d, orderUnitPrice);
+        Assert.Equal(0, instaCapacity);
         Assert.Equal(0d, instaUnitPrice);
     }
 }
@@ -783,6 +787,7 @@ public class RealisticCraftTests
         Assert.Equal(30d, obsidian.NpcUnitPrice, 6);
         Assert.Equal(100, obsidian.BuyOrderCapacity);
         Assert.Equal(40d, obsidian.BuyOrderUnitPrice, 6);
+        Assert.Equal(100_000_000, obsidian.InstaBuyCapacity);
         Assert.Equal(50d, obsidian.InstaBuyUnitPrice);
     }
 

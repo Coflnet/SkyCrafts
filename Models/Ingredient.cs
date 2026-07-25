@@ -32,9 +32,14 @@ namespace Coflnet.Sky.Crafts.Models
         /// </summary>
         public double BuyOrderUnitPrice { get; set; }
         /// <summary>
-        /// Coins per unit to insta-buy units beyond npc stock + buy orders (the marginal sell-offer
-        /// price), i.e. the cheapest "insta" tranche's unit price; 0 when there is no insta tranche.
-        /// Serialized as "instaBuyUnitPrice".
+        /// Number of units currently available from the standing sell offers represented by
+        /// <see cref="InstaBuyUnitPrice"/>. Serialized as "instaBuyCapacity".
+        /// </summary>
+        public long InstaBuyCapacity { get; set; }
+        /// <summary>
+        /// Capacity-weighted average coins per unit across the standing sell offers represented by
+        /// <see cref="InstaBuyCapacity"/>; 0 when there is no insta tranche. Serialized as
+        /// "instaBuyUnitPrice".
         /// </summary>
         public double InstaBuyUnitPrice { get; set; }
 
