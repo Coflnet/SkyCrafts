@@ -161,7 +161,7 @@ public class CurrencyAndVariantPricingTests
         var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
 
         // Queried with the NEU-style hyphen internalname, as ingredient parsing produces.
-        var tranches = await service.GetBuyTranchesAsync("INK_SACK-4", new HashSet<string> { "INK_SACK:4" });
+        var tranches = await service.GetBuyTranchesAsync("INK_SACK-4", new HashSet<string> { "INK_SACK:4" }, 1);
 
         var insta = Assert.Single(tranches);
         Assert.Equal(250, insta.UnitPrice);
@@ -186,7 +186,7 @@ public class CurrencyAndVariantPricingTests
         orderBook.GetOrderBooksAsync(Arg.Any<List<string>>()).Returns(new Dictionary<string, OrderBook>());
         var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
 
-        var tranches = await service.GetBuyTranchesAsync("LOG-1", new HashSet<string> { "LOG:1" });
+        var tranches = await service.GetBuyTranchesAsync("LOG-1", new HashSet<string> { "LOG:1" }, 1);
 
         var npc = Assert.Single(tranches);
         Assert.Equal(25, npc.UnitPrice);
@@ -208,7 +208,7 @@ public class CurrencyAndVariantPricingTests
         orderBook.GetOrderBooksAsync(Arg.Any<List<string>>()).Returns(new Dictionary<string, OrderBook>());
         var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
 
-        var tranches = await service.GetBuyTranchesAsync("OBSIDIAN", new HashSet<string> { "OBSIDIAN" });
+        var tranches = await service.GetBuyTranchesAsync("OBSIDIAN", new HashSet<string> { "OBSIDIAN" }, 1);
 
         var npc = Assert.Single(tranches);
         Assert.Equal(30, npc.UnitPrice);

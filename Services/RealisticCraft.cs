@@ -92,7 +92,7 @@ public static class SmartBuyer
     }
 
     /// <summary>
-    /// Summarizes <paramref name="tranches"/> into the quantity-independent numbers a frontend acquisition
+    /// Summarizes <paramref name="tranches"/> into the per-channel numbers a frontend acquisition
     /// breakdown needs: how many units come from npc stock and at what price, how many from a competitive
     /// bazaar buy order and at what price, and the capacity/average cost of the standing sell offers. The
     /// npc and "order" buckets are kept SEPARATE (they were merged in an earlier version) so the frontend can
@@ -142,12 +142,14 @@ public static class SmartBuyer
 public interface IMarketSource
 {
     /// <summary>
-    /// Returns the (quantity independent) tranches <paramref name="tag"/> can be bought from.
+    /// Returns up to <paramref name="quantity"/> additional units of <paramref name="tag"/>, after the market
+    /// depth in <paramref name="alreadyLoaded"/>. Auction implementations use that loaded depth to request
+    /// the correct cumulative quantity and return only its marginal cost.
     /// The underlying market data (bazaar batch + order books) this is built from is fetched once
     /// per pricing pass and cached by the implementation; the per-tag tranches themselves are cheap
     /// to recompute and are NOT cached, so this may be called repeatedly for the same tag.
     /// </summary>
-    Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag);
+    Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, long quantity, IReadOnlyList<PriceTranche> alreadyLoaded);
 }
 
 /// <summary>One candidate recipe: the ingredients needed for one batch and the batch's yield.</summary>
@@ -176,39 +178,63 @@ public static class RealisticCraft
     {
         private readonly IMarketSource market;
         private Dictionary<string, List<PriceTranche>> remaining;
+        private Dictionary<string, List<PriceTranche>> loaded;
 
         public SupplyPool(IMarketSource market)
         {
             this.market = market;
             remaining = new Dictionary<string, List<PriceTranche>>(StringComparer.Ordinal);
+            loaded = new Dictionary<string, List<PriceTranche>>(StringComparer.Ordinal);
         }
 
-        private SupplyPool(IMarketSource market, Dictionary<string, List<PriceTranche>> remaining)
+        private SupplyPool(IMarketSource market, Dictionary<string, List<PriceTranche>> remaining,
+            Dictionary<string, List<PriceTranche>> loaded)
         {
             this.market = market;
             this.remaining = remaining;
+            this.loaded = loaded;
         }
 
-        public SupplyPool Fork() => new(market, remaining.ToDictionary(
-            pair => pair.Key,
-            pair => pair.Value.Select(t => new PriceTranche(t.UnitPrice, t.Capacity, t.Source)).ToList(),
-            StringComparer.Ordinal));
+        public SupplyPool Fork() => new(market,
+            Clone(remaining), Clone(loaded));
 
         public void Commit(SupplyPool selected)
         {
-            remaining = selected.Fork().remaining;
+            var selectedCopy = selected.Fork();
+            remaining = selectedCopy.remaining;
+            loaded = selectedCopy.loaded;
         }
 
-        public async Task<IReadOnlyList<PriceTranche>> GetAsync(string tag)
+        public async Task<IReadOnlyList<PriceTranche>> GetAsync(string tag, long quantity)
         {
             if (!remaining.TryGetValue(tag, out var tranches))
             {
-                var source = await market.GetBuyTranchesAsync(tag) ?? Array.Empty<PriceTranche>();
-                tranches = source.Select(t => new PriceTranche(t.UnitPrice, t.Capacity, t.Source)).ToList();
+                tranches = new List<PriceTranche>();
                 remaining[tag] = tranches;
+            }
+            if (!loaded.TryGetValue(tag, out var loadedTranches))
+            {
+                loadedTranches = new List<PriceTranche>();
+                loaded[tag] = loadedTranches;
+            }
+            var missing = quantity - tranches.Sum(t => t.Capacity);
+            if (missing > 0)
+            {
+                var source = await market.GetBuyTranchesAsync(tag, missing, loadedTranches) ?? Array.Empty<PriceTranche>();
+                foreach (var tranche in source.Where(t => t.Capacity > 0))
+                {
+                    var copy = new PriceTranche(tranche.UnitPrice, tranche.Capacity, tranche.Source);
+                    tranches.Add(copy);
+                    loadedTranches.Add(copy);
+                }
             }
             return tranches;
         }
+
+        private static Dictionary<string, List<PriceTranche>> Clone(Dictionary<string, List<PriceTranche>> source)
+            => source.ToDictionary(pair => pair.Key,
+                pair => pair.Value.Select(t => new PriceTranche(t.UnitPrice, t.Capacity, t.Source)).ToList(),
+                StringComparer.Ordinal);
 
         public void Consume(string tag, IEnumerable<AcquisitionFill> fills)
         {
@@ -380,7 +406,7 @@ public static class RealisticCraft
             return (cached, true);
 
         // Option 1: buy the item on the market (npc + buy orders + insta buy), supply limited.
-        var tranches = await supply.GetAsync(tag);
+        var tranches = await supply.GetAsync(tag, quantity);
         var buySupply = supply.Fork();
         var buy = Buy(tag, quantity, tranches, options, options.BuildPlan || statefulSupply);
         buySupply.Consume(tag, buy.Plan?.Purchases ?? Array.Empty<AcquisitionFill>());
@@ -543,7 +569,7 @@ public static class RealisticCraft
                 if (allowHybrid && bestCraft?.Enough == true)
                 {
                     var hybridSupply = supply.Fork();
-                    var hybridTranches = await hybridSupply.GetAsync(tag);
+                    var hybridTranches = await hybridSupply.GetAsync(tag, quantity);
                     var cheapPurchases = SmartBuyer.Fill(hybridTranches, quantity, bestCraft.Cost / quantity);
                     hybridSupply.Consume(tag, cheapPurchases.Fills);
                     if (cheapPurchases.Unmet > 0 && cheapPurchases.Unmet < quantity)

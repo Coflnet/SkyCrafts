@@ -34,8 +34,6 @@ namespace Coflnet.Sky.Crafts.Services
         public const int DefaultNpcStock = 640;
         /// <summary>Ingredient/craft Type markers used for the SKYBLOCK_BIT/COPPER/MOTE pseudo-currencies.</summary>
         private static readonly HashSet<string> CurrencyIngredientTypes = new(StringComparer.Ordinal) { "bits", "copper", "mote" };
-        /// <summary>Number of lowest bins sampled to estimate the per-unit price and depth of auction house items.</summary>
-        private const int AhSampleCount = 64;
         /// <summary>Hours of insta-sell volume assumed to fill a buy order in reasonable time.</summary>
         private const double BuyOrderFillHours = 0.5;
         /// <summary>
@@ -74,7 +72,7 @@ namespace Coflnet.Sky.Crafts.Services
         // and shared across every item and recursion level, so pricing is just dictionary lookups.
         private readonly object bazaarBatchLock = new();
         private Task<BazaarBatch> bazaarBatchTask;
-        private readonly ConcurrentDictionary<string, Task<PriceResponse>> ahPriceCache = new();
+        private readonly ConcurrentDictionary<(string tag, long quantity), Task<PriceResponse>> ahPriceCache = new();
         // Shared realistic-craft memo for the current pricing pass: every item in one pass prices
         // against the same frozen bazaar batch / CoinsPerBit / CoinsPerCopper, so a given (tag,
         // quantity) has an identical cost for every item - safe to reuse across items, not across
@@ -326,12 +324,12 @@ namespace Coflnet.Sky.Crafts.Services
                 ingredient.CraftCost = obtainment.Method == "craft" ? obtainment.Cost : 0;
                 ingredient.Type = obtainment.Method == "buy" ? null : obtainment.Method; // "craft" / "npc" / "bits" / "copper" / "mote" / null(=bought)
 
-                // Quantity independent buy-order/insta-buy split for frontend tooltips ("place a buy
+                // Quantity-aware buy-order/insta-buy split for frontend tooltips ("place a buy
                 // order for X units, insta-buy the remaining Z units"). Fetched directly rather than
                 // threaded through Obtainment/SmartBuyer.Cost so those stay unchanged for existing
                 // callers; GetBuyTranchesAsync is cheap to call repeatedly (its underlying bazaar batch
                 // is cached per pricing pass, see IMarketSource.GetBuyTranchesAsync's doc comment).
-                var tranches = await market.GetBuyTranchesAsync(ingredient.ItemId);
+                var tranches = await market.GetBuyTranchesAsync(ingredient.ItemId, ingredient.Count, Array.Empty<PriceTranche>());
                 var (npcCapacity, npcUnitPrice, orderCapacity, orderUnitPrice, instaCapacity, instaUnitPrice) = SmartBuyer.SummarizeTranches(tranches ?? Array.Empty<PriceTranche>());
                 ingredient.NpcCapacity = npcCapacity;
                 ingredient.NpcUnitPrice = npcUnitPrice;
@@ -403,11 +401,14 @@ namespace Coflnet.Sky.Crafts.Services
 
         /// <summary>
         /// Builds the price tranches an item can realistically be bought from: npc stock, buy orders
-        /// filled by ~30 minutes of insta-sell volume, then the insta-buy order book (or auction bins).
+        /// filled by ~30 minutes of insta-sell volume, then the insta-buy order book (or the next
+        /// quantity-aware slice of auction bins after <paramref name="alreadyLoaded"/>).
         /// </summary>
-        internal async Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, HashSet<string> bazaarItems)
+        internal async Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, HashSet<string> bazaarItems,
+            long quantity, IReadOnlyList<PriceTranche> alreadyLoaded = null)
         {
             var tranches = new List<PriceTranche>();
+            alreadyLoaded ??= Array.Empty<PriceTranche>();
             var variantTag = ToVariantMarketTag(tag);
             var npc = await GetNpcCosts();
             // NEU internal names encode legacy Minecraft "id:damage" variants (colored wool/dye, logs,
@@ -459,18 +460,59 @@ namespace Coflnet.Sky.Crafts.Services
                     // No order book depth in this snapshot: fall back to a single bounded insta-buy tranche.
                     tranches.Add(new PriceTranche(price.BuyPrice, price.DailyBuyVolume, "insta"));
                 }
+                return TakeAdditionalTranches(tranches, quantity, alreadyLoaded);
             }
             else
             {
-                var ah = await GetAhPriceAsync(tag);
-                if (ah != null && ah.BuyPrice > 0)
+                var staticTranches = TakeAdditionalTranches(tranches, quantity, alreadyLoaded.Where(t => t.Source != "insta").ToList());
+                var loadedAhQuantity = alreadyLoaded.Where(t => t.Source == "insta").Sum(t => t.Capacity);
+                var loadedAhCost = alreadyLoaded.Where(t => t.Source == "insta").Sum(t => t.UnitPrice * t.Capacity);
+                var ah = await GetAhPriceAsync(tag, loadedAhQuantity + quantity);
+                var additionalAvailable = ah == null ? 0 : ah.Available - loadedAhQuantity;
+                var additionalCost = ah == null ? 0 : ah.BuyPrice - loadedAhCost;
+                if (additionalAvailable > 0 && additionalCost > 0)
                 {
-                    var available = ah.Available > 0 ? ah.Available : 1;
-                    var unit = ah.BuyPrice / Math.Min(AhSampleCount, available);
-                    tranches.Add(new PriceTranche(unit, available, "insta"));
+                    tranches = staticTranches.ToList();
+                    tranches.Add(new PriceTranche(additionalCost / additionalAvailable, additionalAvailable, "insta"));
+                    return TakeCheapestTranches(tranches, quantity);
+                }
+                return staticTranches;
+            }
+        }
+
+        private static IReadOnlyList<PriceTranche> TakeAdditionalTranches(IEnumerable<PriceTranche> tranches, long quantity,
+            IReadOnlyList<PriceTranche> alreadyLoaded)
+        {
+            var remaining = tranches.Select(t => new PriceTranche(t.UnitPrice, t.Capacity, t.Source)).ToList();
+            foreach (var loaded in alreadyLoaded)
+            {
+                var left = loaded.Capacity;
+                for (var i = 0; i < remaining.Count && left > 0; i++)
+                {
+                    var tranche = remaining[i];
+                    if (tranche.Source != loaded.Source || tranche.UnitPrice != loaded.UnitPrice || tranche.Capacity <= 0)
+                        continue;
+                    var skipped = Math.Min(left, tranche.Capacity);
+                    remaining[i] = new PriceTranche(tranche.UnitPrice, tranche.Capacity - skipped, tranche.Source);
+                    left -= skipped;
                 }
             }
-            return tranches;
+            return TakeCheapestTranches(remaining, quantity);
+        }
+
+        private static IReadOnlyList<PriceTranche> TakeCheapestTranches(IEnumerable<PriceTranche> tranches, long quantity)
+        {
+            var result = new List<PriceTranche>();
+            var remaining = quantity;
+            foreach (var tranche in tranches.Where(t => t.Capacity > 0 && t.UnitPrice >= 0).OrderBy(t => t.UnitPrice))
+            {
+                if (remaining <= 0)
+                    break;
+                var taken = Math.Min(remaining, tranche.Capacity);
+                result.Add(new PriceTranche(tranche.UnitPrice, taken, tranche.Source));
+                remaining -= taken;
+            }
+            return result;
         }
 
         /// <summary>Returns the shared bazaar batch for this pass, fetching it once on first use.</summary>
@@ -524,13 +566,13 @@ namespace Coflnet.Sky.Crafts.Services
             return new Dictionary<string, Bazaar.Client.Model.OrderBook>();
         }
 
-        private Task<PriceResponse> GetAhPriceAsync(string tag)
+        private Task<PriceResponse> GetAhPriceAsync(string tag, long quantity)
         {
-            return ahPriceCache.GetOrAdd(tag, async t =>
+            return ahPriceCache.GetOrAdd((tag, quantity), async request =>
             {
                 try
                 {
-                    return await GetPriceFor(t, AhSampleCount);
+                    return await GetPriceFor(request.tag, request.quantity);
                 }
                 catch (HttpRequestException)
                 {
@@ -539,7 +581,7 @@ namespace Coflnet.Sky.Crafts.Services
             });
         }
 
-        private async Task<PriceResponse> GetPriceFor(string itemTag, long count)
+        protected virtual async Task<PriceResponse> GetPriceFor(string itemTag, long count)
         {
             var baseUrl = config["API_BASE_URL"];
             if (baseUrl == "https://sky.coflnet.com")
@@ -641,7 +683,8 @@ namespace Coflnet.Sky.Crafts.Services
                 this.service = service;
                 this.bazaarItems = bazaarItems;
             }
-            public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag) => service.GetBuyTranchesAsync(tag, bazaarItems);
+            public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, long quantity, IReadOnlyList<PriceTranche> alreadyLoaded)
+                => service.GetBuyTranchesAsync(tag, bazaarItems, quantity, alreadyLoaded);
         }
 
         /// <summary>Recipe adapter exposing the craftable item lookup to the realistic calculator.</summary>

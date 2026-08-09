@@ -66,7 +66,7 @@ public class BazaarBatchPricingTests
     {
         var (service, _, _) = BuildService();
 
-        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian }, 110_640);
 
         // npc: cheapest, capped at the default per-restock stock.
         var npc = Assert.Single(tranches.Where(t => t.Source == "npc"));
@@ -104,7 +104,7 @@ public class BazaarBatchPricingTests
         });
         var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
 
-        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian }, 400);
 
         var insta = Assert.Single(tranches.Where(t => t.Source == "insta"));
         Assert.Equal(400, insta.Capacity); // 1000 offered - 600 already filled
@@ -116,9 +116,9 @@ public class BazaarBatchPricingTests
         var (service, bazaar, orderBook) = BuildService();
         var bazaarItems = new HashSet<string> { Obsidian, "ENCHANTED_OBSIDIAN" };
 
-        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
-        await service.GetBuyTranchesAsync("ENCHANTED_OBSIDIAN", bazaarItems);
-        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems, 1);
+        await service.GetBuyTranchesAsync("ENCHANTED_OBSIDIAN", bazaarItems, 1);
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems, 1);
 
         // Despite three lookups across two items, each batch endpoint is hit exactly once.
         await bazaar.Received(1).GetAllPricesAsync();
@@ -146,7 +146,7 @@ public class BazaarBatchPricingTests
         });
         var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
 
-        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian }, RealisticCraft.MaxSingleOrderQuantity);
 
         var order = Assert.Single(tranches.Where(t => t.Source == "order"));
         Assert.Equal(RealisticCraft.MaxSingleOrderQuantity, order.Capacity);
@@ -158,9 +158,9 @@ public class BazaarBatchPricingTests
         var (service, bazaar, orderBook) = BuildService();
         var bazaarItems = new HashSet<string> { Obsidian };
 
-        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems, 1);
         service.ResetPriceCaches();
-        await service.GetBuyTranchesAsync(Obsidian, bazaarItems);
+        await service.GetBuyTranchesAsync(Obsidian, bazaarItems, 1);
 
         await bazaar.Received(2).GetAllPricesAsync();
         await orderBook.Received(2).GetOrderBooksAsync(Arg.Any<List<string>>());
@@ -191,7 +191,7 @@ public class BazaarBatchPricingTests
         });
         var service = new CalculatorService(config, playerItemsApi, bazaar, orderBook);
 
-        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian });
+        var tranches = await service.GetBuyTranchesAsync(Obsidian, new HashSet<string> { Obsidian }, 501);
 
         var order = Assert.Single(tranches.Where(t => t.Source == "order"));
         Assert.True(order.Capacity > 0);

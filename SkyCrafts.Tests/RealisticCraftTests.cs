@@ -152,7 +152,7 @@ public class RealisticCraftTests
     private class FakeMarket : IMarketSource
     {
         public Dictionary<string, List<PriceTranche>> Tranches { get; } = new();
-        public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag)
+        public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, long quantity, IReadOnlyList<PriceTranche> alreadyLoaded)
             => Task.FromResult<IReadOnlyList<PriceTranche>>(Tranches.TryGetValue(tag, out var t) ? t : new List<PriceTranche>());
     }
 
@@ -170,6 +170,31 @@ public class RealisticCraftTests
             recipes = null!;
             return false;
         }
+    }
+
+    private sealed class PagedMarket : IMarketSource
+    {
+        public List<(long quantity, long loaded)> Requests { get; } = new();
+
+        public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, long quantity, IReadOnlyList<PriceTranche> alreadyLoaded)
+        {
+            var loaded = alreadyLoaded.Sum(t => t.Capacity);
+            Requests.Add((quantity, loaded));
+            var unitPrice = loaded == 0 ? 10 : 20;
+            return Task.FromResult<IReadOnlyList<PriceTranche>>(new[] { new PriceTranche(unitPrice, quantity, "insta") });
+        }
+    }
+
+    [Fact]
+    public async Task SharedSupply_LoadsOnlyTheNextRequiredMarketDepth()
+    {
+        var market = new PagedMarket();
+
+        var results = await RealisticCraft.ObtainAllAsync(new[] { ("WASP", 4L), ("WASP", 4L) }, market, new FakeRecipes());
+
+        Assert.Equal(new[] { (4L, 0L), (4L, 4L) }, market.Requests);
+        Assert.Equal(40, results[0].Cost);
+        Assert.Equal(80, results[1].Cost);
     }
 
     // OBSIDIAN: 30 each from npc up to 640 stock, then 50 each on the market.
@@ -684,10 +709,10 @@ public class RealisticCraftTests
         private readonly ConcurrentDictionary<string, int> counts = new();
         public CountingMarket(IMarketSource inner) => this.inner = inner;
         public int CallsFor(string tag) => counts.TryGetValue(tag, out var c) ? c : 0;
-        public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag)
+        public Task<IReadOnlyList<PriceTranche>> GetBuyTranchesAsync(string tag, long quantity, IReadOnlyList<PriceTranche> alreadyLoaded)
         {
             counts.AddOrUpdate(tag, 1, (_, existing) => existing + 1);
-            return inner.GetBuyTranchesAsync(tag);
+            return inner.GetBuyTranchesAsync(tag, quantity, alreadyLoaded);
         }
     }
 
