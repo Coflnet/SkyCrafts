@@ -40,6 +40,14 @@
     "amount": 16
   },
   {
+    "name": "Baby_Yeti",
+    "baseRarity": "Legendary",
+    "hours": 1,
+    "cost": 1000000,
+    "material": "POCKET_SIZED_IGLOO",
+    "amount": 1
+  },
+  {
     "name": "Bat",
     "baseRarity": "Common",
     "hours": 0.0833,
