@@ -19,6 +19,10 @@ namespace Coflnet.Sky.Crafts.Services
     public class CalculatorService
     {
         private static readonly HttpClient client = new HttpClient();
+        private static readonly HashSet<string> ZeroCostWhenUnavailable = new(StringComparer.Ordinal)
+        {
+            "PRE_DIGESTION_FISH",
+        };
         private static readonly IReadOnlyDictionary<string, double> HardcodedSourceCosts = new Dictionary<string, double>(StringComparer.Ordinal)
         {
             // Hypixel exposes the Cheap Tuxedo as a 3m set in the UI, so each of the three pieces
@@ -476,6 +480,8 @@ namespace Coflnet.Sky.Crafts.Services
                     tranches.Add(new PriceTranche(additionalCost / additionalAvailable, additionalAvailable, "insta"));
                     return TakeCheapestTranches(tranches, quantity);
                 }
+                if (staticTranches.Count == 0 && ZeroCostWhenUnavailable.Contains(tag))
+                    return new[] { new PriceTranche(0, quantity, "unavailable") };
                 return staticTranches;
             }
         }
