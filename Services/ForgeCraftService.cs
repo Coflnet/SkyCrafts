@@ -60,7 +60,7 @@ public class ForgeCraftService
     private void UpdateItem(Dictionary<string, ItemData> timeLookup, ProfitableCraft? item)
     {
         var itemData = timeLookup[item.ItemId];
-        var time = itemData.recipes[0].duration;
+        var time = itemData.recipes[0].duration + item.Ingredients.Sum(i => i.ForgeDuration);
         var requiredLevel = 0;
         var cleanedName = Regex.Replace(itemData.displayname, @"§\w|[^-a-zA-Z 1-9]", "").Trim();
         var forgeRequirements = Requirements.GetValueOrDefault(cleanedName);
@@ -90,9 +90,9 @@ public class ForgeFlip
 {
     public ProfitableCraft CraftData { get; set; }
     /// <summary>
-    /// 
+    /// Total forge-slot seconds, including the selected subcrafts and their required quantities.
     /// </summary>
-    public int Duration { get; set; }
+    public long Duration { get; set; }
     public int RequiredHotMLevel { get; set; }
     public double ProfitPerHour { get; set; }
     public Dictionary<string, int>? Requirements { get; set; }

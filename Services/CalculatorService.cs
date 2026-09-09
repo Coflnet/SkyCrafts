@@ -315,6 +315,7 @@ namespace Coflnet.Sky.Crafts.Services
                     continue;
                 }
                 var obtainment = obtainments[index];
+                ingredient.ForgeDuration = obtainment.ForgeDuration;
                 ingredient.Cost = obtainment.Cost;
                 // The genuine cost of buying this ingredient outright, so downstream can show how much
                 // crafting it saved vs. the buy alternative. Falls back to Cost when there is no viable
@@ -704,7 +705,8 @@ namespace Coflnet.Sky.Crafts.Services
                     return false;
                 var list = service.EnumerateRecipeCandidates(data)
                     .Where(c => IsRecursiveCraftCandidate(c.recipeType))
-                    .Select(c => new RecipeOption(c.ingredients.Select(i => (i.ItemId, i.Count)).ToList(), c.yield))
+                    .Select(c => new RecipeOption(c.ingredients.Select(i => (i.ItemId, i.Count)).ToList(), c.yield,
+                        c.recipeType == "forge" ? data.recipes[0].duration : 0))
                     .ToList();
                 if (list.Count == 0)
                     return false;

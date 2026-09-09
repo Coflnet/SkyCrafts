@@ -8,6 +8,8 @@ namespace Coflnet.Sky.Crafts.Models
         public double BuyOrderCost { get; set; }
         public double CraftCost { get; set; }
         public string Type { get; set; }
+        /// <summary>Total forge-slot seconds to obtain Count units through the selected subcrafts; zero when bought.</summary>
+        public long ForgeDuration { get; set; }
         /// <summary>
         /// How many units of this ingredient can be sourced from npc stock (the cheapest, instantly
         /// available channel). Quantity independent. 0 when the item is not sold by any npc.
