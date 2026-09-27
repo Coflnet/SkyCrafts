@@ -612,18 +612,89 @@ public class RealisticCraftTests
         var market = new FakeMarket();
         market.Tranches["RAW"] = new() { new PriceTranche(25, 100_000_000, "npc") };
         var recipes = new FakeRecipes();
-        recipes.Recipes["FORGED_MAT"] = new() { new RecipeOption(new List<(string tag, long count)> { ("RAW", 1) }, 1) }; // indirect (forge)
+        recipes.Recipes["FORGED_MAT"] = new() { new RecipeOption(new List<(string tag, long count)> { ("RAW", 1) }, 1, 3600) };
         var options = new RealisticCraft.Options();
 
         var result = await RealisticCraft.ObtainAsync("FORGED_MAT", 25, market, recipes, options);
 
         Assert.Equal("craft", result.Method);
         var rawCraftCost = 25 * 25;
+        Assert.Equal(25 * 3600, result.ForgeDuration);
         var expected = rawCraftCost * options.CraftStepMarkup + options.CraftStepFlatCoins;
         Assert.Equal(expected, result.Cost, 6);
         // No 100x (or any other) blowup anywhere: cost must stay within a small multiple of the raw
         // ingredient cost.
         Assert.True(result.Cost < rawCraftCost * 1.1);
+    }
+
+    [Theory]
+    [InlineData(false, 0, 110, "craft")]
+    [InlineData(true, 0, 110, "craft")]
+    [InlineData(false, 3600, 110, "buy")]
+    [InlineData(true, 3600, 110, "buy")]
+    [InlineData(false, 3600, 123, "craft")]
+    [InlineData(true, 3600, 123, "craft")]
+    public async Task ForgeMargin_RequiresLargerSavingsWithoutInflatingCost(bool buildPlan, int duration, double buyPrice, string method)
+    {
+        var market = new FakeMarket();
+        market.Tranches["RAW"] = new() { new PriceTranche(100, 100, "insta") };
+        market.Tranches["ITEM"] = new() { new PriceTranche(buyPrice, 100, "insta") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("RAW", 1L) }, 1, duration) };
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { BuildPlan = buildPlan });
+
+        Assert.Equal(method, result.Method);
+        Assert.Equal(method == "craft" ? 102 : buyPrice, result.Cost);
+        Assert.Equal(method == "craft" ? duration : 0, result.ForgeDuration);
+        if (buildPlan)
+            Assert.Equal(result.ForgeDuration, result.Plan.ForgeDuration);
+    }
+
+    [Fact]
+    public async Task HybridForgePlan_CountsOnlyCraftedBatchesAndTheirSubcrafts()
+    {
+        var market = new FakeMarket();
+        market.Tranches["ITEM"] = new() { new PriceTranche(1, 3, "npc"), new PriceTranche(1000, 100, "insta") };
+        market.Tranches["RAW"] = new() { new PriceTranche(100, 100, "insta") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("SUB", 1L) }, 2, 3600) };
+        recipes.Recipes["SUB"] = new() { new RecipeOption(new[] { ("RAW", 1L) }, 1, 60) };
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", 10, market, recipes, new RealisticCraft.Options { BuildPlan = true });
+
+        Assert.Equal(3, result.Plan.Purchases.Sum(p => p.Quantity));
+        Assert.Equal(7, result.Plan.CraftedQuantity);
+        Assert.Equal(4 * (3600 + 60), result.ForgeDuration);
+        Assert.Equal(result.ForgeDuration, result.Plan.ForgeDuration);
+        Assert.Equal(4 * 60, Assert.Single(result.Plan.Ingredients).ForgeDuration);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task AlternativeRecipe_PrefersInstantCraftWhenForgeSavingsAreTooSmall(bool buildPlan, bool reverse)
+    {
+        var market = new FakeMarket();
+        market.Tranches["RAW"] = new() { new PriceTranche(100, 100, "insta") };
+        market.Tranches["INSTANT_RAW"] = new() { new PriceTranche(110, 100, "insta") };
+        var candidates = new List<RecipeOption>
+        {
+            new(new[] { ("RAW", 1L) }, 1, 3600),
+            new(new[] { ("INSTANT_RAW", 1L) }, 1)
+        };
+        if (reverse)
+            candidates.Reverse();
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ITEM"] = candidates;
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { BuildPlan = buildPlan });
+
+        Assert.Equal("craft", result.Method);
+        Assert.Equal(112.1, result.Cost, 6);
+        Assert.Equal(0, result.ForgeDuration);
     }
 
     [Fact]

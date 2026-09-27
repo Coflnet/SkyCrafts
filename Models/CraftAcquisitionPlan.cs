@@ -23,6 +23,8 @@ public class CraftAcquisitionPlan
     public double CraftCost { get; set; }
     public bool CraftEnough { get; set; }
     public long CraftedQuantity { get; set; }
+    /// <summary>Total forge-slot seconds for this selected plan, including all nested crafts.</summary>
+    public long ForgeDuration { get; set; }
     public IReadOnlyList<AcquisitionFill> Purchases { get; set; } = Array.Empty<AcquisitionFill>();
     public IReadOnlyList<CraftAcquisitionPlan> Ingredients { get; set; } = Array.Empty<CraftAcquisitionPlan>();
 }

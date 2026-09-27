@@ -42,6 +42,8 @@ public readonly struct PriceTranche
 /// </param>
 public record Obtainment(double Cost, bool Enough, string Method, double BuyCost = 0)
 {
+    /// <summary>Total forge-slot seconds for the selected quantity, including nested crafts.</summary>
+    public long ForgeDuration { get; init; }
     public CraftAcquisitionPlan Plan { get; init; }
 }
 
@@ -153,7 +155,7 @@ public interface IMarketSource
 }
 
 /// <summary>One candidate recipe: the ingredients needed for one batch and the batch's yield.</summary>
-public readonly record struct RecipeOption(IReadOnlyList<(string tag, long count)> Ingredients, long Yield);
+public readonly record struct RecipeOption(IReadOnlyList<(string tag, long count)> Ingredients, long Yield, int ForgeDuration = 0);
 
 /// <summary>Provides crafting recipes so the realistic calculator can expand sub-crafts.</summary>
 public interface IRecipeSource
@@ -269,6 +271,8 @@ public static class RealisticCraft
         public int MaxDepth { get; set; } = 12;
         /// <summary>Crafting must be at least this factor cheaper than buying to be chosen (covers effort/risk).</summary>
         public double CraftPreferenceMargin { get; set; } = 1.02;
+        /// <summary>Higher selection margin for crafts requiring forge time; does not inflate their coin cost.</summary>
+        public double ForgeCraftPreferenceMargin { get; set; } = 1.20;
         /// <summary>
         /// Effort markup applied per craft step (>= 1% by default), direct OR indirect (forge, malik,
         /// npc_shop, carpentry, trade, ...), so the extra work of crafting propagates up a chain. There is
@@ -453,20 +457,13 @@ public static class RealisticCraft
                     // with the higher bulk markup.
                     var needsBulkOrdering = ingredients.Any(i => i.count * batches > options.MaxSingleOrderQuantity);
                     var stepFactor = needsBulkOrdering ? options.BulkCraftStepMarkup : options.CraftStepMarkup;
-                    // When buying (or a cheaper candidate found earlier) already succeeds, this candidate
-                    // can only win by coming in under this ceiling. craft wins when
-                    // (craftCost*stepFactor + flat) * margin < best.Cost, i.e.
-                    // craftCost < (best.Cost/margin - flat) / stepFactor. The running craft cost only grows
-                    // as ingredients are added, so once it passes the ceiling we can stop recursing the
-                    // rest: the outcome (best-so-far) is already decided for this candidate. This is exact -
-                    // it prunes doomed deep sub-craft recursion without changing any result. Recomputed from
-                    // the CURRENT best at the start of each candidate, so a cheaper candidate found earlier
-                    // tightens the ceiling for later ones. When buying can not supply enough there is no
-                    // ceiling, so every ingredient is still explored.
+                    // Stop when even the ordinary craft margin cannot beat the current selection's score.
+                    // Nested forge time may raise this candidate's margin later, so using the lower margin
+                    // here gives a safe ceiling without prematurely discarding an instant alternative.
                     double craftCostCeiling;
                     if (best.Enough && !options.BuildPlan)
                     {
-                        var marginAdjusted = best.Cost / options.CraftPreferenceMargin - options.CraftStepFlatCoins;
+                        var marginAdjusted = PreferenceCost(best, options) / options.CraftPreferenceMargin - options.CraftStepFlatCoins;
                         // If even zero flat/markup overhead can't beat buying, crafting can never win here.
                         craftCostCeiling = marginAdjusted <= 0 ? 0 : marginAdjusted / stepFactor;
                     }
@@ -476,6 +473,7 @@ public static class RealisticCraft
                     }
                     double craftCost = 0;
                     double planCraftCost = 0;
+                    var forgeDuration = candidate.ForgeDuration * batches;
                     var craftViable = true;
                     var childPlans = options.BuildPlan ? new List<CraftAcquisitionPlan>() : null;
                     // Recurse the biggest quantities first so an over-budget ingredient trips the ceiling sooner.
@@ -491,6 +489,7 @@ public static class RealisticCraft
                             depth + 1, stack, memo, candidateSupply, statefulSupply, false, true);
                         craftCost += sub.Cost;
                         planCraftCost += sub.Plan?.Cost ?? sub.Cost;
+                        forgeDuration += sub.ForgeDuration;
                         if (sub.Plan != null)
                             childPlans?.Add(sub.Plan);
                         if (!subExact)
@@ -508,6 +507,7 @@ public static class RealisticCraft
                         var effectiveCraftCost = craftCost * stepFactor + options.CraftStepFlatCoins;
                         var craftResult = new Obtainment(effectiveCraftCost, true, "craft")
                         {
+                            ForgeDuration = forgeDuration,
                             Plan = options.BuildPlan ? new CraftAcquisitionPlan
                             {
                                 ItemId = tag,
@@ -516,17 +516,18 @@ public static class RealisticCraft
                                 Enough = true,
                                 Method = "craft",
                                 CraftedQuantity = quantity,
+                                ForgeDuration = forgeDuration,
                                 Ingredients = childPlans
                             } : null
                         };
-                        if (bestCraft == null || craftResult.Cost < bestCraft.Cost)
+                        if (bestCraft == null || PreferenceCost(craftResult, options) < PreferenceCost(bestCraft, options))
                         {
                             bestCraft = craftResult;
                             bestCraftSupply = candidateSupply;
                         }
                         // Prefer this candidate when it is meaningfully cheaper than the current best, or
                         // when the current best can not supply enough.
-                        var craftBeatsBest = effectiveCraftCost * options.CraftPreferenceMargin < best.Cost || !best.Enough;
+                        var craftBeatsBest = PreferenceCost(craftResult, options) < PreferenceCost(best, options) || !best.Enough;
                         if (craftBeatsBest)
                         {
                             best = craftResult;
@@ -559,11 +560,11 @@ public static class RealisticCraft
                 best = buy;
                 bestSupply = buySupply;
                 var bestScore = buy.Enough ? buy.Cost : double.PositiveInfinity;
-                if (bestCraft?.Enough == true && bestCraft.Cost * options.CraftPreferenceMargin < bestScore)
+                if (bestCraft?.Enough == true && PreferenceCost(bestCraft, options) < bestScore)
                 {
                     best = bestCraft;
                     bestSupply = bestCraftSupply;
-                    bestScore = bestCraft.Cost * options.CraftPreferenceMargin;
+                    bestScore = PreferenceCost(bestCraft, options);
                 }
 
                 if (allowHybrid && bestCraft?.Enough == true)
@@ -577,13 +578,14 @@ public static class RealisticCraft
                         var (remainderCraft, remainderExact) = await ObtainAsync(tag, cheapPurchases.Unmet, market, recipes, options,
                             depth, stack, memo, hybridSupply, statefulSupply, true, false);
                         exact &= remainderExact;
-                        var hybridScore = cheapPurchases.Cost + remainderCraft.Cost * options.CraftPreferenceMargin;
+                        var hybridScore = cheapPurchases.Cost + PreferenceCost(remainderCraft, options);
                         if (remainderCraft.Enough && hybridScore < bestScore)
                         {
                             var hybridCost = cheapPurchases.Cost + remainderCraft.Cost;
                             var planCost = cheapPurchases.Cost + (remainderCraft.Plan?.Cost ?? remainderCraft.Cost);
                             best = new Obtainment(hybridCost, true, "craft")
                             {
+                                ForgeDuration = remainderCraft.ForgeDuration,
                                 Plan = new CraftAcquisitionPlan
                                 {
                                     ItemId = tag,
@@ -592,6 +594,7 @@ public static class RealisticCraft
                                     Enough = true,
                                     Method = "craft",
                                     CraftedQuantity = cheapPurchases.Unmet,
+                                    ForgeDuration = remainderCraft.ForgeDuration,
                                     Purchases = cheapPurchases.Fills,
                                     Ingredients = remainderCraft.Plan?.Ingredients ?? Array.Empty<CraftAcquisitionPlan>()
                                 }
@@ -617,6 +620,11 @@ public static class RealisticCraft
             memo[(tag, quantity)] = best;
         return (best, exact);
     }
+
+    private static double PreferenceCost(Obtainment result, Options options)
+        => result.Method == "craft" ? result.Cost * (result.ForgeDuration > 0
+            ? Math.Max(options.CraftPreferenceMargin, options.ForgeCraftPreferenceMargin)
+            : options.CraftPreferenceMargin) : result.Cost;
 
     private static Obtainment Buy(string tag, long quantity, IReadOnlyList<PriceTranche> tranches, Options options, bool includePlan)
     {
