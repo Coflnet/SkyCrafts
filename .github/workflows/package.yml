@@ -1,0 +1,145 @@
+name: Package
+
+# Publishes the Coflnet.Sky.Crafts.Client NuGet package. Trigger a release by bumping VERSION
+# in Client/generate.sh and merging to main; workflow_dispatch is available for a manual re-run
+# (e.g. after fixing a failed publish without changing VERSION again).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Client/generate.sh
+      - .github/workflows/package.yml
+
+# Never let two releases race each other (e.g. a manual dispatch during a push-triggered run).
+# cancel-in-progress is false so a second trigger queues behind the first instead of aborting a
+# publish that may already be mid-push.
+concurrency:
+  group: package
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # required for NuGet trusted publishing (OIDC) and attestation signing
+  attestations: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SkyCrafts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: sky
+
+      # SkyCrafts.csproj has <ProjectReference Include="../dev/hypixel.csproj" />; checking this
+      # out as a sibling "dev" directory (matching the Dockerfile's `git clone ... dev`) makes
+      # that relative reference resolve without needing a git submodule.
+      - name: Checkout HypixelSkyblock (sibling ../dev dependency)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Coflnet/HypixelSkyblock
+          path: dev
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build SkyCrafts
+        working-directory: sky
+        run: dotnet build SkyCrafts.csproj -c Release
+
+      # Generate swagger.json by inspecting the built assembly instead of running the app: the
+      # app's hosted services (UpdaterService, NpcSellRefresher, Kafka/Cassandra/OpenBao clients)
+      # need infrastructure that isn't reachable from CI. Swashbuckle CLI builds the same host
+      # ASP.NET Core would but never calls Start()/Run(), so those hosted services never execute
+      # and none of that infrastructure is needed. Verified locally: this works with zero
+      # environment variables (OpenBao's provider no-ops when OPENBAO__ADDR is unset).
+      - name: Install Swashbuckle CLI
+        working-directory: sky
+        run: dotnet tool install --tool-path ./swashbuckle-cli Swashbuckle.AspNetCore.Cli --version 10.2.3
+
+      - name: Generate swagger.json
+        working-directory: sky
+        run: ./swashbuckle-cli/swagger tofile --output swagger.json bin/Release/net10.0/SkyCrafts.dll v1
+
+      - name: Sanity-check swagger.json
+        working-directory: sky
+        run: |
+          jq empty swagger.json
+          count=$(jq '.paths | length' swagger.json)
+          if [ "$count" -lt 1 ]; then
+            echo "swagger.json has no paths" >&2
+            exit 1
+          fi
+          echo "swagger.json OK: $count paths"
+
+      # Client/generate.sh is the same script a developer runs by hand, so local and CI package
+      # generation can never silently drift apart. SWAGGER_INPUT points at the file produced
+      # above (default would try http://localhost:5009, which nothing is serving here).
+      # SKIP_PUSH defers the actual `dotnet nuget push` to its own step below, once we hold a
+      # short-lived key from NuGet/login rather than a long-lived NUGET_API_KEY secret.
+      - name: Generate + pack client
+        id: pack
+        working-directory: sky/Client
+        env:
+          SWAGGER_INPUT: ../swagger.json
+          SKIP_PUSH: "1"
+        run: |
+          bash generate.sh
+          nupkg=$(ls Coflnet.Sky.Crafts.Client.*.nupkg)
+          echo "nupkg=$nupkg" >> "$GITHUB_OUTPUT"
+
+      # nuget.org re-signs every package on push, so the .nupkg's own digest changes after upload
+      # and can't be checked against an attestation made before that. The digests of the files
+      # *inside* the package don't change, so we attest a manifest of those instead. This exact
+      # pipeline (also documented in Client/generate.sh) must never change, since a verifier
+      # reproduces it byte for byte against a package downloaded later from nuget.org.
+      - name: Compute package content manifest
+        working-directory: sky/Client
+        env:
+          NUPKG: ${{ steps.pack.outputs.nupkg }}
+        run: |
+          mkdir contents && unzip -q "$NUPKG" -d contents
+          (cd contents && find . -type f | sed 's|^\./||' | LC_ALL=C sort | tr '\n' '\0' | xargs -0 sha256sum) > "$NUPKG.contents"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            sky/Client/${{ steps.pack.outputs.nupkg }}
+            sky/Client/${{ steps.pack.outputs.nupkg }}.contents
+
+      # Requested as late as possible: the exchanged NuGet API key is only valid for one hour.
+      - name: NuGet login (OIDC trusted publishing)
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ekwav
+
+      # The key and the file name reach the shell through the environment, never as script text.
+      - name: Push to NuGet.org
+        working-directory: sky/Client
+        env:
+          NUPKG: ${{ steps.pack.outputs.nupkg }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "$NUPKG" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Write summary
+        working-directory: sky/Client
+        env:
+          nupkg: ${{ steps.pack.outputs.nupkg }}
+        run: |
+          version="${nupkg#Coflnet.Sky.Crafts.Client.}"
+          version="${version%.nupkg}"
+          {
+            echo "### Packaged Coflnet.Sky.Crafts.Client $version"
+            echo "A version that already exists on nuget.org is not replaced; bump VERSION to release."
+            echo "- Package: \`$nupkg\` — SHA-256 \`$(sha256sum "$nupkg" | cut -d' ' -f1)\`"
+            echo "- Content manifest: \`$nupkg.contents\` — SHA-256 \`$(sha256sum "$nupkg.contents" | cut -d' ' -f1)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
