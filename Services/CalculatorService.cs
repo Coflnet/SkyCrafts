@@ -19,10 +19,6 @@ namespace Coflnet.Sky.Crafts.Services
     public class CalculatorService
     {
         private static readonly HttpClient client = new HttpClient();
-        private static readonly HashSet<string> ZeroCostWhenUnavailable = new(StringComparer.Ordinal)
-        {
-            "PRE_DIGESTION_FISH",
-        };
         private static readonly IReadOnlyDictionary<string, double> HardcodedSourceCosts = new Dictionary<string, double>(StringComparer.Ordinal)
         {
             // Hypixel exposes the Cheap Tuxedo as a 3m set in the UI, so each of the three pieces
@@ -30,6 +26,20 @@ namespace Coflnet.Sky.Crafts.Services
             ["CHEAP_TUXEDO_BOOTS"] = 1_000_000,
             ["CHEAP_TUXEDO_CHESTPLATE"] = 1_000_000,
             ["CHEAP_TUXEDO_LEGGINGS"] = 1_000_000,
+        };
+        /// <summary>
+        /// Conversions the item repo has no recipe for, so ingredients that can only be obtained this way
+        /// are priced by their input instead of the unmet-supply fallback.
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, ItemData> ManualConversions = new Dictionary<string, ItemData>(StringComparer.Ordinal)
+        {
+            // Feeding one Tasty Cat Food to the Siamese Lynxes yields one (non auctionable) Pre-Digestion Fish
+            ["PRE_DIGESTION_FISH"] = new ItemData
+            {
+                internalname = "PRE_DIGESTION_FISH",
+                displayname = "Pre-Digestion Fish",
+                recipe = new Recipe { A1 = "DEAD_CAT_FOOD:1", count = 1 }
+            },
         };
         /// <summary>
         /// Fallback per-restock npc stock used when the shop stock is unknown. Most npc shops cap the
@@ -481,8 +491,6 @@ namespace Coflnet.Sky.Crafts.Services
                     tranches.Add(new PriceTranche(additionalCost / additionalAvailable, additionalAvailable, "insta"));
                     return TakeCheapestTranches(tranches, quantity);
                 }
-                if (staticTranches.Count == 0 && ZeroCostWhenUnavailable.Contains(tag))
-                    return new[] { new PriceTranche(0, quantity, "unavailable") };
                 return staticTranches;
             }
         }
@@ -707,7 +715,7 @@ namespace Coflnet.Sky.Crafts.Services
             public bool TryGetRecipes(string tag, out IReadOnlyList<RecipeOption> recipes)
             {
                 recipes = null;
-                if (!lookup.TryGetValue(tag, out var data))
+                if (!lookup.TryGetValue(tag, out var data) && !ManualConversions.TryGetValue(tag, out data))
                     return false;
                 var list = service.EnumerateRecipeCandidates(data)
                     .Where(c => IsRecursiveCraftCandidate(c.recipeType))

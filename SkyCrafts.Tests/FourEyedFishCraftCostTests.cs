@@ -32,7 +32,7 @@ public class FourEyedFishCraftCostTests
     }
 
     [Fact]
-    public async Task FourEyedFish_DoesNotApplyUnmetSupplyPenaltyWhenPreDigestionFishHasNoAhSupply()
+    public async Task FourEyedFish_PricesPreDigestionFishAsTastyCatFood()
     {
         var service = BuildService();
         var fish = BuildFourEyedFish();
@@ -41,7 +41,7 @@ public class FourEyedFishCraftCostTests
             new Dictionary<string, ItemData> { [fish.internalname] = fish },
             new HashSet<string> { "ENCHANTED_SPIDER_EYE" });
 
-        Assert.Equal(6_957_392, result.CraftCost);
+        Assert.Equal(7_209_893, result.CraftCost);
         Assert.Equal(485_257_932, result.SellPrice);
         Assert.Equal("crafting", result.Type);
 
@@ -54,11 +54,9 @@ public class FourEyedFishCraftCostTests
         Assert.Equal(1_650_000, ingredients["PET_ITEM_LUCKY_CLOVER"].Cost);
         Assert.Equal(5_000_000, ingredients["REINFORCED_SCALES"].Cost);
         Assert.Equal(1, ingredients["PRE_DIGESTION_FISH"].Count);
-        Assert.Equal(0, ingredients["PRE_DIGESTION_FISH"].Cost);
-        Assert.Null(ingredients["PRE_DIGESTION_FISH"].Type);
-        Assert.Equal(0, ingredients["PRE_DIGESTION_FISH"].NpcCapacity);
-        Assert.Equal(0, ingredients["PRE_DIGESTION_FISH"].BuyOrderCapacity);
-        Assert.Equal(0, ingredients["PRE_DIGESTION_FISH"].InstaBuyCapacity);
+        // 250k Tasty Cat Food plus the regular 1% + 1 coin craft step markup
+        Assert.Equal(252_501, ingredients["PRE_DIGESTION_FISH"].Cost);
+        Assert.Equal("craft", ingredients["PRE_DIGESTION_FISH"].Type);
     }
 
     [Fact]
@@ -98,6 +96,7 @@ public class FourEyedFishCraftCostTests
         {
             ["FOUR_EYED_FISH"] = new() { SellPrice = 485_257_932, Available = 1, IsAh = true },
             ["PET_ITEM_LUCKY_CLOVER"] = new() { BuyPrice = 1_650_000, Available = 1, IsAh = true },
+            ["DEAD_CAT_FOOD"] = new() { BuyPrice = 250_000, Available = 1, IsAh = true },
             ["PRE_DIGESTION_FISH"] = preDigestionFishPrice ?? new() { BuyPrice = 0, Available = 0, IsAh = true },
             ["REINFORCED_SCALES"] = new() { BuyPrice = 5_000_000, Available = 1, IsAh = true },
         };
