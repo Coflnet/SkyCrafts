@@ -25,7 +25,7 @@ public class ForgeCraftService
         this.logger = logger;
     }
 
-    public async Task Update(Dictionary<string, ProfitableCraft> crafts, List<ItemData> craftable)
+    public async Task Update(IReadOnlyDictionary<string, ProfitableCraft> crafts, List<ItemData> craftable)
     {
         var forgeItems = crafts.Values.Where(c => c.Type == "forge").ToList();
         var forgeItemLookup = forgeItems.GroupBy(l => l.ItemId)

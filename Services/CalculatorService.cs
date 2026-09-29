@@ -235,7 +235,7 @@ namespace Coflnet.Sky.Crafts.Services
             return npcCosts;
         }
 
-        public async Task<ProfitableCraft> GetCreaftingCost(ItemData item, Dictionary<string, ProfitableCraft> crafts, Dictionary<string, ItemData> lookup, HashSet<string> bazaarItems)
+        public async Task<ProfitableCraft> GetCreaftingCost(ItemData item, Dictionary<string, ItemData> lookup, HashSet<string> bazaarItems)
         {
             var candidates = EnumerateRecipeCandidates(item).ToList();
             var sellPriceTask = GetPriceFor(item.internalname, 1);

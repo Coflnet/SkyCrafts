@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -25,7 +26,8 @@ namespace Coflnet.Sky.Crafts.Services
         private NpcBuyService npcBuyService;
         private Api.Client.Api.IPricesApi pricesApi;
         private ILogger<UpdaterService> logger;
-        public Dictionary<string, ProfitableCraft> Crafts = new Dictionary<string, ProfitableCraft>();
+        // Startup workers publish crafts in parallel while API requests read the cache.
+        public readonly ConcurrentDictionary<string, ProfitableCraft> Crafts = new();
         public HashSet<string> BazaarItems = new();
         private IConfiguration config;
         public bool IteratedAll = false;
@@ -124,14 +126,14 @@ namespace Coflnet.Sky.Crafts.Services
                 if (item.Cost == 0)
                     item.Cost = 1;
             }
-            Crafts.Add(tag, new ProfitableCraft()
+            Crafts[tag] = new ProfitableCraft()
             {
                 ItemId = tag,
                 ItemName = tag,
                 CraftCost = 1,
                 SellPrice = 1,
                 Ingredients = ingredients
-            });
+            };
         }
 
         private async Task GetBazaarItems()
@@ -177,7 +179,7 @@ namespace Coflnet.Sky.Crafts.Services
                     return; // too different
                 try
                 {
-                    var result = await calculatorService.GetCreaftingCost(item, Crafts, lookup, BazaarItems);
+                    var result = await calculatorService.GetCreaftingCost(item, lookup, BazaarItems);
                     var tag = result.ItemId;
 
                     if (item.displayname == "§fEnchanted Book")

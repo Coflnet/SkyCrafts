@@ -22,7 +22,7 @@ public class PriceDropService
         this.logger = logger;
         this.itemsApi = itemsApi;
     }
-    public async Task UpdateAll(Dictionary<string, ProfitableCraft> crafts)
+    public async Task UpdateAll(IReadOnlyDictionary<string, ProfitableCraft> crafts)
     {
         var all = await itemsApi.ApiItemsGetAsync();
         logger.LogInformation($"Updating prices-drops for {all.Count} items");
@@ -40,7 +40,7 @@ public class PriceDropService
         }
     }
 
-    private async Task UpdatePrice(Dictionary<string, ProfitableCraft> crafts, Api.Client.Model.ItemMetadataElement item)
+    private async Task UpdatePrice(IReadOnlyDictionary<string, ProfitableCraft> crafts, Api.Client.Model.ItemMetadataElement item)
     {
         if(item.Tag.StartsWith("MAP:"))
         {
