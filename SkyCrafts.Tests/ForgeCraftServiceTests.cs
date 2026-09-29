@@ -44,11 +44,11 @@ public class ForgeCraftServiceTests
         var instant = new ItemData { internalname = "INSTANT_PART", recipe = new Recipe { A1 = "REFINED_DIAMOND:1", count = 1 } };
         var items = new List<ItemData> { drill, plate, golden, instant, diamond };
         var lookup = items.ToDictionary(i => i.internalname);
-        var craft = await calculator.GetCreaftingCost(drill, new(), lookup, new());
+        var craft = await calculator.GetCreaftingCost(drill, lookup, new());
         var plan = await calculator.GetAcquisitionPlanAsync(drill.internalname, 1, lookup, new(), forceCraft: true);
         var forge = new ForgeCraftService(config, NullLogger<ForgeCraftService>.Instance);
 
-        await forge.Update(new() { [drill.internalname] = craft }, items);
+        await forge.Update(new Dictionary<string, ProfitableCraft> { [drill.internalname] = craft }, items);
 
         var flip = Assert.Single(forge.FlipList);
         Assert.Equal(subcraftDuration, Assert.Single(craft.Ingredients).ForgeDuration);

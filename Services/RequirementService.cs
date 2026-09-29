@@ -28,7 +28,7 @@ public partial class RequirementService
 
     [GeneratedRegex(@"§[\da-f]")]
     private static partial Regex MinecraftFormatRemoveRegex();
-    public async Task AssignRequirements(ItemData item, ProfitableCraft result, System.Collections.Generic.Dictionary<string, ProfitableCraft> crafts)
+    public async Task AssignRequirements(ItemData item, ProfitableCraft result, System.Collections.Generic.IReadOnlyDictionary<string, ProfitableCraft> crafts)
     {
         if (result.ReqCollection == default || result.Ingredients.Any(i => i?.Type == "craft"))
         {
