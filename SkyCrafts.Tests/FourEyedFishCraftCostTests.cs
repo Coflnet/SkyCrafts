@@ -37,7 +37,7 @@ public class FourEyedFishCraftCostTests
         var service = BuildService();
         var fish = BuildFourEyedFish();
 
-        var result = await service.GetCreaftingCost(fish, new Dictionary<string, ProfitableCraft>(),
+        var result = await service.GetCreaftingCost(fish,
             new Dictionary<string, ItemData> { [fish.internalname] = fish },
             new HashSet<string> { "ENCHANTED_SPIDER_EYE" });
 
@@ -65,7 +65,7 @@ public class FourEyedFishCraftCostTests
         var service = BuildService(new PriceResponse { BuyPrice = 12_345, Available = 1, IsAh = true });
         var fish = BuildFourEyedFish();
 
-        var result = await service.GetCreaftingCost(fish, new Dictionary<string, ProfitableCraft>(),
+        var result = await service.GetCreaftingCost(fish,
             new Dictionary<string, ItemData> { [fish.internalname] = fish },
             new HashSet<string> { "ENCHANTED_SPIDER_EYE" });
 
@@ -76,7 +76,7 @@ public class FourEyedFishCraftCostTests
         Assert.Equal(12_345, ingredient.InstaBuyUnitPrice);
     }
 
-    private static CalculatorService BuildService(PriceResponse preDigestionFishPrice = null)
+    private static CalculatorService BuildService(PriceResponse? preDigestionFishPrice = null)
     {
         var config = Substitute.For<IConfiguration>();
         var itemsApi = Substitute.For<IItemsApi>();
