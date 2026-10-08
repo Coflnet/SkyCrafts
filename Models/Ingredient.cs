@@ -10,6 +10,8 @@ namespace Coflnet.Sky.Crafts.Models
         public string Type { get; set; }
         /// <summary>Total forge-slot seconds to obtain Count units through the selected subcrafts; zero when bought.</summary>
         public long ForgeDuration { get; set; }
+        /// <summary>Forge-time premium coins included in <see cref="Cost"/>, including nested crafts; zero when bought.</summary>
+        public double ForgeTimeCost { get; set; }
         /// <summary>
         /// How many units of this ingredient can be sourced from npc stock (the cheapest, instantly
         /// available channel). Quantity independent. 0 when the item is not sold by any npc.

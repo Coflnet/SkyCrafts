@@ -270,19 +270,28 @@ namespace Coflnet.Sky.Crafts.Services
             // GOLD_BLOCK for ENCHANTED_GOLD instead of blindly taking the structurally-first recipe.
             (List<Ingredient> ingredients, long yield, string recipeType) chosen = default;
             var chosenPerUnitCost = double.PositiveInfinity;
+            var chosenForgeTimeCost = 0d;
             foreach (var candidate in candidates)
             {
                 var totalCost = await PriceIngredientsAsync(candidate.ingredients, market, recipeSource, options, craftCostMemo);
-                var perUnitCost = totalCost / Math.Max(1, candidate.yield);
+                // The top-level item is not priced through ObtainAsync, so its own forge step needs the
+                // forge-time premium added here (ingredients already carry theirs).
+                var ownForgeTimeCost = candidate.recipeType == "forge"
+                    ? (item.recipes?.FirstOrDefault()?.duration ?? 0) / 3600.0 * options.ForgeHourCoins : 0;
+                var forgeTimeCost = ownForgeTimeCost + candidate.ingredients.Sum(i => i.ForgeTimeCost);
+                var yield = Math.Max(1, candidate.yield);
+                var perUnitCost = (totalCost + ownForgeTimeCost) / yield;
                 if (perUnitCost < chosenPerUnitCost)
                 {
                     chosenPerUnitCost = perUnitCost;
+                    chosenForgeTimeCost = forgeTimeCost / yield;
                     chosen = candidate;
                 }
             }
 
             result.CraftCost = chosenPerUnitCost;
             result.BuyOrderCraftCost = chosenPerUnitCost;
+            result.ForgeTimeCost = chosenForgeTimeCost;
             result.Ingredients = chosen.ingredients;
             var itemPrice = await sellPriceTask;
             result.SellPrice = bazaarItems.Contains(result.ItemId) ? itemPrice.BuyPrice - 0.1 : itemPrice.SellPrice;
@@ -330,6 +339,7 @@ namespace Coflnet.Sky.Crafts.Services
                 }
                 var obtainment = obtainments[index];
                 ingredient.ForgeDuration = obtainment.ForgeDuration;
+                ingredient.ForgeTimeCost = obtainment.ForgeTimeCost;
                 ingredient.Cost = obtainment.Cost;
                 // The genuine cost of buying this ingredient outright, so downstream can show how much
                 // crafting it saved vs. the buy alternative. Falls back to Cost when there is no viable

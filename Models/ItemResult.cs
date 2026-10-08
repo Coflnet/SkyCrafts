@@ -10,6 +10,8 @@ namespace Coflnet.Sky.Crafts.Models
         public double SellPrice { get; set; }
         public double CraftCost { get; set; }
         public double BuyOrderCraftCost { get; set; }
+        /// <summary>Forge-time premium coins included in <see cref="CraftCost"/> (own forge step plus nested crafts); subtract for real coins.</summary>
+        public double ForgeTimeCost { get; set; }
         public IEnumerable<Ingredient> Ingredients { get; set; }
         public RequiredCollection ReqCollection { get; set; }
         public RequiredCollection ReqSlayer { get; set; }

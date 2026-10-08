@@ -44,6 +44,8 @@ public record Obtainment(double Cost, bool Enough, string Method, double BuyCost
 {
     /// <summary>Total forge-slot seconds for the selected quantity, including nested crafts.</summary>
     public long ForgeDuration { get; init; }
+    /// <summary>Coins of forge-slot time premium included in <see cref="Cost"/>, including nested crafts; 0 when bought.</summary>
+    public double ForgeTimeCost { get; init; }
     public CraftAcquisitionPlan Plan { get; init; }
 }
 
@@ -277,15 +279,25 @@ public static class RealisticCraft
         /// Effort markup applied per craft step (>= 1% by default), direct OR indirect (forge, malik,
         /// npc_shop, carpentry, trade, ...), so the extra work of crafting propagates up a chain. There is
         /// no separate multiplier for indirect/time-gated steps: supply/liquidity limits are already
-        /// modeled by tranche capacities (npc stock caps, order-book depth), forge is time-gated but costs
-        /// the same coins, and malik (Kuudra upgrade) recipes are unlimited and cost essence - none of
-        /// that is a reason to inflate the coin cost. Keeping forge/malik/etc. out of "craft flip" results
+        /// modeled by tranche capacities (npc stock caps, order-book depth), and malik (Kuudra upgrade)
+        /// recipes are unlimited and cost essence - none of that is a reason to inflate the coin cost.
+        /// Forge is the exception: its slots are time-gated and can not be scaled instantly, so forge time
+        /// is priced explicitly through <see cref="ForgeHourCoins"/> (a flat premium per forge hour, not a
+        /// multiplier). Keeping forge/malik/etc. out of "craft flip" results
         /// is handled entirely by the Type marker (see CalculatorService.ResolveCraftType /
-        /// CraftsController.GetProfitable), not by cost inflation here. This also matters because
-        /// downstream consumers (e.g. SkySniper's CraftCostService) use CraftCost as a real value cap
-        /// (craftCost * stackSize * margin) - an inflated craft cost would corrupt that ceiling.
+        /// CraftsController.GetProfitable), not by cost inflation here. The forge premium is tracked
+        /// separately (ForgeTimeCost) so real coin numbers stay recoverable.
         /// </summary>
         public double CraftStepMarkup { get; set; } = 1.01;
+        /// <summary>
+        /// Coin value of one hour of forge-slot time, added to the craft cost of every forge step (only that
+        /// step's own duration; nested forge steps carry their own premium). A conservative lower bound: most
+        /// forge items trade at a far higher margin per forge hour (median ~75k/h) while the cheapest liquid
+        /// ones (refined titanium and its chain) sit at ~24-28k/h, independent of the required HotM level, so
+        /// time-gated items stop being valued at raw material cost without pushing many above their sell
+        /// price. Set to 0 to disable.
+        /// </summary>
+        public double ForgeHourCoins { get; set; } = 30_000;
         /// <summary>Flat coin cost added per craft step on top of the markup.</summary>
         public double CraftStepFlatCoins { get; set; } = 1;
         /// <summary>
@@ -457,13 +469,15 @@ public static class RealisticCraft
                     // with the higher bulk markup.
                     var needsBulkOrdering = ingredients.Any(i => i.count * batches > options.MaxSingleOrderQuantity);
                     var stepFactor = needsBulkOrdering ? options.BulkCraftStepMarkup : options.CraftStepMarkup;
+                    // Coins for the forge-slot time of this step alone; nested forge steps carry their own premium.
+                    var ownForgeTimeCost = candidate.ForgeDuration * batches / 3600.0 * options.ForgeHourCoins;
                     // Stop when even the ordinary craft margin cannot beat the current selection's score.
                     // Nested forge time may raise this candidate's margin later, so using the lower margin
                     // here gives a safe ceiling without prematurely discarding an instant alternative.
                     double craftCostCeiling;
                     if (best.Enough && !options.BuildPlan)
                     {
-                        var marginAdjusted = PreferenceCost(best, options) / options.CraftPreferenceMargin - options.CraftStepFlatCoins;
+                        var marginAdjusted = PreferenceCost(best, options) / options.CraftPreferenceMargin - options.CraftStepFlatCoins - ownForgeTimeCost;
                         // If even zero flat/markup overhead can't beat buying, crafting can never win here.
                         craftCostCeiling = marginAdjusted <= 0 ? 0 : marginAdjusted / stepFactor;
                     }
@@ -474,6 +488,7 @@ public static class RealisticCraft
                     double craftCost = 0;
                     double planCraftCost = 0;
                     var forgeDuration = candidate.ForgeDuration * batches;
+                    var forgeTimeCost = ownForgeTimeCost;
                     var craftViable = true;
                     var childPlans = options.BuildPlan ? new List<CraftAcquisitionPlan>() : null;
                     // Recurse the biggest quantities first so an over-budget ingredient trips the ceiling sooner.
@@ -490,6 +505,7 @@ public static class RealisticCraft
                         craftCost += sub.Cost;
                         planCraftCost += sub.Plan?.Cost ?? sub.Cost;
                         forgeDuration += sub.ForgeDuration;
+                        forgeTimeCost += sub.ForgeTimeCost;
                         if (sub.Plan != null)
                             childPlans?.Add(sub.Plan);
                         if (!subExact)
@@ -504,10 +520,11 @@ public static class RealisticCraft
                     }
                     if (craftViable)
                     {
-                        var effectiveCraftCost = craftCost * stepFactor + options.CraftStepFlatCoins;
+                        var effectiveCraftCost = craftCost * stepFactor + options.CraftStepFlatCoins + ownForgeTimeCost;
                         var craftResult = new Obtainment(effectiveCraftCost, true, "craft")
                         {
                             ForgeDuration = forgeDuration,
+                            ForgeTimeCost = forgeTimeCost,
                             Plan = options.BuildPlan ? new CraftAcquisitionPlan
                             {
                                 ItemId = tag,
@@ -517,6 +534,7 @@ public static class RealisticCraft
                                 Method = "craft",
                                 CraftedQuantity = quantity,
                                 ForgeDuration = forgeDuration,
+                                ForgeTimeCost = forgeTimeCost,
                                 Ingredients = childPlans
                             } : null
                         };
@@ -586,6 +604,7 @@ public static class RealisticCraft
                             best = new Obtainment(hybridCost, true, "craft")
                             {
                                 ForgeDuration = remainderCraft.ForgeDuration,
+                                ForgeTimeCost = remainderCraft.ForgeTimeCost,
                                 Plan = new CraftAcquisitionPlan
                                 {
                                     ItemId = tag,
@@ -595,6 +614,7 @@ public static class RealisticCraft
                                     Method = "craft",
                                     CraftedQuantity = cheapPurchases.Unmet,
                                     ForgeDuration = remainderCraft.ForgeDuration,
+                                    ForgeTimeCost = remainderCraft.ForgeTimeCost,
                                     Purchases = cheapPurchases.Fills,
                                     Ingredients = remainderCraft.Plan?.Ingredients ?? Array.Empty<CraftAcquisitionPlan>()
                                 }
