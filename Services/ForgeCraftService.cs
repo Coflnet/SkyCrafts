@@ -15,7 +15,6 @@ public class ForgeCraftService
 {
     private IConfiguration config;
     private ILogger<ForgeCraftService> logger;
-    private Dictionary<string, Dictionary<string, string>> Requirements = new(StringComparer.OrdinalIgnoreCase);
     private Dictionary<string, ForgeFlip> Flips = new();
     public IEnumerable<ForgeFlip> FlipList => Flips.Values;
 
@@ -33,17 +32,6 @@ public class ForgeCraftService
         var timeLookup = craftable.Where(c => forgeItemLookup.ContainsKey(c.internalname))
             .GroupBy(l => l.internalname).Select(s => s.OrderByDescending(w => (w.Type == "npc") ? -1 : 0).First())
             .ToDictionary(c => c.internalname, c => c);
-        if (Requirements.Count == 0)
-        {
-            var stringRequirements = File.ReadAllText("Data/forge_requirements.json");
-            var parsed = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(stringRequirements) ?? throw new Exception("Failed to parse forge requirements");
-            foreach (var item in parsed)
-            {
-                var list = item.Value.Select(s => s.Replace("Heart of the Mountain Tier", "HotM")).ToList();
-                // split on last space to get the level
-                Requirements[item.Key] = list.ToDictionary(s => string.Join(' ', s.Split(" ").Reverse().Skip(1).Reverse()), s => s.Split(" ").Last());
-            }
-        }
         foreach (var item in forgeItems)
         {
             try
@@ -62,8 +50,8 @@ public class ForgeCraftService
         var itemData = timeLookup[item.ItemId];
         var time = itemData.recipes[0].duration + item.Ingredients.Sum(i => i.ForgeDuration);
         var requiredLevel = 0;
-        var cleanedName = Regex.Replace(itemData.displayname, @"§\w|[^-a-zA-Z 1-9]", "").Trim();
-        var forgeRequirements = Requirements.GetValueOrDefault(cleanedName);
+        var cleanedName = ForgeRequirementLookup.Clean(itemData.displayname);
+        var forgeRequirements = ForgeRequirementLookup.GetRequirements(itemData);
         if (forgeRequirements?.TryGetValue("HotM", out string? level) ?? false)
         {
             requiredLevel = int.Parse(level);

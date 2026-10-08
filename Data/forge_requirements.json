@@ -33,7 +33,7 @@
         "Heart of the Mountain Tier 7"
     ],
     "Golden Plate": [
-        "Heart of the Mountain Tier 2"
+        "Heart of the Mountain Tier 3"
     ],
     "Mithril Plate": [
         "Heart of the Mountain Tier 3"
@@ -98,17 +98,26 @@
     "Divan's Drill": [
         "Heart of the Mountain Tier 7"
     ],
+    "Mithril Lantern": [
+        "Heart of the Mountain Tier 2"
+    ],
+    "Titanium Lantern": [
+        "Heart of the Mountain Tier 5"
+    ],
+    "Glacite Lantern": [
+        "Heart of the Mountain Tier 8"
+    ],
     "Mithril Necklace": [
-        "Heart of the Mountain Tier 1"
+        "Heart of the Mountain Tier 2"
     ],
     "Mithril Cloak": [
-        "Heart of the Mountain Tier 1"
+        "Heart of the Mountain Tier 2"
     ],
     "Mithril Belt": [
-        "Heart of the Mountain Tier 1"
+        "Heart of the Mountain Tier 2"
     ],
     "Mithril Gauntlet": [
-        "Heart of the Mountain Tier 1"
+        "Heart of the Mountain Tier 2"
     ],
     "Titanium Necklace": [
         "Heart of the Mountain Tier 3"
@@ -171,6 +180,9 @@
         "Heart of the Mountain Tier 8"
     ],
     "Pendant Of Divan": [
+        "Heart of the Mountain Tier 10"
+    ],
+    "Will-o'-wisp": [
         "Heart of the Mountain Tier 10"
     ],
     "Relic Of Power": [

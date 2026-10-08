@@ -263,7 +263,7 @@ namespace Coflnet.Sky.Crafts.Services
                 // The top-level item is not priced through ObtainAsync, so its own forge step needs the
                 // forge-time premium added here (ingredients already carry theirs).
                 var ownForgeTimeCost = candidate.recipeType == "forge"
-                    ? (item.recipes?.FirstOrDefault()?.duration ?? 0) / 3600.0 * options.ForgeHourCoins : 0;
+                    ? options.ForgeStepPremium(ForgeRequirementLookup.GetHotmTier(item) ?? 0, (item.recipes?.FirstOrDefault()?.duration ?? 0) / 3600.0) : 0;
                 var forgeTimeCost = ownForgeTimeCost + candidate.ingredients.Sum(i => i.ForgeTimeCost);
                 var yield = Math.Max(1, candidate.yield);
                 var perUnitCost = (totalCost + ownForgeTimeCost) / yield;
@@ -716,7 +716,8 @@ namespace Coflnet.Sky.Crafts.Services
                 var list = service.EnumerateRecipeCandidates(data)
                     .Where(c => IsRecursiveCraftCandidate(c.recipeType))
                     .Select(c => new RecipeOption(c.ingredients.Select(i => (i.ItemId, i.Count)).ToList(), c.yield,
-                        c.recipeType == "forge" ? data.recipes[0].duration : 0))
+                        c.recipeType == "forge" ? data.recipes[0].duration : 0,
+                        c.recipeType == "forge" ? ForgeRequirementLookup.GetHotmTier(data) ?? 0 : null))
                     .ToList();
                 if (list.Count == 0)
                     return false;
