@@ -25,6 +25,8 @@ public class CraftAcquisitionPlan
     public long CraftedQuantity { get; set; }
     /// <summary>Total forge-slot seconds for this selected plan, including all nested crafts.</summary>
     public long ForgeDuration { get; set; }
+    /// <summary>Coins of forge-time premium the selection logic charged for this plan (not part of <see cref="Cost"/>, which is real coins), including nested crafts.</summary>
+    public double ForgeTimeCost { get; set; }
     public IReadOnlyList<AcquisitionFill> Purchases { get; set; } = Array.Empty<AcquisitionFill>();
     public IReadOnlyList<CraftAcquisitionPlan> Ingredients { get; set; } = Array.Empty<CraftAcquisitionPlan>();
 }

@@ -79,7 +79,7 @@ public class ForgeCraftService
             CraftData = item,
             Duration = time,
             RequiredHotMLevel = requiredLevel,
-            ProfitPerHour = Math.Clamp((item.SellPrice - item.CraftCost) / Math.Max(time + 100, 300) * 3600, 0, int.MaxValue),
+            ProfitPerHour = Math.Clamp((item.SellPrice - (item.CraftCost - item.ForgeTimeCost)) / Math.Max(time + 100, 300) * 3600, 0, int.MaxValue),
             Requirements = forgeRequirements?.ToDictionary(r => r.Key, r => int.Parse(r.Value))
         };
     }

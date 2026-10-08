@@ -28,7 +28,8 @@ public class ForgeCraftServiceTests
     }
 
     [Theory]
-    [InlineData(1_000_000, 5 * (64_800 + 21_600) + 3 * 28_800)]
+    // Plate buy price is high enough that forging still wins after the forge-hour premium.
+    [InlineData(1_000_000_000, 5 * (64_800 + 21_600) + 3 * 28_800)]
     [InlineData(1, 0)]
     public async Task DrillFlipAndAcquisitionPlan_IncludeOnlySelectedNestedForgeBatches(double platePrice, long subcraftDuration)
     {
@@ -54,7 +55,30 @@ public class ForgeCraftServiceTests
         Assert.Equal(subcraftDuration, Assert.Single(craft.Ingredients).ForgeDuration);
         Assert.Equal(30 + subcraftDuration, flip.Duration);
         Assert.Equal(flip.Duration, plan.ForgeDuration);
-        Assert.Equal((craft.SellPrice - craft.CraftCost) / Math.Max(flip.Duration + 100, 300) * 3600, flip.ProfitPerHour, 6);
+        Assert.Equal((craft.SellPrice - (craft.CraftCost - craft.ForgeTimeCost)) / Math.Max(flip.Duration + 100, 300) * 3600, flip.ProfitPerHour, 6);
+    }
+
+    [Fact]
+    public async Task TopLevelForgeStep_PremiumIsInCraftCost_ButNotInProfitPerHour()
+    {
+        var config = Substitute.For<IConfiguration>();
+        var itemsApi = Substitute.For<IItemsApi>();
+        itemsApi.ApiItemsNpccostGetAsync().Returns(new List<NpcCost>());
+        var calculator = new PricedCalculator(config, itemsApi, 1_000_000);
+        var item = ForgeItem("MITHRIL_PLATE", 4 * 3600, "RAW:100");
+        var items = new List<ItemData> { item };
+        var lookup = items.ToDictionary(i => i.internalname);
+        // Raw ingredients are bought for 10 each; a 4h own forge step is the only forge time.
+        var craft = await calculator.GetCreaftingCost(item, lookup, new());
+        var forge = new ForgeCraftService(config, NullLogger<ForgeCraftService>.Instance);
+        await forge.Update(new Dictionary<string, ProfitableCraft> { [item.internalname] = craft }, items);
+
+        var premium = 4 * new RealisticCraft.Options().ForgeHourCoins;
+        Assert.Equal(premium, craft.ForgeTimeCost, 6);
+        Assert.Equal(1000 + premium, craft.CraftCost, 6);
+        var flip = Assert.Single(forge.FlipList);
+        var expected = (craft.SellPrice - 1000) / Math.Max(flip.Duration + 100, 300) * 3600;
+        Assert.Equal(expected, flip.ProfitPerHour, 6);
     }
 
     private static ItemData ForgeItem(string tag, int duration, string input) => new()
