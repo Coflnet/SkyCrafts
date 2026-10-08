@@ -297,7 +297,7 @@ public static class RealisticCraft
         /// time-gated items stop being valued at raw material cost without pushing many above their sell
         /// price. Set to 0 to disable.
         /// </summary>
-        public double ForgeHourCoins { get; set; } = 30_000;
+        public double ForgeHourCoins { get; set; } = 40_000;
         /// <summary>Flat coin cost added per craft step on top of the markup.</summary>
         public double CraftStepFlatCoins { get; set; } = 1;
         /// <summary>
