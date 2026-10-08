@@ -688,12 +688,13 @@ public class RealisticCraftTests
         var result = await RealisticCraft.ObtainAsync("TITANIUM_LANTERN", 1, market, recipes, options);
 
         Assert.Equal("craft", result.Method);
-        // Raw materials alone are ~1.08m; with forge time priced in it lands just under 2m.
+        // Raw materials alone are ~1.08m; with forge time priced in it lands just above 2m.
         Assert.InRange(result.Cost, 1_900_000, 3_300_000);
-        // Refined titanium is bought (669k < 384k + 12h of forge time), so only the own step, the
-        // mithril lantern and its refined mithril step are forged: 4h + 0.5h + 6h.
-        Assert.Equal((long)(10.5 * 3600), result.ForgeDuration);
-        Assert.Equal(10.5 * options.ForgeHourCoins, result.ForgeTimeCost, 6);
+        // Refined titanium is bought (669k < 384k + 12h of forge time) and so is refined mithril (550k is
+        // within the forge preference margin of 236k + 6h of forge time), so only the own step and the
+        // mithril lantern are forged: 4h + 0.5h.
+        Assert.Equal((long)(4.5 * 3600), result.ForgeDuration);
+        Assert.Equal(4.5 * options.ForgeHourCoins, result.ForgeTimeCost, 6);
     }
 
     [Theory]
