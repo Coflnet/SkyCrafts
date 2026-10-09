@@ -73,12 +73,31 @@ public class ForgeCraftServiceTests
         var forge = new ForgeCraftService(config, NullLogger<ForgeCraftService>.Instance);
         await forge.Update(new Dictionary<string, ProfitableCraft> { [item.internalname] = craft }, items);
 
-        var premium = 4 * new RealisticCraft.Options().ForgeHourCoins;
+        // Display name is not a known forge item, so the tier is unknown (treated as 2).
+        var premium = new RealisticCraft.Options().ForgeStepPremium(0, 4);
         Assert.Equal(premium, craft.ForgeTimeCost, 6);
         Assert.Equal(1000 + premium, craft.CraftCost, 6);
         var flip = Assert.Single(forge.FlipList);
         var expected = (craft.SellPrice - 1000) / Math.Max(flip.Duration + 100, 300) * 3600;
         Assert.Equal(expected, flip.ProfitPerHour, 6);
+    }
+
+    [Theory]
+    [InlineData("Mithril Lantern", 2)]
+    [InlineData("Glacite Lantern", 8)]
+    public async Task TopLevelForgeStep_UsesTheItemsHotmTierInThePremium(string name, int tier)
+    {
+        var config = Substitute.For<IConfiguration>();
+        var itemsApi = Substitute.For<IItemsApi>();
+        itemsApi.ApiItemsNpccostGetAsync().Returns(new List<NpcCost>());
+        var calculator = new PricedCalculator(config, itemsApi, 1_000_000);
+        var item = ForgeItem("SOME_LANTERN", 2 * 3600, "RAW:100");
+        item.displayname = "§a" + name;
+        var lookup = new List<ItemData> { item }.ToDictionary(i => i.internalname);
+
+        var craft = await calculator.GetCreaftingCost(item, lookup, new());
+
+        Assert.Equal(new RealisticCraft.Options().ForgeStepPremium(tier, 2), craft.ForgeTimeCost, 6);
     }
 
     private static ItemData ForgeItem(string tag, int duration, string input) => new()

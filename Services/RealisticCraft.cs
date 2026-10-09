@@ -157,7 +157,14 @@ public interface IMarketSource
 }
 
 /// <summary>One candidate recipe: the ingredients needed for one batch and the batch's yield.</summary>
-public readonly record struct RecipeOption(IReadOnlyList<(string tag, long count)> Ingredients, long Yield, int ForgeDuration = 0);
+public readonly record struct RecipeOption(IReadOnlyList<(string tag, long count)> Ingredients, long Yield, int ForgeDuration = 0, int? ForgeTier = null)
+{
+    /// <summary>
+    /// True for forge recipes. Decided by the recipe type (a tier is supplied for every forge recipe), with a
+    /// positive duration as the fallback for callers that only know the duration.
+    /// </summary>
+    public bool IsForge => ForgeTier.HasValue || ForgeDuration > 0;
+}
 
 /// <summary>Provides crafting recipes so the realistic calculator can expand sub-crafts.</summary>
 public interface IRecipeSource
@@ -282,7 +289,7 @@ public static class RealisticCraft
         /// modeled by tranche capacities (npc stock caps, order-book depth), and malik (Kuudra upgrade)
         /// recipes are unlimited and cost essence - none of that is a reason to inflate the coin cost.
         /// Forge is the exception: its slots are time-gated and can not be scaled instantly, so forge time
-        /// is priced explicitly through <see cref="ForgeHourCoins"/> (a flat premium per forge hour, not a
+        /// is priced explicitly through <see cref="ForgeStepPremium"/> (a flat premium per forge run, not a
         /// multiplier). Keeping forge/malik/etc. out of "craft flip" results
         /// is handled entirely by the Type marker (see CalculatorService.ResolveCraftType /
         /// CraftsController.GetProfitable), not by cost inflation here. The forge premium is tracked
@@ -290,14 +297,41 @@ public static class RealisticCraft
         /// </summary>
         public double CraftStepMarkup { get; set; } = 1.01;
         /// <summary>
-        /// Coin value of one hour of forge-slot time, added to the craft cost of every forge step (only that
-        /// step's own duration; nested forge steps carry their own premium). A conservative lower bound: most
-        /// forge items trade at a far higher margin per forge hour (median ~75k/h) while the cheapest liquid
-        /// ones (refined titanium and its chain) sit at ~24-28k/h, independent of the required HotM level, so
-        /// time-gated items stop being valued at raw material cost without pushing many above their sell
-        /// price. Set to 0 to disable.
+        /// Tier assumed for a forge recipe whose required Heart of the Mountain tier is unknown (the forge
+        /// itself requires HotM 2).
         /// </summary>
-        public double ForgeHourCoins { get; set; } = 40_000;
+        public const int UnknownForgeTier = 2;
+        /// <summary>
+        /// Fixed coins added per forge run (one batch of a forge recipe). Liquid refined commodities (refined
+        /// mithril/diamond/titanium, fuel tank) carry ~250-290k margin per step regardless of a 6-12h duration,
+        /// so the margin is mostly a per-step amount. A conservative lower bound.
+        /// </summary>
+        public double ForgeStepCoins { get; set; } = 100_000;
+        /// <summary>
+        /// Extra coins per required Heart of the Mountain tier above 1; tier is only a weak per-step effect.
+        /// </summary>
+        public double ForgeTierCoins { get; set; } = 50_000;
+        /// <summary>
+        /// Coin value of one hour of forge-slot time. Only a small part of the premium: short steps earn far
+        /// more per hour than long ones, so the duration alone is a poor predictor of the margin.
+        /// </summary>
+        public double ForgeHourCoins { get; set; } = 10_000;
+
+        /// <summary>
+        /// Forge-slot premium for ONE run (batch) of a forge recipe:
+        /// <c>ForgeStepCoins + ForgeTierCoins * max(0, tier - 1) + ForgeHourCoins * hours</c>.
+        /// Forge slots are time-gated and can not be scaled instantly, so forge items stop being valued at
+        /// raw material cost without being pushed above their sell price. Applies to the step's own run only
+        /// (nested forge steps carry their own premium) and to forge recipes only, regardless of duration.
+        /// A tier of 0 or less means unknown and is treated as <see cref="UnknownForgeTier"/>. Set all three
+        /// coin values to 0 to disable. The single definition shared by RealisticCraft.ObtainAsync and
+        /// CalculatorService.GetCreaftingCost.
+        /// </summary>
+        public double ForgeStepPremium(int tier, double hours)
+        {
+            var effectiveTier = tier <= 0 ? UnknownForgeTier : tier;
+            return ForgeStepCoins + ForgeTierCoins * Math.Max(0, effectiveTier - 1) + ForgeHourCoins * hours;
+        }
         /// <summary>Flat coin cost added per craft step on top of the markup.</summary>
         public double CraftStepFlatCoins { get; set; } = 1;
         /// <summary>
@@ -470,7 +504,8 @@ public static class RealisticCraft
                     var needsBulkOrdering = ingredients.Any(i => i.count * batches > options.MaxSingleOrderQuantity);
                     var stepFactor = needsBulkOrdering ? options.BulkCraftStepMarkup : options.CraftStepMarkup;
                     // Coins for the forge-slot time of this step alone; nested forge steps carry their own premium.
-                    var ownForgeTimeCost = candidate.ForgeDuration * batches / 3600.0 * options.ForgeHourCoins;
+                    var ownForgeTimeCost = candidate.IsForge
+                        ? batches * options.ForgeStepPremium(candidate.ForgeTier ?? 0, candidate.ForgeDuration / 3600.0) : 0;
                     // Stop when even the ordinary craft margin cannot beat the current selection's score.
                     // Nested forge time may raise this candidate's margin later, so using the lower margin
                     // here gives a safe ceiling without prematurely discarding an instant alternative.

@@ -599,15 +599,15 @@ public class RealisticCraftTests
 
     // --- Fix #3 (revised): malik and npc_shop steps use the same small uniform per-step markup as a
     // direct craft. Forge steps use that markup too, plus a flat coin premium per forge hour
-    // (Options.ForgeHourCoins) because forge slots can not be scaled instantly. Keeping these out of
+    // (Options.ForgeStepPremium: fixed + tier + hours, per forge run) because forge slots can not be scaled instantly. Keeping these out of
     // "craft flip" results is the Type marker's job (CalculatorService.ResolveCraftType /
     // CraftsController.GetProfitable).
 
     [Fact]
-    public async Task ForgeStep_UsesTheSameSmallMarkup_PlusForgeHourPremium()
+    public async Task ForgeStep_UsesTheSameSmallMarkup_PlusForgeStepPremium()
     {
         // FORGED_MAT is not directly craftable (a genuinely time-gated forge recipe): it gets the same
-        // small step markup as any direct craft, plus the flat forge-hour premium for its own time.
+        // small step markup as any direct craft, plus the flat forge premium for each of its runs.
         var market = new FakeMarket();
         market.Tranches["RAW"] = new() { new PriceTranche(25, 100_000_000, "npc") };
         var recipes = new FakeRecipes();
@@ -619,7 +619,9 @@ public class RealisticCraftTests
         Assert.Equal("craft", result.Method);
         var rawCraftCost = 25 * 25;
         Assert.Equal(25 * 3600, result.ForgeDuration);
-        var premium = 25 * options.ForgeHourCoins;
+        // 25 runs of a 1h step with unknown tier (treated as tier 2).
+        var premium = 25 * options.ForgeStepPremium(0, 1);
+        Assert.Equal(25 * (100_000 + 50_000 + 10_000), premium);
         var expected = rawCraftCost * options.CraftStepMarkup + options.CraftStepFlatCoins + premium;
         Assert.Equal(expected, result.Cost, 6);
         Assert.Equal(premium, result.ForgeTimeCost, 6);
@@ -628,23 +630,72 @@ public class RealisticCraftTests
     }
 
     [Fact]
-    public async Task ForgeStep_AddsExactlyHoursTimesForgeHourCoins_AndZeroReproducesOldCost()
+    public async Task ForgeStep_AddsExactlyTheFormulaPremium_AndZeroReproducesOldCost()
     {
         var market = new FakeMarket();
         market.Tranches["RAW"] = new() { new PriceTranche(1000, 100, "insta") };
         var recipes = new FakeRecipes();
-        recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("RAW", 2L) }, 1, 3 * 3600) };
+        recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("RAW", 2L) }, 1, 3 * 3600, 4) };
         var marked = 2000 * 1.01 + 1;
 
-        var free = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { ForgeHourCoins = 0 });
-        var priced = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { ForgeHourCoins = 5000 });
+        var free = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, NoForgePremium());
+        var priced = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes,
+            new RealisticCraft.Options { ForgeStepCoins = 7000, ForgeTierCoins = 3000, ForgeHourCoins = 5000 });
 
         Assert.Equal("craft", free.Method);
         Assert.Equal(marked, free.Cost, 6);
         Assert.Equal(0, free.ForgeTimeCost);
-        Assert.Equal(marked + 3 * 5000, priced.Cost, 6);
-        Assert.Equal(3 * 5000, priced.ForgeTimeCost, 6);
+        // 7000 fixed + 3000 * (tier 4 - 1) + 5000 * 3h
+        Assert.Equal(7000 + 3 * 3000 + 3 * 5000, priced.ForgeTimeCost, 6);
+        Assert.Equal(marked + priced.ForgeTimeCost, priced.Cost, 6);
     }
+
+    [Theory]
+    [InlineData(0, 1, 2)]   // tier unknown counts as tier 2
+    [InlineData(-1, 1, 2)]
+    [InlineData(1, 1, 1)]   // tier 1 adds no tier part
+    [InlineData(2, 1, 2)]
+    [InlineData(10, 2, 10)]
+    public void ForgeStepPremium_IsFixedPlusTierAboveOnePlusHours(int tier, double hours, int effectiveTier)
+    {
+        var options = new RealisticCraft.Options { ForgeStepCoins = 100, ForgeTierCoins = 10, ForgeHourCoins = 1 };
+
+        Assert.Equal(100 + 10 * (effectiveTier - 1) + hours, options.ForgeStepPremium(tier, hours), 6);
+    }
+
+    [Fact]
+    public async Task ForgeStep_IsChargedPerBatch_AndInstantForgeRecipeStillGetsFixedAndTierPart()
+    {
+        var market = new FakeMarket();
+        market.Tranches["RAW"] = new() { new PriceTranche(10, 1000, "insta") };
+        var recipes = new FakeRecipes();
+        // Yield 4 and quantity 10 -> 3 batches; zero duration but flagged as forge by its tier.
+        recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("RAW", 1L) }, 4, 0, 5) };
+        var options = new RealisticCraft.Options { ForgeStepCoins = 7000, ForgeTierCoins = 3000, ForgeHourCoins = 5000 };
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", 10, market, recipes, options);
+
+        Assert.Equal("craft", result.Method);
+        Assert.Equal(3 * (7000 + 4 * 3000), result.ForgeTimeCost, 6);
+    }
+
+    [Fact]
+    public async Task NonForgeStep_GetsNoForgePremium()
+    {
+        var market = new FakeMarket();
+        market.Tranches["RAW"] = new() { new PriceTranche(10, 1000, "insta") };
+        var recipes = new FakeRecipes();
+        recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("RAW", 1L) }, 1) };
+
+        var result = await RealisticCraft.ObtainAsync("ITEM", 5, market, recipes, new RealisticCraft.Options());
+
+        Assert.Equal("craft", result.Method);
+        Assert.Equal(0, result.ForgeTimeCost);
+        Assert.Equal(50 * 1.01 + 1, result.Cost, 6);
+    }
+
+    private static RealisticCraft.Options NoForgePremium()
+        => new() { ForgeStepCoins = 0, ForgeTierCoins = 0, ForgeHourCoins = 0 };
 
     [Fact]
     public async Task NestedForgeStep_PremiumIsCountedOnce()
@@ -652,17 +703,20 @@ public class RealisticCraftTests
         var market = new FakeMarket();
         market.Tranches["RAW"] = new() { new PriceTranche(1000, 100, "insta") };
         var recipes = new FakeRecipes();
-        recipes.Recipes["TOP"] = new() { new RecipeOption(new[] { ("MID", 1L) }, 1, 2 * 3600) };
+        recipes.Recipes["TOP"] = new() { new RecipeOption(new[] { ("MID", 1L) }, 1, 2 * 3600, 3) };
         recipes.Recipes["MID"] = new() { new RecipeOption(new[] { ("RAW", 1L) }, 1, 3600) };
-        var options = new RealisticCraft.Options { ForgeHourCoins = 5000, ForgeCraftPreferenceMargin = 1 };
+        var options = new RealisticCraft.Options { ForgeStepCoins = 7000, ForgeTierCoins = 2000, ForgeHourCoins = 5000, ForgeCraftPreferenceMargin = 1 };
 
         var result = await RealisticCraft.ObtainAsync("TOP", 1, market, recipes, options);
 
-        var mid = (1000 * 1.01 + 1) + 5000;
-        var top = mid * 1.01 + 1 + 2 * 5000;
+        // MID: tier unknown (2), 1h; TOP: tier 3, 2h.
+        var midPremium = 7000 + 2000 * 1 + 5000;
+        var topPremium = 7000 + 2000 * 2 + 2 * 5000;
+        var mid = (1000 * 1.01 + 1) + midPremium;
+        var top = mid * 1.01 + 1 + topPremium;
         Assert.Equal(top, result.Cost, 6);
         Assert.Equal(3 * 3600, result.ForgeDuration);
-        Assert.Equal(3 * 5000, result.ForgeTimeCost, 6);
+        Assert.Equal(midPremium + topPremium, result.ForgeTimeCost, 6);
     }
 
     [Fact]
@@ -679,22 +733,24 @@ public class RealisticCraftTests
         market.Tranches["REFINED_MITHRIL"] = new() { new PriceTranche(550_000, 10, "insta") };
         market.Tranches["MITHRIL_LANTERN"] = new() { new PriceTranche(1_200_000, 10, "insta") };
         var recipes = new FakeRecipes();
-        recipes.Recipes["TITANIUM_LANTERN"] = new() { new RecipeOption(new[] { ("MITHRIL_LANTERN", 1L), ("REFINED_TITANIUM", 2L), ("EMERALD_BLOCK", 1L) }, 1, 4 * 3600) };
-        recipes.Recipes["MITHRIL_LANTERN"] = new() { new RecipeOption(new[] { ("REFINED_MITHRIL", 1L), ("LANTERN_RAW", 1L) }, 1, 1800) };
-        recipes.Recipes["REFINED_MITHRIL"] = new() { new RecipeOption(new[] { ("MITHRIL_RAW", 1L) }, 1, 6 * 3600) };
-        recipes.Recipes["REFINED_TITANIUM"] = new() { new RecipeOption(new[] { ("TITANIUM_RAW", 1L) }, 1, 12 * 3600) };
+        recipes.Recipes["TITANIUM_LANTERN"] = new() { new RecipeOption(new[] { ("MITHRIL_LANTERN", 1L), ("REFINED_TITANIUM", 2L), ("EMERALD_BLOCK", 1L) }, 1, 4 * 3600, 5) };
+        recipes.Recipes["MITHRIL_LANTERN"] = new() { new RecipeOption(new[] { ("REFINED_MITHRIL", 1L), ("LANTERN_RAW", 1L) }, 1, 1800, 2) };
+        recipes.Recipes["REFINED_MITHRIL"] = new() { new RecipeOption(new[] { ("MITHRIL_RAW", 1L) }, 1, 6 * 3600, 2) };
+        recipes.Recipes["REFINED_TITANIUM"] = new() { new RecipeOption(new[] { ("TITANIUM_RAW", 1L) }, 1, 12 * 3600, 2) };
         var options = new RealisticCraft.Options();
 
         var result = await RealisticCraft.ObtainAsync("TITANIUM_LANTERN", 1, market, recipes, options);
 
         Assert.Equal("craft", result.Method);
-        // Raw materials alone are ~1.08m; with forge time priced in it lands just above 2m.
-        Assert.InRange(result.Cost, 1_900_000, 3_300_000);
-        // Refined titanium is bought (669k < 384k + 12h of forge time) and so is refined mithril (550k is
-        // within the forge preference margin of 236k + 6h of forge time), so only the own step and the
-        // mithril lantern are forged: 4h + 0.5h.
-        Assert.Equal((long)(4.5 * 3600), result.ForgeDuration);
-        Assert.Equal(4.5 * options.ForgeHourCoins, result.ForgeTimeCost, 6);
+        // Raw materials alone are ~1.08m; with the forge premium priced in it lands well above 2m.
+        Assert.InRange(result.Cost, 2_000_000, 3_300_000);
+        // Refined titanium is bought (669k < 384k + its 12h forge step), but forging refined mithril still
+        // beats its 550k price, so the forged steps are the own step, the mithril lantern and refined
+        // mithril: 4h + 0.5h + 6h.
+        Assert.Equal((long)(10.5 * 3600), result.ForgeDuration);
+        var premium = options.ForgeStepPremium(5, 4) + options.ForgeStepPremium(2, 0.5) + options.ForgeStepPremium(2, 6);
+        Assert.Equal(340_000 + 155_000 + 210_000, premium);
+        Assert.Equal(premium, result.ForgeTimeCost, 6);
     }
 
     [Theory]
@@ -712,7 +768,7 @@ public class RealisticCraftTests
         var recipes = new FakeRecipes();
         recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("RAW", 1L) }, 1, duration) };
 
-        var result = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { BuildPlan = buildPlan, ForgeHourCoins = 0 });
+        var result = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { BuildPlan = buildPlan, ForgeStepCoins = 0, ForgeTierCoins = 0, ForgeHourCoins = 0 });
 
         Assert.Equal(method, result.Method);
         Assert.Equal(method == "craft" ? 102 : buyPrice, result.Cost);
@@ -731,7 +787,7 @@ public class RealisticCraftTests
         recipes.Recipes["ITEM"] = new() { new RecipeOption(new[] { ("SUB", 1L) }, 2, 3600) };
         recipes.Recipes["SUB"] = new() { new RecipeOption(new[] { ("RAW", 1L) }, 1, 60) };
 
-        var result = await RealisticCraft.ObtainAsync("ITEM", 10, market, recipes, new RealisticCraft.Options { BuildPlan = true, ForgeHourCoins = 0 });
+        var result = await RealisticCraft.ObtainAsync("ITEM", 10, market, recipes, new RealisticCraft.Options { BuildPlan = true, ForgeStepCoins = 0, ForgeTierCoins = 0, ForgeHourCoins = 0 });
 
         Assert.Equal(3, result.Plan.Purchases.Sum(p => p.Quantity));
         Assert.Equal(7, result.Plan.CraftedQuantity);
@@ -760,7 +816,7 @@ public class RealisticCraftTests
         var recipes = new FakeRecipes();
         recipes.Recipes["ITEM"] = candidates;
 
-        var result = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { BuildPlan = buildPlan, ForgeHourCoins = 0 });
+        var result = await RealisticCraft.ObtainAsync("ITEM", 1, market, recipes, new RealisticCraft.Options { BuildPlan = buildPlan, ForgeStepCoins = 0, ForgeTierCoins = 0, ForgeHourCoins = 0 });
 
         Assert.Equal("craft", result.Method);
         Assert.Equal(112.1, result.Cost, 6);
