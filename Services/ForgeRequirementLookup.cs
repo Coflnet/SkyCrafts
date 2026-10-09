@@ -49,9 +49,40 @@ public static class ForgeRequirementLookup
         foreach (var item in parsed)
         {
             var list = item.Value.Select(s => s.Replace("Heart of the Mountain Tier", "HotM")).ToList();
-            // split on last space to get the level
-            result[Clean(item.Key)] = list.ToDictionary(s => string.Join(' ', s.Split(" ").Reverse().Skip(1).Reverse()), s => s.Split(" ").Last());
+            result[Clean(item.Key)] = list.Select(SplitLevel).ToDictionary(r => r.name, r => r.level);
         }
         return result;
+    }
+
+    /// <summary>
+    /// Splits "Umber Collection III" into name and numeric level (arabic or roman). Requirements without a
+    /// level ("Talk to Dulin") keep their full text as name with level 1, so every level parses as a number.
+    /// </summary>
+    internal static (string name, string level) SplitLevel(string requirement)
+    {
+        var split = requirement.LastIndexOf(' ');
+        if (split < 0)
+            return (requirement, "1");
+        var last = requirement[(split + 1)..];
+        if (int.TryParse(last, out _))
+            return (requirement[..split], last);
+        if (TryParseRoman(last, out var roman))
+            return (requirement[..split], roman.ToString());
+        return (requirement, "1");
+    }
+
+    private static bool TryParseRoman(string text, out int value)
+    {
+        value = 0;
+        var previous = 0;
+        for (var i = text.Length - 1; i >= 0; i--)
+        {
+            var digit = text[i] switch { 'I' => 1, 'V' => 5, 'X' => 10, 'L' => 50, _ => 0 };
+            if (digit == 0)
+                return false;
+            value += digit < previous ? -digit : digit;
+            previous = Math.Max(previous, digit);
+        }
+        return text.Length > 0;
     }
 }
