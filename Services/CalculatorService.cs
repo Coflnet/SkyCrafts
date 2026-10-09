@@ -28,6 +28,20 @@ namespace Coflnet.Sky.Crafts.Services
             ["CHEAP_TUXEDO_LEGGINGS"] = 1_000_000,
         };
         /// <summary>
+        /// Conversions the item repo has no recipe for, so ingredients that can only be obtained this way
+        /// are priced by their input instead of the unmet-supply fallback.
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, ItemData> ManualConversions = new Dictionary<string, ItemData>(StringComparer.Ordinal)
+        {
+            // Feeding one Tasty Cat Food to the Siamese Lynxes yields one (non auctionable) Pre-Digestion Fish
+            ["PRE_DIGESTION_FISH"] = new ItemData
+            {
+                internalname = "PRE_DIGESTION_FISH",
+                displayname = "Pre-Digestion Fish",
+                recipe = new Recipe { A1 = "DEAD_CAT_FOOD:1", count = 1 }
+            },
+        };
+        /// <summary>
         /// Fallback per-restock npc stock used when the shop stock is unknown. Most npc shops cap the
         /// obtainable amount, so a large craft can not source unlimited base materials at npc prices.
         /// </summary>
@@ -711,7 +725,7 @@ namespace Coflnet.Sky.Crafts.Services
             public bool TryGetRecipes(string tag, out IReadOnlyList<RecipeOption> recipes)
             {
                 recipes = null;
-                if (!lookup.TryGetValue(tag, out var data))
+                if (!lookup.TryGetValue(tag, out var data) && !ManualConversions.TryGetValue(tag, out data))
                     return false;
                 var list = service.EnumerateRecipeCandidates(data)
                     .Where(c => IsRecursiveCraftCandidate(c.recipeType))
