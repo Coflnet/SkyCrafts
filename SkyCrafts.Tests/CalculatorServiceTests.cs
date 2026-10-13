@@ -136,4 +136,19 @@ public class CalculatorServiceTests
         Assert.Equal(4, firstFour.Sum(t => t.Capacity));
         Assert.Equal(4, nextFour.Sum(t => t.Capacity));
     }
+
+    [Fact]
+    public void BuildCurrentPriceUrl_AddsCountAndMinAge()
+    {
+        var url = CalculatorService.BuildCurrentPriceUrl("http://sky-api", "WITHER_LEGGINGS", 3);
+        Assert.Equal("http://sky-api/api/item/price/WITHER_LEGGINGS/current?count=3&minAgeSeconds=120", url);
+    }
+
+    [Fact]
+    public void BuildCurrentPriceUrl_EncodesTag()
+    {
+        var url = CalculatorService.BuildCurrentPriceUrl("http://sky-api", "ENCHANTED_BOOK:a b", 1);
+        Assert.Contains("/ENCHANTED_BOOK%3aa+b/current", url);
+        Assert.Contains("minAgeSeconds=120", url);
+    }
 }
