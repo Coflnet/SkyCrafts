@@ -592,12 +592,24 @@ namespace Coflnet.Sky.Crafts.Services
             });
         }
 
+        /// <summary>
+        /// Minimum age in seconds an auction house BIN must have to count towards ingredient cost.
+        /// Freshly listed underpriced BINs are sniped within seconds, so including them makes
+        /// flips look profitable that are not achievable.
+        /// </summary>
+        internal const int MinIngredientAuctionAgeSeconds = 120;
+
+        internal static string BuildCurrentPriceUrl(string baseUrl, string itemTag, long count)
+        {
+            return $"{baseUrl}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}&minAgeSeconds={MinIngredientAuctionAgeSeconds}";
+        }
+
         protected virtual async Task<PriceResponse> GetPriceFor(string itemTag, long count)
         {
             var baseUrl = config["API_BASE_URL"];
             if (baseUrl == "https://sky.coflnet.com")
                 await Task.Delay(600); // avoid rate limiting
-            var url = $"{config["API_BASE_URL"]}/api/item/price/{System.Web.HttpUtility.UrlEncode(itemTag)}/current?count={count}";
+            var url = BuildCurrentPriceUrl(config["API_BASE_URL"], itemTag, count);
             var response = await client.GetStringAsync(url);
             if (string.IsNullOrEmpty(response))
             {
