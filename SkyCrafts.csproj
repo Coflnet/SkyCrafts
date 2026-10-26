@@ -27,7 +27,7 @@
     <PackageReference Include="Coflnet.Sky.Bazaar.Client" Version="0.11.0" />
     <PackageReference Include="Coflnet.Sky.Bazaar.Flipper.Client" Version="0.7.0" />
     <PackageReference Include="Coflnet.Sky.PlayerState.Client" Version="0.19.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.1" />
   </ItemGroup>
 
 </Project>
