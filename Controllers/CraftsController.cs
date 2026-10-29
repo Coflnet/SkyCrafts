@@ -109,7 +109,10 @@ namespace Coflnet.Sky.Crafts.Controllers
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<Recipe> GetRecipe(string itemTag)
         {
-            return await craftingRecipeService.GetRecipe(itemTag);
+            // synthetic items (e.g. ENCHANTMENT_LUCK_5 anvil recipes) have no NEU file, use the loaded lookup
+            var loaded = updaterService.GetRecipe(itemTag);
+            return await craftingRecipeService.GetRecipe(itemTag)
+                ?? loaded?.recipe ?? loaded?.recipes?.FirstOrDefault();
         }
         /// <summary>
         /// Returns true if all items been calculated once.

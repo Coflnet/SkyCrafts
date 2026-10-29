@@ -182,10 +182,10 @@ namespace Coflnet.Sky.Crafts.Services
                     var result = await calculatorService.GetCreaftingCost(item, lookup, BazaarItems);
                     var tag = result.ItemId;
 
-                    if (item.displayname == "§fEnchanted Book")
-                    {
-                        tag = CorrectEnchantTagAndAddLvl5(item, result);
-                    }
+                    if (!double.IsFinite(result.CraftCost) || !double.IsFinite(result.SellPrice))
+                        return; // NaN/Infinity can not be serialized
+                    if (result.Type == EnchantBookRecipes.AnvilType && result.Unobtainable)
+                        return; // anvil book built from books nobody can obtain, cost would be a sentinel
                     await TryAddmedianAndVolume(result, tag);
                     Crafts[tag] = result;
                     await skillService.AssignRequirements(item, result, Crafts);
@@ -258,37 +258,6 @@ namespace Coflnet.Sky.Crafts.Services
                     throw;
                 }
             }
-        }
-
-        private string CorrectEnchantTagAndAddLvl5(ItemData item, ProfitableCraft result)
-        {
-            string tag = "ENCHANTMENT_" + item.internalname.Replace(";", "_");
-            result.ItemId = tag;
-            result.ItemName = item.lore.FirstOrDefault() ?? item.displayname;
-            // scale up to lvl 5
-            var baselevel = int.Parse(tag.Split("_").Last());
-            var lvl5Tag = tag.Replace(baselevel.ToString(), "5");
-            var booksRequired = (int)Math.Pow(2, 5 - baselevel);
-            var adjustedName = (item.lore.FirstOrDefault() ?? item.displayname);
-
-            var lvl5Result = new ProfitableCraft()
-            {
-                Ingredients = new List<Ingredient>(){new(){
-                                Cost = result.CraftCost * booksRequired,
-                                Count = booksRequired,
-                                ItemId = tag
-                            }},
-                CraftCost = result.CraftCost * booksRequired,
-                ItemId = lvl5Tag,
-                ItemName = adjustedName.Substring(0, adjustedName.LastIndexOf(' ')) + " V",
-                SellPrice = result.SellPrice,
-                Type = result.Type
-            };
-            if (lvl5Result != null)
-                Crafts[lvl5Tag] = lvl5Result;
-            else
-                logger.LogInformation("lvl5Result is null for " + tag);
-            return tag;
         }
 
         internal ItemData GetRecipe(string itemTag)

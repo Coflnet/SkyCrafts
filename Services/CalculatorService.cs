@@ -293,6 +293,7 @@ namespace Coflnet.Sky.Crafts.Services
             result.BuyOrderCraftCost = chosenPerUnitCost;
             result.ForgeTimeCost = chosenForgeTimeCost;
             result.Ingredients = chosen.ingredients;
+            result.Unobtainable = !double.IsFinite(chosenPerUnitCost) || chosen.ingredients.Any(i => i.Unobtainable);
             var itemPrice = await sellPriceTask;
             result.SellPrice = bazaarItems.Contains(result.ItemId) ? itemPrice.BuyPrice - 0.1 : itemPrice.SellPrice;
             result.Type = ResolveCraftType(chosen.recipeType, chosen.ingredients);
@@ -341,6 +342,7 @@ namespace Coflnet.Sky.Crafts.Services
                 ingredient.ForgeDuration = obtainment.ForgeDuration;
                 ingredient.ForgeTimeCost = obtainment.ForgeTimeCost;
                 ingredient.Cost = obtainment.Cost;
+                ingredient.Unobtainable = !obtainment.Enough;
                 // The genuine cost of buying this ingredient outright, so downstream can show how much
                 // crafting it saved vs. the buy alternative. Falls back to Cost when there is no viable
                 // buy alternative (obtainment.BuyCost == 0), so a bought ingredient still reports
@@ -375,29 +377,36 @@ namespace Coflnet.Sky.Crafts.Services
         /// </summary>
         internal IEnumerable<(List<Ingredient> ingredients, long yield, string recipeType)> EnumerateRecipeCandidates(ItemData item)
         {
+            // Anvil recipes (enchanted books) are an additional alternative next to any other recipe.
+            var anvilRecipes = item.recipes?.Where(r => r.type == EnchantBookRecipes.AnvilType).ToList() ?? [];
+            var otherRecipes = item.recipes?.Where(r => r.type != EnchantBookRecipes.AnvilType).ToList() ?? [];
             if (item.recipe != null)
             {
                 var ingredients = AggregateSlots(item.recipe.GetIngredients());
                 if (ingredients.Count > 0)
                     yield return (ingredients, (long)Math.Max(1, item.recipe.count), "crafting");
-                yield break;
             }
-            if (item.recipes != null && item.recipes.Count > 0 &&
-                (item.recipes[0].type == "forge" || item.recipes[0].type == "npc_shop" || item.recipes[0].type == "carpentry" || item.recipes[0].type == "malik"))
+            else if (otherRecipes.Count > 0 &&
+                (otherRecipes[0].type == "forge" || otherRecipes[0].type == "npc_shop" || otherRecipes[0].type == "carpentry" || otherRecipes[0].type == "malik"))
             {
-                var ingredients = AggregateSlots(item.recipes[0].inputs);
+                var ingredients = AggregateSlots(otherRecipes[0].inputs);
                 if (ingredients.Count > 0)
-                    yield return (ingredients, (long)Math.Max(1, item.recipes[0].count), item.recipes[0].type);
-                yield break;
+                    yield return (ingredients, (long)Math.Max(1, otherRecipes[0].count), otherRecipes[0].type);
             }
-            if (item.recipes != null && item.recipes.Count > 0 && item.recipes.All(r => r.type == "crafting"))
+            else if (otherRecipes.Count > 0 && otherRecipes.All(r => r.type == "crafting"))
             {
-                foreach (var recipe in item.recipes)
+                foreach (var recipe in otherRecipes)
                 {
                     var ingredients = AggregateSlots(recipe.GetIngredients());
                     if (ingredients.Count > 0)
                         yield return (ingredients, (long)Math.Max(1, recipe.count), "crafting");
                 }
+            }
+            foreach (var recipe in anvilRecipes)
+            {
+                var ingredients = AggregateSlots(recipe.inputs);
+                if (ingredients.Count > 0)
+                    yield return (ingredients, (long)Math.Max(1, recipe.count), EnchantBookRecipes.AnvilType);
             }
         }
 

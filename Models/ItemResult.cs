@@ -19,6 +19,10 @@ namespace Coflnet.Sky.Crafts.Models
         public string Type { get; set; }
         public double Volume { get; set; }
         public float Median { get; set; }
+        /// <summary>True when the chosen recipe needs an ingredient that can not be obtained (cost is a sentinel). Not serialized.</summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public bool Unobtainable { get; set; }
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     }
 

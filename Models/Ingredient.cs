@@ -48,6 +48,11 @@ namespace Coflnet.Sky.Crafts.Models
         public double InstaBuyUnitPrice { get; set; }
 
 
+        /// <summary>True when the market/recipes could not supply this ingredient (priced with the sentinel fallback). Not serialized.</summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public bool Unobtainable { get; set; }
+
         public static implicit operator Ingredient(string tag)
         {
             return new Ingredient()
