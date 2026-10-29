@@ -17,6 +17,7 @@ public static class EnchantBookRecipes
     public const string AnvilType = "anvil";
     private const string TagPrefix = "ENCHANTMENT_";
     private static readonly Regex SourceLine = new(@"^§a([IVXLCDM]+)(?:-([IVXLCDM]+))?: ", RegexOptions.Compiled);
+    private static readonly Regex BulletSourceLine = new(@"^ §7- .+ \(§a([IVXLCDM]+)(?:-([IVXLCDM]+))?§7\)$", RegexOptions.Compiled);
 
     /// <summary>True for NEU enchanted book items that carry a <c>NAME;LVL</c> internalname.</summary>
     public static bool IsLevelBook(ItemData item)
@@ -78,8 +79,8 @@ public static class EnchantBookRecipes
     }
 
     /// <summary>
-    /// Level ranges from the lore "§6Source:" section. Lines not starting with
-    /// "§a&lt;roman&gt;[-&lt;roman&gt;]: " are continuation lines and ignored.
+    /// Level ranges from legacy "§6Source:" or current "§6Sources:" lore.
+    /// Supports legacy range prefixes and current source bullets with a range in parentheses.
     /// </summary>
     public static List<(int from, int to)> ParseSourceRanges(IEnumerable<string> lore)
     {
@@ -89,12 +90,14 @@ public static class EnchantBookRecipes
         {
             if (!inSource)
             {
-                inSource = line != null && line.StartsWith("§6Source:");
+                inSource = line != null && (line.StartsWith("§6Source:") || line.StartsWith("§6Sources:"));
                 continue;
             }
             if (string.IsNullOrWhiteSpace(line))
                 break;
             var match = SourceLine.Match(line);
+            if (!match.Success)
+                match = BulletSourceLine.Match(line);
             if (!match.Success)
                 continue;
             var from = ParseRoman(match.Groups[1].Value);

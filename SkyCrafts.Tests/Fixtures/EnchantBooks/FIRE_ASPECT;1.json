@@ -1,0 +1,25 @@
+{
+  "itemid": "minecraft:enchanted_book",
+  "displayname": "§fEnchanted Book",
+  "internalname": "FIRE_ASPECT;1",
+  "lore": [
+    "§8Combinable in Anvil",
+    "",
+    "§9Fire Aspect I",
+    "§7Ignites your enemies for §a3s§7,",
+    "§7dealing §a3% §7of your damage",
+    "§7per second.",
+    "",
+    "§6Sources:",
+    " §7- Enchantment Table (§aI-II§7)",
+    " §7- Inferno Demonlord (§aIII§7)",
+    " §7- Bazaar (§aIII§7)",
+    "",
+    "§6Applied To:",
+    " §7- §fSword",
+    " §7- §fLongsword",
+    " §7- §fGauntlet",
+    "",
+    "§f§lCOMMON"
+  ]
+}
