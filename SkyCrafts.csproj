@@ -23,6 +23,8 @@
   </ItemGroup>
   
   <ItemGroup>
+    <InternalsVisibleTo Include="SkyCrafts.Tests" />
+    <PackageReference Include="Coflnet.Core" Version="0.7.5" />
     <PackageReference Include="Coflnet.Sky.Api.Client" Version="0.8.0" />
     <PackageReference Include="Coflnet.Sky.Bazaar.Client" Version="0.11.0" />
     <PackageReference Include="Coflnet.Sky.Bazaar.Flipper.Client" Version="0.7.0" />
