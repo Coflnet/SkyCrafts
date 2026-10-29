@@ -13,6 +13,7 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
 {
     public IEnumerable<ItemData> CraftAbleItems()
     {
+        var levelBooks = new List<ItemData>();
         foreach (var itemPath in Directory.EnumerateFiles("itemData/items"))
         {
             ItemData item = null;
@@ -24,6 +25,12 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
             {
                 Console.WriteLine("Error on: " + itemPath);
                 Console.WriteLine(e);
+            }
+            if (EnchantBookRecipes.IsLevelBook(item))
+            {
+                // enchanted books are normalized and get anvil recipes once all levels are known
+                levelBooks.Add(item);
+                continue;
             }
             // item needs to have a dedicated recipe
             if (item?.recipe != null || item?.recipes != null && item.recipes.Count > 0 && (item.recipes[0].type == "forge" || item.recipes[0].type == "crafting"))
@@ -41,6 +48,8 @@ public class CraftingRecipeService(HypixelItemService itemService, PlayerState.C
                 }
             }
         }
+        foreach (var book in EnchantBookRecipes.PrepareCraftableBooks(levelBooks))
+            yield return book;
         var carpentry = JsonSerializer.Deserialize<Dictionary<string, List<Ingredient>>>(File.ReadAllText("Data/carpentry.json"));
         foreach (var recipe in carpentry)
         {
