@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SkyCrafts.csproj" />
+    <None Update="Fixtures/EnchantBooks/*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

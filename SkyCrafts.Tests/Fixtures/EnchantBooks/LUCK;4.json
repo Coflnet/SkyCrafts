@@ -1,0 +1,29 @@
+{
+  "itemid": "minecraft:enchanted_book",
+  "displayname": "§fEnchanted Book",
+  "internalname": "LUCK;4",
+  "lore": [
+    "§8Combinable in Anvil",
+    "",
+    "§9Luck IV",
+    "§7Increases the chance for",
+    "§7Monsters to drop their armor by",
+    "§a20%",
+    "",
+    "§6Sources:",
+    " §7- Enchantment Table (§aI-V§7)",
+    " §7- Season of Jerry (§aVI§7)",
+    " §7- Experiments (§aVI-VII§7)",
+    " §7- Bazaar (§aVI-VII§7)",
+    "",
+    "§6Applied To:",
+    " §7- §fSword",
+    " §7- §fLongsword",
+    " §7- §fGauntlet",
+    "",
+    "§6Requirements:",
+    " §7- §bEnchanting Level 3",
+    "",
+    "§f§lCOMMON"
+  ]
+}

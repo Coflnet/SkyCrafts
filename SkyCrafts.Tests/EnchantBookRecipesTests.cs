@@ -64,6 +64,17 @@ public class EnchantBookRecipesTests
     }
 
     [Fact]
+    public void ParseSourceRanges_HandlesPluralBulletSourcesAndStopsAtNextSection()
+    {
+        var lore = new[]
+        {
+            "§6Sources:", " §7- Enchantment Table (§aI-V§7)", " §7- Season of Jerry (§aVI§7)",
+            "§7A continuation line", "", "§6Applied To:", " §7- Not a source (§aVII-X§7)"
+        };
+        Assert.Equal([(1, 5), (6, 6)], EnchantBookRecipes.ParseSourceRanges(lore));
+    }
+
+    [Fact]
     public void ParseSourceRanges_NoSourceSection_IsEmpty()
         => Assert.Empty(EnchantBookRecipes.ParseSourceRanges(["§8Combinable in Anvil", "", "§9Scuba I"]));
 
@@ -133,22 +144,19 @@ public class EnchantBookRecipesTests
     [InlineData("LUCK", 5, new[] { 2, 3, 4, 5 })]
     [InlineData("ULTIMATE_WISE", 5, new[] { 2, 3, 4, 5 })]
     [InlineData("FIRE_ASPECT", 3, new[] { 2 })]
-    public void RealItemData_MatchesExpectedLevels(string name, int maxLevel, int[] expected)
+    public void PinnedItemData_MatchesExpectedLevels(string name, int maxLevel, int[] expected)
     {
-        var dir = FindItemDir();
-        if (dir == null)
-            return; // item repo not cloned
-        var books = Enumerable.Range(1, maxLevel).Select(l => Path.Combine(dir, $"{name};{l}.json")).Where(File.Exists)
-            .Select(p => JsonSerializer.Deserialize<ItemData>(File.ReadAllText(p))).ToList();
+        var dir = Path.Combine(AppContext.BaseDirectory, "Fixtures", "EnchantBooks");
+        var books = Enumerable.Range(1, maxLevel)
+            .Select(level =>
+            {
+                var book = Assert.IsType<ItemData>(JsonSerializer.Deserialize<ItemData>(
+                    File.ReadAllText(Path.Combine(dir, $"{name};{level}.json"))));
+                Assert.Equal("minecraft:enchanted_book", book.itemid);
+                Assert.Equal($"{name};{level}", book.internalname);
+                return book;
+            }).ToList();
         Assert.Equal(expected, AnvilLevels(books));
-    }
-
-    private static string FindItemDir()
-    {
-        var dir = AppContext.BaseDirectory;
-        while (dir != null && !Directory.Exists(Path.Combine(dir, "itemData", "items")))
-            dir = Path.GetDirectoryName(dir);
-        return dir == null ? null : Path.Combine(dir, "itemData", "items");
     }
 
     private static ItemData LuckLikeBook(int level)
