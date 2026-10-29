@@ -7,6 +7,7 @@ COPY SkyCrafts.csproj SkyCrafts.csproj
 RUN dotnet restore
 RUN git clone --depth=1 https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO.git itemData
 COPY . .
+RUN dotnet test --project SkyCrafts.Tests/SkyCrafts.Tests.csproj
 RUN dotnet publish -c release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0

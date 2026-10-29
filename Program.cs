@@ -1,4 +1,5 @@
 using Coflnet.Security.OpenBao;
+using Coflnet.Sky.Crafts.Infrastructure;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -17,7 +18,7 @@ namespace Coflnet.Sky.Crafts
                 .ConfigureAppConfiguration((_, config) => config.AddOpenBaoFromEnvironment())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>().ConfigureTransportSecurity();
                 });
     }
 }
