@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Coflnet.Sky.Api.Client.Api;
 using Coflnet.Sky.Crafts.Models;
@@ -92,7 +93,7 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         lookup.Add("Coins", "SKYBLOCK_COINS");
         lookup.Add("Coin", "SKYBLOCK_COINS");
         var reverseLookup = names.ToDictionary(n => n.Tag, n => n.Name);
-        foreach (var item in allItems.Where(n => n.NpcName != "Featured Update Items") // ignore alpha server
+        foreach (var item in allItems.Where(n => NormalizeNpcName(n.NpcName) != "FEATURED UPDATE ITEMS") // ignore alpha server
             .GroupBy(i => i.ItemTag).Select(g => g.OrderByDescending(i => i.Stock + (i.Costs.Any(c => c.Key.Contains('.')) ? -1000 : 0)).First()))
         {
             if (item.Description.Contains("Soulbound"))
@@ -120,17 +121,25 @@ public class NpcBuyService(IItemsApi playerItemsApi, IItemApi apiItemsApi, IPric
         }
     }
 
+    private static string NormalizeNpcName(string name)
+    {
+        if (name == null)
+            return null;
+        var unpaged = Regex.Replace(name.Trim(), @"^\(\d+/\d+\)\s*", "");
+        return Regex.Replace(unpaged.Trim(), @"\s+", " ").ToUpperInvariant();
+    }
+
     private static string GetNpcWikiName(PlayerState.Client.Model.NpcCost item)
     {
-        return item.NpcName switch
+        return NormalizeNpcName(item.NpcName) switch
         {
-            "Mage Shop" => "Mage Emissary",
-            "Barbarian Shop" => "Barbarian Emissary",
-            "Brynmor's Shop" => "Brynmor",
-            "Green Thumb" => "Builder",
-            var s when s != null && s.StartsWith("Rusty") => "Rusty",
-            var s when s != null && s.StartsWith("SkyMart") => "SkyMart",
-            "Master Tactician" => "Master Tactician Funk",
+            "MAGE SHOP" => "Mage Emissary",
+            "BARBARIAN SHOP" => "Barbarian Emissary",
+            "BRYNMOR'S SHOP" => "Brynmor",
+            "GREEN THUMB" => "Builder",
+            var s when s != null && s.StartsWith("RUSTY", StringComparison.Ordinal) => "Rusty",
+            var s when s != null && s.StartsWith("SKYMART", StringComparison.Ordinal) => "SkyMart",
+            "MASTER TACTICIAN" => "Master Tactician Funk",
             "" => item.ItemTag switch
             {
                 "HYPER_CLEAVER" => "Ophelia",
