@@ -101,9 +101,12 @@ namespace Coflnet.Sky.Crafts.Services
             };
         }
 
+        private static readonly DateTime AuraStart = new(2025, 11, 20);
+        private static readonly DateTime AuraEnd = new(2025, 12, 31);
+
         /// <summary>
         /// Applies the Aura mayor modifier to the upgrade cost.
-        /// Aura increases Kat upgrade costs by 50% from November 20 to December 31.
+        /// Aura increased Kat upgrade costs by 50% from November 20 to December 31, 2025.
         /// </summary>
         /// <param name="baseCost">The base upgrade cost</param>
         /// <returns>The cost with Aura modifier applied if active</returns>
@@ -117,18 +120,14 @@ namespace Coflnet.Sky.Crafts.Services
         }
 
         /// <summary>
-        /// Checks if the Aura mayor is currently active.
-        /// Aura is active from November 20 to December 31.
+        /// Checks if the Aura mayor is active at the given time (defaults to now).
+        /// Aura's term was a single event and does not recur yearly.
         /// </summary>
         /// <returns>True if Aura mayor is active, false otherwise</returns>
-        private static bool IsAuraMayorActive()
+        private static bool IsAuraMayorActive(DateTime? now = null)
         {
-            var now = DateTime.Now;
-            var year = now.Year;
-            var auraStart = new DateTime(year, 11, 20);
-            var auraEnd = new DateTime(year, 12, 31);
-            
-            return now >= auraStart && now <= auraEnd;
+            var dt = now ?? DateTime.Now;
+            return dt >= AuraStart && dt <= AuraEnd;
         }
 
         private async Task<List<Api.Client.Model.SaveAuction>> GetActiveBins(string itemTag, Api.Client.Model.Tier rarity)
@@ -202,15 +201,11 @@ namespace Coflnet.Sky.Crafts.Services
         }
 
         /// <summary>
-        /// Returns the Aura multiplier for the given date (1.5 during Nov 20 - Dec 31, otherwise 1.0).
+        /// Returns the Aura multiplier for the given date (1.5 during Aura's term, otherwise 1.0).
         /// </summary>
         private static double GetAuraMultiplier(DateTime? now = null)
         {
-            var dt = now ?? DateTime.Now;
-            var year = dt.Year;
-            var auraStart = new DateTime(year, 11, 20);
-            var auraEnd = new DateTime(year, 12, 31);
-            return dt >= auraStart && dt <= auraEnd ? 1.5 : 1.0;
+            return IsAuraMayorActive(now) ? 1.5 : 1.0;
         }
 
         

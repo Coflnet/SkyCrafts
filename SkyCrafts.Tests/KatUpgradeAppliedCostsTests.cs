@@ -23,7 +23,7 @@ namespace SkyCrafts.Tests
         {
             var svc = CreateService();
             var baseCosts = (await svc.GetKatUpgradeCosts()).ToList();
-            var testDate = new DateTime(DateTime.Now.Year, 12, 1); // within Aura period
+            var testDate = new DateTime(2025, 12, 1); // within Aura period
             var modified = (await svc.GetKatUpgradeCostsWithAppliedMultipliers(testDate)).ToList();
 
             Assert.Equal(baseCosts.Count, modified.Count);
@@ -47,6 +47,21 @@ namespace SkyCrafts.Tests
             {
                 Assert.Equal(baseCosts[i].Cost, modified[i].Cost);
             }
+        }
+
+        [Fact]
+        public async Task GetKatUpgradeCostsWithAppliedMultipliers_KeepsScathaBaseCost_AfterAuraEnded()
+        {
+            var svc = CreateService();
+            var reportDate = new DateTime(2026, 11, 21);
+
+            var scatha = (await svc.GetKatUpgradeCostsWithAppliedMultipliers(reportDate))
+                .Where(c => c.Name == "Scatha")
+                .ToDictionary(c => c.BaseRarity, c => c.Cost);
+
+            // A level 100 pet gets 30% off in game: 87.5m for rare to epic, 175m for epic to legendary.
+            Assert.Equal(125_000_000, scatha[Coflnet.Sky.Api.Client.Model.Tier.RARE]);
+            Assert.Equal(250_000_000, scatha[Coflnet.Sky.Api.Client.Model.Tier.EPIC]);
         }
     }
 }
