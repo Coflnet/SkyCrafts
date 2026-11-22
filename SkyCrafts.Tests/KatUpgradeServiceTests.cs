@@ -35,4 +35,20 @@ public class KatUpgradeServiceTests
         Assert.Equal("SUMMONING_EYE", upgrade.Material);
         Assert.Equal(8, upgrade.Amount);
     }
+
+    [Fact]
+    public async Task RawKatDataReturnsScathaBaseCosts()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["API_BASE_URL"] = "https://sky.coflnet.com" })
+            .Build();
+        var service = new KatUpgradeService(configuration, NullLogger<KatUpgradeService>.Instance);
+        var controller = new KatController(NullLogger<KatController>.Instance, service);
+
+        var upgrades = await controller.GetUpgradeData();
+
+        // A level 100 pet gets 30% off in game: 87.5m for rare to epic, 175m for epic to legendary.
+        Assert.Equal(125_000_000, Assert.Single(upgrades, c => c.Name == "Scatha" && c.BaseRarity == Tier.RARE).Cost);
+        Assert.Equal(250_000_000, Assert.Single(upgrades, c => c.Name == "Scatha" && c.BaseRarity == Tier.EPIC).Cost);
+    }
 }
